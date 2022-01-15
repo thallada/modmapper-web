@@ -8,6 +8,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/javascript-color-gradient": "^1.3.0",
     "javascript-color-gradient": "^1.3.2",
     "mapbox-gl": "^2.6.1",
     "next": "12.0.8",
