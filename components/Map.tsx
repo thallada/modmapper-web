@@ -1,20 +1,24 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import Gradient from "javascript-color-gradient";
-import mapboxgl from "!mapbox-gl"; // eslint-disable-line import/no-webpack-loader-syntax
+import mapboxgl from "mapbox-gl";
 
 import styles from "../styles/Map.module.css";
 import cellModEdits from "../data/cellModEditCounts.json";
 import ToggleLayersControl from "./ToggleLayersControl";
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
 const colorGradient = new Gradient();
 colorGradient.setGradient("#888888", "#00FF00", "#FFFF00", "#FF0000");
 colorGradient.setMidpoint(300);
 
 const Map = () => {
-  const mapContainer = useRef(null);
-  const map = useRef(null);
+  const mapContainer = useRef<HTMLDivElement | null>(
+    null
+  ) as React.MutableRefObject<HTMLDivElement>;
+  const map = useRef<mapboxgl.Map | null>(
+    null
+  ) as React.MutableRefObject<mapboxgl.Map>;
 
   useEffect(() => {
     if (map.current) return; // initialize map only once
@@ -57,7 +61,10 @@ const Map = () => {
       var viewportNW = map.current.project([-180, 85.051129]);
       var cellSize = Math.pow(2, zoom + 2);
 
-      const graticule = {
+      const graticule: GeoJSON.FeatureCollection<
+        GeoJSON.Geometry,
+        GeoJSON.GeoJsonProperties
+      > = {
         type: "FeatureCollection",
         features: [],
       };
@@ -104,7 +111,10 @@ const Map = () => {
         source: "graticule",
       });
 
-      const gridLabelPoints = {
+      const gridLabelPoints: GeoJSON.FeatureCollection<
+        GeoJSON.Geometry,
+        GeoJSON.GeoJsonProperties
+      > = {
         type: "FeatureCollection",
         features: [],
       };
@@ -153,7 +163,10 @@ const Map = () => {
         "graticule"
       );
 
-      const grid = {
+      const grid: GeoJSON.FeatureCollection<
+        GeoJSON.Geometry,
+        GeoJSON.GeoJsonProperties
+      > = {
         type: "FeatureCollection",
         features: [],
       };
@@ -175,7 +188,9 @@ const Map = () => {
             x * cellSize + viewportNW.x,
             y * cellSize + viewportNW.y + cellSize,
           ]);
-          const editCount = cellModEdits[`${x - 57},${50 - y}`];
+          const editCount = (cellModEdits as Record<string, number>)[
+            `${x - 57},${50 - y}`
+          ];
           grid.features.push({
             type: "Feature",
             geometry: {
@@ -226,7 +241,7 @@ const Map = () => {
     });
 
     map.current.on("click", "grid-layer", (e) => {
-      console.log(e.features[0]);
+      console.log(e.features && e.features[0]);
     });
   });
 

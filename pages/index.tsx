@@ -2,14 +2,13 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-import styles from "../styles/Home.module.css";
 import Map from "../components/Map";
 
 const Home: NextPage = () => {
   return (
     <>
       <Head>
-        <meta charset="utf-8" />
+        <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Modmapper</title>
         <meta name="description" content="Map of Skyrim mods" />

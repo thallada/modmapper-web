@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import type mapboxgl from "mapbox-gl";
 
 import styles from "../styles/ToggleLayersControl.module.css";
 
@@ -19,7 +20,7 @@ const ToggleLayersControl: React.FC<Props> = ({ map }) => {
         heatmapVisible ? "visible" : "none"
       );
     }
-  }, [heatmapVisible]);
+  }, [map, heatmapVisible]);
   useEffect(() => {
     if (map.current && map.current.isStyleLoaded()) {
       map.current.setLayoutProperty(
@@ -28,7 +29,7 @@ const ToggleLayersControl: React.FC<Props> = ({ map }) => {
         gridVisible ? "visible" : "none"
       );
     }
-  }, [gridVisible]);
+  }, [map, gridVisible]);
   useEffect(() => {
     if (map.current && map.current.isStyleLoaded()) {
       map.current.setLayoutProperty(
@@ -37,7 +38,7 @@ const ToggleLayersControl: React.FC<Props> = ({ map }) => {
         labelsVisible ? "visible" : "none"
       );
     }
-  }, [labelsVisible]);
+  }, [map, labelsVisible]);
 
   return (
     <div className="mapboxgl-ctrl-top-left">
@@ -63,7 +64,6 @@ const ToggleLayersControl: React.FC<Props> = ({ map }) => {
         <button
           type="button"
           onClick={() => setLabelsVisible(!labelsVisible)}
-          className={styles["labels-toggle"]}
           className={`${styles["labels-toggle"]} ${
             !labelsVisible ? styles["toggle-off"] : ""
           }`}
