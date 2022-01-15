@@ -1,0 +1,39 @@
+.toggle-layers-control {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.heatmap-toggle {
+  padding: 5px !important;
+}
+
+.heatmap-toggle span {
+  background-image: url(/img/heatmap.svg);
+}
+
+.grid-toggle {
+  padding: 4px !important;
+}
+
+.grid-toggle span {
+  background-image: url(/img/grid.svg);
+}
+
+.labels-toggle {
+  padding: 4px !important;
+}
+
+.labels-toggle span {
+  background-image: url(/img/labels.svg);
+}
+
+.toggle-off {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+.toggle-off:hover {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+}
