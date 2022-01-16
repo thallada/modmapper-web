@@ -1,9 +1,10 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import Gradient from "javascript-color-gradient";
 import mapboxgl from "mapbox-gl";
 
 import styles from "../styles/Map.module.css";
 import cellModEdits from "../data/cellModEditCounts.json";
+import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
@@ -12,13 +13,14 @@ const colorGradient = new Gradient();
 colorGradient.setGradient("#888888", "#00FF00", "#FFFF00", "#FF0000");
 colorGradient.setMidpoint(300);
 
-const Map = () => {
+const Map: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLDivElement>;
   const map = useRef<mapboxgl.Map | null>(
     null
   ) as React.MutableRefObject<mapboxgl.Map>;
+  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     if (map.current) return; // initialize map only once
@@ -33,8 +35,6 @@ const Map = () => {
             tileSize: 256,
             attribution:
               'Map tiles by <a href="https://en.uesp.net/wiki/Skyrim:Skyrim">UESP</a>',
-            minzoom: 1,
-            maxzoom: 8,
           },
         },
         layers: [
@@ -48,9 +48,9 @@ const Map = () => {
       },
       center: [0, 0],
       zoom: 0,
-      minZoom: -2,
+      minZoom: 0,
       maxZoom: 8,
-      renderWorldCopies: false,
+      maxBounds: [[-180, -85.051129], [180, 85.051129]]
     });
   });
 
@@ -160,7 +160,6 @@ const Map = () => {
           },
           minzoom: 4,
         },
-        "graticule"
       );
 
       const grid: GeoJSON.FeatureCollection<
@@ -208,14 +207,14 @@ const Map = () => {
             properties: {
               x: x,
               y: y,
-              cell: [x - 57, 50 - y],
+              cellX: x - 57,
+              cellY: 50 - y,
               label: `${x - 57}, ${50 - y}`,
               color: editCount ? colorGradient.getColor(editCount) : "#888888",
             },
           });
         }
       }
-      console.log(grid);
 
       map.current.addSource("grid-source", {
         type: "geojson",
@@ -241,15 +240,22 @@ const Map = () => {
     });
 
     map.current.on("click", "grid-layer", (e) => {
-      console.log(e.features && e.features[0]);
+      if (e.features && e.features[0]) {
+        const cell: [number, number] = [e.features[0].properties!.cellX, e.features[0].properties!.cellY];
+        setSelectedCell(cell);
+        map.current.resize();
+      }
     });
-  });
+  }, [setSelectedCell]);
 
   return (
-    <div>
-      <div ref={mapContainer} className={styles["map-container"]} />
-      <ToggleLayersControl map={map} />
-    </div>
+    <>
+      <Sidebar selectedCell={selectedCell} setSelectedCell={setSelectedCell} map={map} />
+      <div className={`${styles["map-wrapper"]} ${selectedCell ? styles["map-wrapper-sidebar-open"] : ""}`}>
+        <div ref={mapContainer} className={styles["map-container"]} />
+        <ToggleLayersControl map={map} />
+      </div>
+    </>
   );
 };
 
