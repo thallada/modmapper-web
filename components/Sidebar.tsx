@@ -11,6 +11,7 @@ type Props = {
 const Sidebar: React.FC<Props> = ({ selectedCell, setSelectedCell, map }) => {
   const onClose = () => {
     setSelectedCell(null);
+    if (map.current) map.current.removeFeatureState({ source: "grid-source" });
     requestAnimationFrame(() => { if (map.current) map.current.resize() });
   }
 

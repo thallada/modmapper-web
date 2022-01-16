@@ -192,6 +192,7 @@ const Map: React.FC = () => {
           ];
           grid.features.push({
             type: "Feature",
+            id: x * 100 + y,
             geometry: {
               type: "Polygon",
               coordinates: [
@@ -228,8 +229,18 @@ const Map: React.FC = () => {
           source: "grid-source",
           paint: {
             "fill-color": ["get", "color"],
-            "fill-opacity": 0.25,
-            "fill-outline-color": "transparent",
+            "fill-opacity": [
+              "case",
+              ["boolean", ["feature-state", "selected"], false],
+              0.5,
+              0.25,
+            ],
+            "fill-outline-color": [
+              "case",
+              ["boolean", ["feature-state", "selected"], false],
+              "white",
+              "transparent",
+            ]
           },
         },
         "grid-labels-layer"
@@ -242,6 +253,13 @@ const Map: React.FC = () => {
     map.current.on("click", "grid-layer", (e) => {
       if (e.features && e.features[0]) {
         const cell: [number, number] = [e.features[0].properties!.cellX, e.features[0].properties!.cellY];
+        map.current.removeFeatureState({ source: "grid-source" });
+        map.current.setFeatureState({
+          source: "grid-source",
+          id: e.features[0].id,
+        }, {
+          selected: true
+        });
         setSelectedCell(cell);
         map.current.resize();
       }
