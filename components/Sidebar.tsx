@@ -12,6 +12,12 @@ const Sidebar: React.FC<Props> = ({ selectedCell, setSelectedCell, map }) => {
   const onClose = () => {
     setSelectedCell(null);
     if (map.current) map.current.removeFeatureState({ source: "grid-source" });
+    if (map.current && map.current.getLayer("selected-cell-layer")) {
+      map.current.removeLayer("selected-cell-layer");
+    }
+    if (map.current && map.current.getSource("selected-cell-source")) {
+      map.current.removeSource("selected-cell-source");
+    }
     requestAnimationFrame(() => { if (map.current) map.current.resize() });
   }
 

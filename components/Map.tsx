@@ -262,6 +262,70 @@ const Map: React.FC = () => {
         });
         setSelectedCell(cell);
         map.current.resize();
+
+        var zoom = map.current.getZoom();
+        var viewportNW = map.current.project([-180, 85.051129]);
+        var cellSize = Math.pow(2, zoom + 2);
+        const x = e.features[0].properties!.x;
+        const y = e.features[0].properties!.y;
+        let nw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y,
+        ]);
+        let ne = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y,
+        ]);
+        let se = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        let sw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        const selectedCellLines: GeoJSON.FeatureCollection<
+          GeoJSON.Geometry,
+          GeoJSON.GeoJsonProperties
+        > = {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              geometry: {
+                type: "LineString",
+                coordinates: [
+                  [nw.lng, nw.lat],
+                  [ne.lng, ne.lat],
+                  [se.lng, se.lat],
+                  [sw.lng, sw.lat],
+                  [nw.lng, nw.lat],
+                ],
+              },
+              properties: { x: x, y: y },
+            }
+          ],
+        };
+
+        if (map.current.getLayer("selected-cell-layer")) {
+          map.current.removeLayer("selected-cell-layer");
+        }
+        if (map.current.getSource("selected-cell-source")) {
+          map.current.removeSource("selected-cell-source");
+        }
+        map.current.addSource("selected-cell-source", {
+          type: "geojson",
+          data: selectedCellLines,
+        });
+        map.current.addLayer({
+          id: "selected-cell-layer",
+          type: "line",
+          source: "selected-cell-source",
+          paint: {
+            "line-color": "blue",
+            "line-width": 3,
+          },
+        });
       }
     });
   }, [setSelectedCell]);
