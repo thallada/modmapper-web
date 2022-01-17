@@ -15,7 +15,7 @@ const ToggleLayersControl: React.FC<Props> = ({ map }) => {
   useEffect(() => {
     if (map.current && map.current.isStyleLoaded()) {
       map.current.setLayoutProperty(
-        "grid-layer",
+        "heatmap-layer",
         "visibility",
         heatmapVisible ? "visible" : "none"
       );

@@ -10,8 +10,8 @@ import ToggleLayersControl from "./ToggleLayersControl";
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
 const colorGradient = new Gradient();
-colorGradient.setGradient("#888888", "#00FF00", "#FFFF00", "#FF0000");
-colorGradient.setMidpoint(300);
+colorGradient.setGradient("#0000FF", "#00FF00", "#FFFF00", "#FFA500", "#FF0000");
+colorGradient.setMidpoint(360);
 
 const Map: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement | null>(
@@ -212,6 +212,7 @@ const Map: React.FC = () => {
               cellY: 50 - y,
               label: `${x - 57}, ${50 - y}`,
               color: editCount ? colorGradient.getColor(editCount) : "#888888",
+              opacity: editCount ? Math.min((editCount / 150) * 0.25, 0.5) : 0,
             },
           });
         }
@@ -228,13 +229,20 @@ const Map: React.FC = () => {
           type: "fill",
           source: "grid-source",
           paint: {
+            "fill-opacity": 0,
+          },
+        },
+        "grid-labels-layer"
+      );
+
+      map.current.addLayer(
+        {
+          id: "heatmap-layer",
+          type: "fill",
+          source: "grid-source",
+          paint: {
             "fill-color": ["get", "color"],
-            "fill-opacity": [
-              "case",
-              ["boolean", ["feature-state", "selected"], false],
-              0.5,
-              0.25,
-            ],
+            "fill-opacity": ["get", "opacity"],
             "fill-outline-color": [
               "case",
               ["boolean", ["feature-state", "selected"], false],
