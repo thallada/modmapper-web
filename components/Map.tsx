@@ -1,17 +1,25 @@
 import React, { useRef, useEffect, useState } from "react";
 import Gradient from "javascript-color-gradient";
 import mapboxgl from "mapbox-gl";
+import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/Map.module.css";
-import cellModEdits from "../data/cellModEditCounts.json";
 import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
 const colorGradient = new Gradient();
-colorGradient.setGradient("#0000FF", "#00FF00", "#FFFF00", "#FFA500", "#FF0000");
+colorGradient.setGradient(
+  "#0000FF",
+  "#00FF00",
+  "#FFFF00",
+  "#FFA500",
+  "#FF0000"
+);
 colorGradient.setMidpoint(360);
+
+const jsonFetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const Map: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement | null>(
@@ -20,7 +28,14 @@ const Map: React.FC = () => {
   const map = useRef<mapboxgl.Map | null>(
     null
   ) as React.MutableRefObject<mapboxgl.Map>;
-  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
+  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
+    null
+  );
+
+  const { data, error } = useSWRImmutable(
+    "https://cells.modmapper.com/edits.json",
+    jsonFetcher
+  );
 
   useEffect(() => {
     if (map.current) return; // initialize map only once
@@ -50,16 +65,19 @@ const Map: React.FC = () => {
       zoom: 0,
       minZoom: 0,
       maxZoom: 8,
-      maxBounds: [[-180, -85.051129], [180, 85.051129]]
+      maxBounds: [
+        [-180, -85.051129],
+        [180, 85.051129],
+      ],
     });
   });
 
   useEffect(() => {
-    if (!map.current) return; // wait for map to initialize
+    if (!map.current || !data) return; // wait for map to initialize and data to load
     map.current.on("load", () => {
-      var zoom = map.current.getZoom();
-      var viewportNW = map.current.project([-180, 85.051129]);
-      var cellSize = Math.pow(2, zoom + 2);
+      const zoom = map.current.getZoom();
+      const viewportNW = map.current.project([-180, 85.051129]);
+      const cellSize = Math.pow(2, zoom + 2);
 
       const graticule: GeoJSON.FeatureCollection<
         GeoJSON.Geometry,
@@ -141,26 +159,24 @@ const Map: React.FC = () => {
         data: gridLabelPoints,
       });
 
-      map.current.addLayer(
-        {
-          id: "grid-labels-layer",
-          type: "symbol",
-          source: "grid-labels-source",
-          layout: {
-            "text-field": ["get", "label"],
-            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
-            "text-offset": [0, 0],
-            "text-anchor": "top-left",
-            "text-rotation-alignment": "map",
-          },
-          paint: {
-            "text-halo-width": 1,
-            "text-halo-blur": 3,
-            "text-halo-color": "rgba(255,255,255,0.8)",
-          },
-          minzoom: 4,
+      map.current.addLayer({
+        id: "grid-labels-layer",
+        type: "symbol",
+        source: "grid-labels-source",
+        layout: {
+          "text-field": ["get", "label"],
+          "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+          "text-offset": [0, 0],
+          "text-anchor": "top-left",
+          "text-rotation-alignment": "map",
         },
-      );
+        paint: {
+          "text-halo-width": 1,
+          "text-halo-blur": 3,
+          "text-halo-color": "rgba(255,255,255,0.8)",
+        },
+        minzoom: 4,
+      });
 
       const grid: GeoJSON.FeatureCollection<
         GeoJSON.Geometry,
@@ -187,7 +203,7 @@ const Map: React.FC = () => {
             x * cellSize + viewportNW.x,
             y * cellSize + viewportNW.y + cellSize,
           ]);
-          const editCount = (cellModEdits as Record<string, number>)[
+          const editCount = (data as Record<string, number>)[
             `${x - 57},${50 - y}`
           ];
           grid.features.push({
@@ -248,7 +264,7 @@ const Map: React.FC = () => {
               ["boolean", ["feature-state", "selected"], false],
               "white",
               "transparent",
-            ]
+            ],
           },
         },
         "grid-labels-layer"
@@ -260,14 +276,20 @@ const Map: React.FC = () => {
 
     map.current.on("click", "grid-layer", (e) => {
       if (e.features && e.features[0]) {
-        const cell: [number, number] = [e.features[0].properties!.cellX, e.features[0].properties!.cellY];
+        const cell: [number, number] = [
+          e.features[0].properties!.cellX,
+          e.features[0].properties!.cellY,
+        ];
         map.current.removeFeatureState({ source: "grid-source" });
-        map.current.setFeatureState({
-          source: "grid-source",
-          id: e.features[0].id,
-        }, {
-          selected: true
-        });
+        map.current.setFeatureState(
+          {
+            source: "grid-source",
+            id: e.features[0].id,
+          },
+          {
+            selected: true,
+          }
+        );
         setSelectedCell(cell);
         map.current.resize();
 
@@ -311,7 +333,7 @@ const Map: React.FC = () => {
                 ],
               },
               properties: { x: x, y: y },
-            }
+            },
           ],
         };
 
@@ -336,12 +358,20 @@ const Map: React.FC = () => {
         });
       }
     });
-  }, [setSelectedCell]);
+  }, [setSelectedCell, data]);
 
   return (
     <>
-      <Sidebar selectedCell={selectedCell} setSelectedCell={setSelectedCell} map={map} />
-      <div className={`${styles["map-wrapper"]} ${selectedCell ? styles["map-wrapper-sidebar-open"] : ""}`}>
+      <Sidebar
+        selectedCell={selectedCell}
+        setSelectedCell={setSelectedCell}
+        map={map}
+      />
+      <div
+        className={`${styles["map-wrapper"]} ${
+          selectedCell ? styles["map-wrapper-sidebar-open"] : ""
+        }`}
+      >
         <div ref={mapContainer} className={styles["map-container"]} />
         <ToggleLayersControl map={map} />
       </div>

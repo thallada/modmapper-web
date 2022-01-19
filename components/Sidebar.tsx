@@ -1,6 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
+import CellData from "./CellData";
 import styles from "../styles/Sidebar.module.css";
+
+interface Cell {
+  x: number;
+  y: number;
+  form_id: number;
+}
 
 type Props = {
   selectedCell: [number, number] | null;
@@ -18,14 +25,23 @@ const Sidebar: React.FC<Props> = ({ selectedCell, setSelectedCell, map }) => {
     if (map.current && map.current.getSource("selected-cell-source")) {
       map.current.removeSource("selected-cell-source");
     }
-    requestAnimationFrame(() => { if (map.current) map.current.resize() });
-  }
+    requestAnimationFrame(() => {
+      if (map.current) map.current.resize();
+    });
+  };
 
-  return selectedCell && (
-    <div className={styles.sidebar}>
-      <button className={styles.close} onClick={onClose}>✖</button>
-        <h1>Cell {selectedCell[0]}, {selectedCell[1]}</h1>
-    </div>
+  return (
+    selectedCell && (
+      <div className={styles.sidebar}>
+        <button className={styles.close} onClick={onClose}>
+          ✖
+        </button>
+        <h1>
+          Cell {selectedCell[0]}, {selectedCell[1]}
+        </h1>
+        {selectedCell && <CellData selectedCell={selectedCell} />}
+      </div>
+    )
   );
 };
 
