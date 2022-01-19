@@ -32,11 +32,9 @@ const CellModList: React.FC<Props> = ({ mods }) => {
   const counts = data
     .split("\n")
     .map((line) => line.split(",").map((count) => parseInt(count, 10)));
-  console.log(counts);
 
   const modsWithCounts: ModWithCounts[] = mods.map((mod) => {
     const modCounts = counts.find((count) => count[0] === mod.nexus_mod_id);
-    console.log(mod.nexus_mod_id, modCounts);
     return {
       ...mod,
       total_downloads: modCounts ? modCounts[1] : 0,
