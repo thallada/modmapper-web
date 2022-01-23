@@ -14,3 +14,11 @@
 .map-wrapper-sidebar-open {
   margin-left: 300px;
 }
+
+@media only screen and (max-width: 600px) {
+  .map-wrapper-sidebar-open {
+    margin-left: initial;
+    margin-bottom: 45%;
+    height: 55%;
+  }
+}

@@ -11,6 +11,16 @@
   border-right: 1px solid #222222;
 }
 
+@media only screen and (max-width: 600px) {
+  .sidebar {
+    top: initial;
+    bottom: 0;
+    left: 0;
+    height: 45%;
+    width: 100%;
+  }
+}
+
 .close {
   position: absolute;
   top: 4px;
