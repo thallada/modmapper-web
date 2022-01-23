@@ -73,7 +73,7 @@ const Map: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!map.current || !data) return; // wait for map to initialize and data to load
+    if (!data) return; // wait for map to initialize and data to load
     map.current.on("load", () => {
       const zoom = map.current.getZoom();
       const viewportNW = map.current.project([-180, 85.051129]);
