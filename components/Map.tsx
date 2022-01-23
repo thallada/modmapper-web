@@ -362,7 +362,7 @@ const Map: React.FC = () => {
             },
           });
         }
-      }, 150);
+      }, 400);
     });
 
     map.current.on("dblclick", "grid-layer", (e) => {
