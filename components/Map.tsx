@@ -272,102 +272,111 @@ const Map: React.FC = () => {
 
       map.current.addControl(new mapboxgl.FullscreenControl());
       map.current.addControl(new mapboxgl.NavigationControl());
-    });
 
-    let singleClickTimeout: NodeJS.Timeout | null = null;
-    map.current.on("click", "grid-layer", (e) => {
-      const features = e.features;
-      if (singleClickTimeout) return;
-      singleClickTimeout = setTimeout(() => {
-        singleClickTimeout = null;
-        if (features && features[0]) {
-          const cell: [number, number] = [
-            features[0].properties!.cellX,
-            features[0].properties!.cellY,
-          ];
-          map.current.removeFeatureState({ source: "grid-source" });
-          map.current.setFeatureState(
-            {
-              source: "grid-source",
-              id: features[0].id,
-            },
-            {
-              selected: true,
-            }
-          );
-          setSelectedCell(cell);
-          map.current.resize();
-
-          var zoom = map.current.getZoom();
-          var viewportNW = map.current.project([-180, 85.051129]);
-          var cellSize = Math.pow(2, zoom + 2);
-          const x = features[0].properties!.x;
-          const y = features[0].properties!.y;
-          let nw = map.current.unproject([
-            x * cellSize + viewportNW.x,
-            y * cellSize + viewportNW.y,
-          ]);
-          let ne = map.current.unproject([
-            x * cellSize + viewportNW.x + cellSize,
-            y * cellSize + viewportNW.y,
-          ]);
-          let se = map.current.unproject([
-            x * cellSize + viewportNW.x + cellSize,
-            y * cellSize + viewportNW.y + cellSize,
-          ]);
-          let sw = map.current.unproject([
-            x * cellSize + viewportNW.x,
-            y * cellSize + viewportNW.y + cellSize,
-          ]);
-          const selectedCellLines: GeoJSON.FeatureCollection<
-            GeoJSON.Geometry,
-            GeoJSON.GeoJsonProperties
-          > = {
-            type: "FeatureCollection",
-            features: [
+      let singleClickTimeout: NodeJS.Timeout | null = null;
+      map.current.on("click", "grid-layer", (e) => {
+        console.log("click");
+        const features = e.features;
+        if (singleClickTimeout) return;
+        singleClickTimeout = setTimeout(() => {
+          singleClickTimeout = null;
+          if (features && features[0]) {
+            console.log("timeout");
+            const cell: [number, number] = [
+              features[0].properties!.cellX,
+              features[0].properties!.cellY,
+            ];
+            map.current.removeFeatureState({ source: "grid-source" });
+            map.current.setFeatureState(
               {
-                type: "Feature",
-                geometry: {
-                  type: "LineString",
-                  coordinates: [
-                    [nw.lng, nw.lat],
-                    [ne.lng, ne.lat],
-                    [se.lng, se.lat],
-                    [sw.lng, sw.lat],
-                    [nw.lng, nw.lat],
-                  ],
-                },
-                properties: { x: x, y: y },
+                source: "grid-source",
+                id: features[0].id,
               },
-            ],
-          };
+              {
+                selected: true,
+              }
+            );
+            setSelectedCell(cell);
+            map.current.resize();
 
-          if (map.current.getLayer("selected-cell-layer")) {
-            map.current.removeLayer("selected-cell-layer");
-          }
-          if (map.current.getSource("selected-cell-source")) {
-            map.current.removeSource("selected-cell-source");
-          }
-          map.current.addSource("selected-cell-source", {
-            type: "geojson",
-            data: selectedCellLines,
-          });
-          map.current.addLayer({
-            id: "selected-cell-layer",
-            type: "line",
-            source: "selected-cell-source",
-            paint: {
-              "line-color": "blue",
-              "line-width": 3,
-            },
-          });
-        }
-      }, 400);
-    });
+            var zoom = map.current.getZoom();
+            var viewportNW = map.current.project([-180, 85.051129]);
+            var cellSize = Math.pow(2, zoom + 2);
+            const x = features[0].properties!.x;
+            const y = features[0].properties!.y;
+            let nw = map.current.unproject([
+              x * cellSize + viewportNW.x,
+              y * cellSize + viewportNW.y,
+            ]);
+            let ne = map.current.unproject([
+              x * cellSize + viewportNW.x + cellSize,
+              y * cellSize + viewportNW.y,
+            ]);
+            let se = map.current.unproject([
+              x * cellSize + viewportNW.x + cellSize,
+              y * cellSize + viewportNW.y + cellSize,
+            ]);
+            let sw = map.current.unproject([
+              x * cellSize + viewportNW.x,
+              y * cellSize + viewportNW.y + cellSize,
+            ]);
+            const selectedCellLines: GeoJSON.FeatureCollection<
+              GeoJSON.Geometry,
+              GeoJSON.GeoJsonProperties
+            > = {
+              type: "FeatureCollection",
+              features: [
+                {
+                  type: "Feature",
+                  geometry: {
+                    type: "LineString",
+                    coordinates: [
+                      [nw.lng, nw.lat],
+                      [ne.lng, ne.lat],
+                      [se.lng, se.lat],
+                      [sw.lng, sw.lat],
+                      [nw.lng, nw.lat],
+                    ],
+                  },
+                  properties: { x: x, y: y },
+                },
+              ],
+            };
 
-    map.current.on("dblclick", "grid-layer", (e) => {
-      if (singleClickTimeout) clearTimeout(singleClickTimeout);
-      singleClickTimeout = null;
+            if (map.current.getLayer("selected-cell-layer")) {
+              map.current.removeLayer("selected-cell-layer");
+            }
+            if (map.current.getSource("selected-cell-source")) {
+              map.current.removeSource("selected-cell-source");
+            }
+            map.current.addSource("selected-cell-source", {
+              type: "geojson",
+              data: selectedCellLines,
+            });
+            map.current.addLayer({
+              id: "selected-cell-layer",
+              type: "line",
+              source: "selected-cell-source",
+              paint: {
+                "line-color": "blue",
+                "line-width": 3,
+              },
+            });
+
+            const bounds = map.current.getBounds();
+            console.log(bounds);
+            if (!bounds.contains(nw) || !bounds.contains(se)) {
+              console.log("out of viewport, panning");
+              map.current.panTo(nw);
+            }
+          }
+        }, 200);
+      });
+
+      map.current.on("dblclick", "grid-layer", (e) => {
+        if (singleClickTimeout) clearTimeout(singleClickTimeout);
+        singleClickTimeout = null;
+      });
     });
   }, [setSelectedCell, data]);
 
