@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
 import type mapboxgl from "mapbox-gl";
 
 import styles from "../styles/ToggleLayersControl.module.css";
@@ -40,8 +41,15 @@ const ToggleLayersControl: React.FC<Props> = ({ map }) => {
     }
   }, [map, labelsVisible]);
 
-  return (
-    <div className="mapboxgl-ctrl-top-left">
+  let controlContainer;
+  if (global.document) {
+    controlContainer = global.document.querySelector(
+      ".mapboxgl-control-container .mapboxgl-ctrl-top-left"
+    );
+  }
+
+  if (controlContainer) {
+    return ReactDOM.createPortal(
       <div className="mapboxgl-ctrl mapboxgl-ctrl-group">
         <button
           type="button"
@@ -73,9 +81,11 @@ const ToggleLayersControl: React.FC<Props> = ({ map }) => {
         >
           <span className="mapboxgl-ctrl-icon" />
         </button>
-      </div>
-    </div>
-  );
+      </div>,
+      controlContainer
+    );
+  }
+  return null;
 };
 
 export default ToggleLayersControl;

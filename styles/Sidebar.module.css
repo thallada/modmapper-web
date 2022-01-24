@@ -20,6 +20,8 @@
     left: 0;
     height: 45%;
     width: 100%;
+    border-right: none;
+    border-top: 1px solid #222222;
   }
 }
 

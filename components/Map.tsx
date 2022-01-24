@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useCallback, useRef, useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import Gradient from "javascript-color-gradient";
 import mapboxgl from "mapbox-gl";
 import useSWRImmutable from "swr/immutable";
@@ -6,6 +7,7 @@ import useSWRImmutable from "swr/immutable";
 import styles from "../styles/Map.module.css";
 import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
+import SearchBar from "./SearchBar";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
@@ -22,6 +24,7 @@ colorGradient.setMidpoint(360);
 const jsonFetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const Map: React.FC = () => {
+  const router = useRouter();
   const mapContainer = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLDivElement>;
@@ -31,14 +34,159 @@ const Map: React.FC = () => {
   const mapWrapper = useRef<HTMLDivElement | null>(
     null
   ) as React.MutableRefObject<HTMLDivElement>;
-  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
-    null
-  );
+
+  const [mapLoaded, setMapLoaded] = useState<boolean>(false);
+  const [heatmapLoaded, setHeatmapLoaded] = useState<boolean>(false);
+  const [selectedCell, setSelectedCell] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const sidebarOpen = selectedCell !== null || router.query.mod !== undefined;
 
   const { data, error } = useSWRImmutable(
     "https://cells.modmapper.com/edits.json",
     jsonFetcher
   );
+
+  const selectMapCell = useCallback(
+    (cell: { x: number; y: number }) => {
+      if (!map.current) return;
+      if (map.current && !map.current.getSource("grid-source")) return;
+
+      map.current.setFeatureState(
+        {
+          source: "grid-source",
+          id: (cell.x + 57) * 100 + 50 - cell.y,
+        },
+        {
+          selected: true,
+        }
+      );
+      requestAnimationFrame(() => map.current && map.current.resize());
+
+      var zoom = map.current.getZoom();
+      var viewportNW = map.current.project([-180, 85.051129]);
+      var cellSize = Math.pow(2, zoom + 2);
+      const x = cell.x + 57;
+      const y = 50 - cell.y;
+      let nw = map.current.unproject([
+        x * cellSize + viewportNW.x,
+        y * cellSize + viewportNW.y,
+      ]);
+      let ne = map.current.unproject([
+        x * cellSize + viewportNW.x + cellSize,
+        y * cellSize + viewportNW.y,
+      ]);
+      let se = map.current.unproject([
+        x * cellSize + viewportNW.x + cellSize,
+        y * cellSize + viewportNW.y + cellSize,
+      ]);
+      let sw = map.current.unproject([
+        x * cellSize + viewportNW.x,
+        y * cellSize + viewportNW.y + cellSize,
+      ]);
+      const selectedCellLines: GeoJSON.FeatureCollection<
+        GeoJSON.Geometry,
+        GeoJSON.GeoJsonProperties
+      > = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: {
+              type: "LineString",
+              coordinates: [
+                [nw.lng, nw.lat],
+                [ne.lng, ne.lat],
+                [se.lng, se.lat],
+                [sw.lng, sw.lat],
+                [nw.lng, nw.lat],
+              ],
+            },
+            properties: { x: x, y: y },
+          },
+        ],
+      };
+
+      if (map.current.getLayer("selected-cell-layer")) {
+        map.current.removeLayer("selected-cell-layer");
+      }
+      if (map.current.getSource("selected-cell-source")) {
+        map.current.removeSource("selected-cell-source");
+      }
+      map.current.addSource("selected-cell-source", {
+        type: "geojson",
+        data: selectedCellLines,
+      });
+      map.current.addLayer({
+        id: "selected-cell-layer",
+        type: "line",
+        source: "selected-cell-source",
+        paint: {
+          "line-color": "blue",
+          "line-width": 3,
+        },
+      });
+
+      const bounds = map.current.getBounds();
+      if (!bounds.contains(nw) || !bounds.contains(se)) {
+        map.current.panTo(nw);
+      }
+    },
+    [map]
+  );
+
+  const selectCell = useCallback(
+    (cell) => {
+      router.push({ query: { cell: cell.x + "," + cell.y } });
+      setSelectedCell(cell);
+      selectMapCell(cell);
+    },
+    [setSelectedCell, selectMapCell, router]
+  );
+
+  const clearSelectedCell = useCallback(() => {
+    setSelectedCell(null);
+    router.push({ query: {} });
+    if (map.current) map.current.removeFeatureState({ source: "grid-source" });
+    if (map.current && map.current.getLayer("selected-cell-layer")) {
+      map.current.removeLayer("selected-cell-layer");
+    }
+    if (map.current && map.current.getSource("selected-cell-source")) {
+      map.current.removeSource("selected-cell-source");
+    }
+    requestAnimationFrame(() => {
+      if (map.current) map.current.resize();
+    });
+  }, [map, router]);
+
+  useEffect(() => {
+    if (!heatmapLoaded) return; // wait for all map layers to load
+    if (router.query.cell && typeof router.query.cell === "string") {
+      const cellUrlParts = decodeURIComponent(router.query.cell).split(",");
+      const cell = {
+        x: parseInt(cellUrlParts[0]),
+        y: parseInt(cellUrlParts[1]),
+      };
+      if (
+        !selectedCell ||
+        selectedCell.x !== cell.x ||
+        selectedCell.y !== cell.y
+      ) {
+        selectCell(cell);
+      }
+    } else {
+      if (selectedCell) {
+        clearSelectedCell();
+      }
+    }
+  }, [
+    selectedCell,
+    router.query.cell,
+    selectCell,
+    clearSelectedCell,
+    heatmapLoaded,
+  ]);
 
   useEffect(() => {
     if (map.current) return; // initialize map only once
@@ -73,341 +221,255 @@ const Map: React.FC = () => {
         [180, 85.051129],
       ],
     });
-  });
+    map.current.on("load", () => {
+      setMapLoaded(true);
+    });
+  }, [setMapLoaded]);
 
   useEffect(() => {
-    if (!data) return; // wait for map to initialize and data to load
-    map.current.on("load", () => {
-      const zoom = map.current.getZoom();
-      const viewportNW = map.current.project([-180, 85.051129]);
-      const cellSize = Math.pow(2, zoom + 2);
+    if (!data || !router.isReady || !mapLoaded) return; // wait for map to initialize and data to load
+    if (map.current.getSource("graticule")) return; // don't initialize twice
 
-      const graticule: GeoJSON.FeatureCollection<
-        GeoJSON.Geometry,
-        GeoJSON.GeoJsonProperties
-      > = {
-        type: "FeatureCollection",
-        features: [],
-      };
-      for (let x = 0; x < 128; x += 1) {
-        let lng = map.current.unproject([x * cellSize + viewportNW.x, -90]).lng;
-        graticule.features.push({
-          type: "Feature",
-          geometry: {
-            type: "LineString",
-            coordinates: [
-              [lng, -90],
-              [lng, 90],
-            ],
-          },
-          properties: { value: x },
-        });
-      }
-      for (let y = 0; y < 128; y += 1) {
-        let lat = map.current.unproject([
-          -180,
-          y * cellSize + viewportNW.y,
-        ]).lat;
-        graticule.features.push({
-          type: "Feature",
-          geometry: {
-            type: "LineString",
-            coordinates: [
-              [-180, lat],
-              [180, lat],
-            ],
-          },
-          properties: { value: y },
-        });
-      }
+    const zoom = map.current.getZoom();
+    const viewportNW = map.current.project([-180, 85.051129]);
+    const cellSize = Math.pow(2, zoom + 2);
 
-      map.current.addSource("graticule", {
-        type: "geojson",
-        data: graticule,
-      });
-
-      map.current.addLayer({
-        id: "graticule",
-        type: "line",
-        source: "graticule",
-      });
-
-      const gridLabelPoints: GeoJSON.FeatureCollection<
-        GeoJSON.Geometry,
-        GeoJSON.GeoJsonProperties
-      > = {
-        type: "FeatureCollection",
-        features: [],
-      };
-      for (let x = 0; x < 128; x += 1) {
-        for (let y = 0; y < 128; y += 1) {
-          let nw = map.current.unproject([
-            x * cellSize + viewportNW.x + cellSize / 32,
-            y * cellSize + viewportNW.y + cellSize / 32,
-          ]);
-          gridLabelPoints.features.push({
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [nw.lng, nw.lat],
-            },
-            properties: {
-              label: `${x - 57}, ${50 - y}`,
-            },
-          });
-        }
-      }
-      map.current.addSource("grid-labels-source", {
-        type: "geojson",
-        data: gridLabelPoints,
-      });
-
-      map.current.addLayer({
-        id: "grid-labels-layer",
-        type: "symbol",
-        source: "grid-labels-source",
-        layout: {
-          "text-field": ["get", "label"],
-          "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
-          "text-offset": [0, 0],
-          "text-anchor": "top-left",
-          "text-rotation-alignment": "map",
+    const graticule: GeoJSON.FeatureCollection<
+      GeoJSON.Geometry,
+      GeoJSON.GeoJsonProperties
+    > = {
+      type: "FeatureCollection",
+      features: [],
+    };
+    for (let x = 0; x < 128; x += 1) {
+      let lng = map.current.unproject([x * cellSize + viewportNW.x, -90]).lng;
+      graticule.features.push({
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [lng, -90],
+            [lng, 90],
+          ],
         },
-        paint: {
-          "text-halo-width": 1,
-          "text-halo-blur": 3,
-          "text-halo-color": "rgba(255,255,255,0.8)",
+        properties: { value: x },
+      });
+    }
+    for (let y = 0; y < 128; y += 1) {
+      let lat = map.current.unproject([-180, y * cellSize + viewportNW.y]).lat;
+      graticule.features.push({
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [-180, lat],
+            [180, lat],
+          ],
         },
-        minzoom: 4,
+        properties: { value: y },
       });
+    }
 
-      const grid: GeoJSON.FeatureCollection<
-        GeoJSON.Geometry,
-        GeoJSON.GeoJsonProperties
-      > = {
-        type: "FeatureCollection",
-        features: [],
-      };
-      for (let x = 0; x < 128; x += 1) {
-        for (let y = 0; y < 128; y += 1) {
-          let nw = map.current.unproject([
-            x * cellSize + viewportNW.x,
-            y * cellSize + viewportNW.y,
-          ]);
-          let ne = map.current.unproject([
-            x * cellSize + viewportNW.x + cellSize,
-            y * cellSize + viewportNW.y,
-          ]);
-          let se = map.current.unproject([
-            x * cellSize + viewportNW.x + cellSize,
-            y * cellSize + viewportNW.y + cellSize,
-          ]);
-          let sw = map.current.unproject([
-            x * cellSize + viewportNW.x,
-            y * cellSize + viewportNW.y + cellSize,
-          ]);
-          const editCount = (data as Record<string, number>)[
-            `${x - 57},${50 - y}`
-          ];
-          grid.features.push({
-            type: "Feature",
-            id: x * 100 + y,
-            geometry: {
-              type: "Polygon",
-              coordinates: [
-                [
-                  [nw.lng, nw.lat],
-                  [ne.lng, ne.lat],
-                  [se.lng, se.lat],
-                  [sw.lng, sw.lat],
-                  [nw.lng, nw.lat],
-                ],
-              ],
-            },
-            properties: {
-              x: x,
-              y: y,
-              cellX: x - 57,
-              cellY: 50 - y,
-              label: `${x - 57}, ${50 - y}`,
-              color: editCount ? colorGradient.getColor(editCount) : "#888888",
-              opacity: editCount ? Math.min((editCount / 150) * 0.25, 0.5) : 0,
-            },
-          });
-        }
-      }
-
-      map.current.addSource("grid-source", {
-        type: "geojson",
-        data: grid,
-      });
-
-      map.current.addLayer(
-        {
-          id: "grid-layer",
-          type: "fill",
-          source: "grid-source",
-          paint: {
-            "fill-opacity": 0,
-          },
-        },
-        "grid-labels-layer"
-      );
-
-      map.current.addLayer(
-        {
-          id: "heatmap-layer",
-          type: "fill",
-          source: "grid-source",
-          paint: {
-            "fill-color": ["get", "color"],
-            "fill-opacity": ["get", "opacity"],
-            "fill-outline-color": [
-              "case",
-              ["boolean", ["feature-state", "selected"], false],
-              "white",
-              "transparent",
-            ],
-          },
-        },
-        "grid-labels-layer"
-      );
-      const fullscreenControl = new mapboxgl.FullscreenControl();
-      console.log(
-        (fullscreenControl as unknown as { _container: HTMLElement })._container
-      );
-      (fullscreenControl as unknown as { _container: HTMLElement })._container =
-        mapWrapper.current;
-      console.log(
-        (fullscreenControl as unknown as { _container: HTMLElement })._container
-      );
-      map.current.addControl(fullscreenControl);
-      map.current.addControl(new mapboxgl.NavigationControl());
-
-      let singleClickTimeout: NodeJS.Timeout | null = null;
-      map.current.on("click", "grid-layer", (e) => {
-        console.log("click");
-        const features = e.features;
-        if (singleClickTimeout) return;
-        singleClickTimeout = setTimeout(() => {
-          singleClickTimeout = null;
-          if (features && features[0]) {
-            console.log("timeout");
-            const cell: [number, number] = [
-              features[0].properties!.cellX,
-              features[0].properties!.cellY,
-            ];
-            map.current.removeFeatureState({ source: "grid-source" });
-            map.current.setFeatureState(
-              {
-                source: "grid-source",
-                id: features[0].id,
-              },
-              {
-                selected: true,
-              }
-            );
-            setSelectedCell(cell);
-            map.current.resize();
-
-            var zoom = map.current.getZoom();
-            var viewportNW = map.current.project([-180, 85.051129]);
-            var cellSize = Math.pow(2, zoom + 2);
-            const x = features[0].properties!.x;
-            const y = features[0].properties!.y;
-            let nw = map.current.unproject([
-              x * cellSize + viewportNW.x,
-              y * cellSize + viewportNW.y,
-            ]);
-            let ne = map.current.unproject([
-              x * cellSize + viewportNW.x + cellSize,
-              y * cellSize + viewportNW.y,
-            ]);
-            let se = map.current.unproject([
-              x * cellSize + viewportNW.x + cellSize,
-              y * cellSize + viewportNW.y + cellSize,
-            ]);
-            let sw = map.current.unproject([
-              x * cellSize + viewportNW.x,
-              y * cellSize + viewportNW.y + cellSize,
-            ]);
-            const selectedCellLines: GeoJSON.FeatureCollection<
-              GeoJSON.Geometry,
-              GeoJSON.GeoJsonProperties
-            > = {
-              type: "FeatureCollection",
-              features: [
-                {
-                  type: "Feature",
-                  geometry: {
-                    type: "LineString",
-                    coordinates: [
-                      [nw.lng, nw.lat],
-                      [ne.lng, ne.lat],
-                      [se.lng, se.lat],
-                      [sw.lng, sw.lat],
-                      [nw.lng, nw.lat],
-                    ],
-                  },
-                  properties: { x: x, y: y },
-                },
-              ],
-            };
-
-            if (map.current.getLayer("selected-cell-layer")) {
-              map.current.removeLayer("selected-cell-layer");
-            }
-            if (map.current.getSource("selected-cell-source")) {
-              map.current.removeSource("selected-cell-source");
-            }
-            map.current.addSource("selected-cell-source", {
-              type: "geojson",
-              data: selectedCellLines,
-            });
-            map.current.addLayer({
-              id: "selected-cell-layer",
-              type: "line",
-              source: "selected-cell-source",
-              paint: {
-                "line-color": "blue",
-                "line-width": 3,
-              },
-            });
-
-            const bounds = map.current.getBounds();
-            if (!bounds.contains(nw) || !bounds.contains(se)) {
-              map.current.panTo(nw);
-            }
-          }
-        }, 200);
-      });
-
-      map.current.on("dblclick", "grid-layer", (e) => {
-        if (singleClickTimeout) clearTimeout(singleClickTimeout);
-        singleClickTimeout = null;
-      });
-
-      map.current.on("idle", () => {
-        map.current.resize();
-      });
+    map.current.addSource("graticule", {
+      type: "geojson",
+      data: graticule,
     });
-  }, [setSelectedCell, data]);
+
+    map.current.addLayer({
+      id: "graticule",
+      type: "line",
+      source: "graticule",
+    });
+
+    const gridLabelPoints: GeoJSON.FeatureCollection<
+      GeoJSON.Geometry,
+      GeoJSON.GeoJsonProperties
+    > = {
+      type: "FeatureCollection",
+      features: [],
+    };
+    for (let x = 0; x < 128; x += 1) {
+      for (let y = 0; y < 128; y += 1) {
+        let nw = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize / 32,
+          y * cellSize + viewportNW.y + cellSize / 32,
+        ]);
+        gridLabelPoints.features.push({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [nw.lng, nw.lat],
+          },
+          properties: {
+            label: `${x - 57}, ${50 - y}`,
+          },
+        });
+      }
+    }
+    map.current.addSource("grid-labels-source", {
+      type: "geojson",
+      data: gridLabelPoints,
+    });
+
+    map.current.addLayer({
+      id: "grid-labels-layer",
+      type: "symbol",
+      source: "grid-labels-source",
+      layout: {
+        "text-field": ["get", "label"],
+        "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+        "text-offset": [0, 0],
+        "text-anchor": "top-left",
+        "text-rotation-alignment": "map",
+      },
+      paint: {
+        "text-halo-width": 1,
+        "text-halo-blur": 3,
+        "text-halo-color": "rgba(255,255,255,0.8)",
+      },
+      minzoom: 4,
+    });
+
+    const grid: GeoJSON.FeatureCollection<
+      GeoJSON.Geometry,
+      GeoJSON.GeoJsonProperties
+    > = {
+      type: "FeatureCollection",
+      features: [],
+    };
+    for (let x = 0; x < 128; x += 1) {
+      for (let y = 0; y < 128; y += 1) {
+        let nw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y,
+        ]);
+        let ne = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y,
+        ]);
+        let se = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        let sw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        const editCount = (data as Record<string, number>)[
+          `${x - 57},${50 - y}`
+        ];
+        grid.features.push({
+          type: "Feature",
+          id: x * 100 + y,
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [nw.lng, nw.lat],
+                [ne.lng, ne.lat],
+                [se.lng, se.lat],
+                [sw.lng, sw.lat],
+                [nw.lng, nw.lat],
+              ],
+            ],
+          },
+          properties: {
+            x: x,
+            y: y,
+            cellX: x - 57,
+            cellY: 50 - y,
+            label: `${x - 57}, ${50 - y}`,
+            color: editCount ? colorGradient.getColor(editCount) : "#888888",
+            opacity: editCount ? Math.min((editCount / 150) * 0.25, 0.5) : 0,
+          },
+        });
+      }
+    }
+
+    map.current.addSource("grid-source", {
+      type: "geojson",
+      data: grid,
+    });
+
+    map.current.addLayer(
+      {
+        id: "grid-layer",
+        type: "fill",
+        source: "grid-source",
+        paint: {
+          "fill-opacity": 0,
+        },
+      },
+      "grid-labels-layer"
+    );
+
+    map.current.addLayer(
+      {
+        id: "heatmap-layer",
+        type: "fill",
+        source: "grid-source",
+        paint: {
+          "fill-color": ["get", "color"],
+          "fill-opacity": ["get", "opacity"],
+          "fill-outline-color": [
+            "case",
+            ["boolean", ["feature-state", "selected"], false],
+            "white",
+            "transparent",
+          ],
+        },
+      },
+      "grid-labels-layer"
+    );
+    const fullscreenControl = new mapboxgl.FullscreenControl();
+    (fullscreenControl as unknown as { _container: HTMLElement })._container =
+      mapWrapper.current;
+    map.current.addControl(fullscreenControl);
+    map.current.addControl(new mapboxgl.NavigationControl());
+
+    let singleClickTimeout: NodeJS.Timeout | null = null;
+    map.current.on("click", "grid-layer", (e) => {
+      const features = e.features;
+      if (singleClickTimeout) return;
+      singleClickTimeout = setTimeout(() => {
+        singleClickTimeout = null;
+        if (features && features[0]) {
+          const cell = {
+            x: features[0].properties!.cellX,
+            y: features[0].properties!.cellY,
+          };
+          router.push({ query: { cell: cell.x + "," + cell.y } });
+        }
+      }, 200);
+    });
+
+    map.current.on("dblclick", "grid-layer", (e) => {
+      if (singleClickTimeout) clearTimeout(singleClickTimeout);
+      singleClickTimeout = null;
+    });
+
+    setHeatmapLoaded(true);
+  }, [data, mapLoaded, router, setHeatmapLoaded]);
 
   return (
     <>
       <div
         className={`${styles["map-wrapper"]} ${
-          selectedCell ? styles["map-wrapper-sidebar-open"] : ""
+          sidebarOpen ? styles["map-wrapper-sidebar-open"] : ""
         }`}
         ref={mapWrapper}
       >
         <div ref={mapContainer} className={styles["map-container"]}>
           <Sidebar
             selectedCell={selectedCell}
-            setSelectedCell={setSelectedCell}
+            clearSelectedCell={() => router.push({ query: {} })}
             map={map}
           />
           <ToggleLayersControl map={map} />
+          <SearchBar
+            map={map}
+            clearSelectedCell={() => router.push({ query: {} })}
+          />
         </div>
       </div>
     </>

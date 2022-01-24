@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "next/router";
 
 import CellData from "./CellData";
 import styles from "../styles/Sidebar.module.css";
@@ -10,39 +11,42 @@ interface Cell {
 }
 
 type Props = {
-  selectedCell: [number, number] | null;
-  setSelectedCell: (cell: [number, number] | null) => void;
+  selectedCell: { x: number; y: number } | null;
+  clearSelectedCell: () => void;
   map: React.MutableRefObject<mapboxgl.Map | null>;
 };
 
-const Sidebar: React.FC<Props> = ({ selectedCell, setSelectedCell, map }) => {
+const Sidebar: React.FC<Props> = ({ selectedCell, clearSelectedCell, map }) => {
+  const router = useRouter();
+
   const onClose = () => {
-    setSelectedCell(null);
-    if (map.current) map.current.removeFeatureState({ source: "grid-source" });
-    if (map.current && map.current.getLayer("selected-cell-layer")) {
-      map.current.removeLayer("selected-cell-layer");
-    }
-    if (map.current && map.current.getSource("selected-cell-source")) {
-      map.current.removeSource("selected-cell-source");
-    }
-    requestAnimationFrame(() => {
-      if (map.current) map.current.resize();
-    });
+    clearSelectedCell();
   };
 
-  return (
-    selectedCell && (
+  if (selectedCell) {
+    return (
       <div className={styles.sidebar}>
         <button className={styles.close} onClick={onClose}>
           ✖
         </button>
         <h1>
-          Cell {selectedCell[0]}, {selectedCell[1]}
+          Cell {selectedCell.x}, {selectedCell.y}
         </h1>
         {selectedCell && <CellData selectedCell={selectedCell} />}
       </div>
-    )
-  );
+    );
+  } else if (router.query.mod) {
+    return (
+      <div className={styles.sidebar}>
+        <button className={styles.close} onClick={onClose}>
+          ✖
+        </button>
+        <h1>Mod {router.query.mod}</h1>
+      </div>
+    );
+  } else {
+    return null;
+  }
 };
 
 export default Sidebar;
