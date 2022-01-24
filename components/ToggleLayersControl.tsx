@@ -49,6 +49,7 @@ const ToggleLayersControl: React.FC<Props> = ({ map }) => {
           className={`${styles["heatmap-toggle"]} ${
             !heatmapVisible ? styles["toggle-off"] : ""
           }`}
+          title="Toggle heatmap"
         >
           <span className="mapboxgl-ctrl-icon" />
         </button>
@@ -58,6 +59,7 @@ const ToggleLayersControl: React.FC<Props> = ({ map }) => {
           className={`${styles["grid-toggle"]} ${
             !gridVisible ? styles["toggle-off"] : ""
           }`}
+          title="Toggle cell grid"
         >
           <span className="mapboxgl-ctrl-icon" />
         </button>
@@ -67,6 +69,7 @@ const ToggleLayersControl: React.FC<Props> = ({ map }) => {
           className={`${styles["labels-toggle"]} ${
             !labelsVisible ? styles["toggle-off"] : ""
           }`}
+          title="Toggle cell labels"
         >
           <span className="mapboxgl-ctrl-icon" />
         </button>
