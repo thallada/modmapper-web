@@ -28,6 +28,9 @@ const Map: React.FC = () => {
   const map = useRef<mapboxgl.Map | null>(
     null
   ) as React.MutableRefObject<mapboxgl.Map>;
+  const mapWrapper = useRef<HTMLDivElement | null>(
+    null
+  ) as React.MutableRefObject<HTMLDivElement>;
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
     null
   );
@@ -269,8 +272,16 @@ const Map: React.FC = () => {
         },
         "grid-labels-layer"
       );
-
-      map.current.addControl(new mapboxgl.FullscreenControl());
+      const fullscreenControl = new mapboxgl.FullscreenControl();
+      console.log(
+        (fullscreenControl as unknown as { _container: HTMLElement })._container
+      );
+      (fullscreenControl as unknown as { _container: HTMLElement })._container =
+        mapWrapper.current;
+      console.log(
+        (fullscreenControl as unknown as { _container: HTMLElement })._container
+      );
+      map.current.addControl(fullscreenControl);
       map.current.addControl(new mapboxgl.NavigationControl());
 
       let singleClickTimeout: NodeJS.Timeout | null = null;
@@ -364,9 +375,7 @@ const Map: React.FC = () => {
             });
 
             const bounds = map.current.getBounds();
-            console.log(bounds);
             if (!bounds.contains(nw) || !bounds.contains(se)) {
-              console.log("out of viewport, panning");
               map.current.panTo(nw);
             }
           }
@@ -377,23 +386,29 @@ const Map: React.FC = () => {
         if (singleClickTimeout) clearTimeout(singleClickTimeout);
         singleClickTimeout = null;
       });
+
+      map.current.on("idle", () => {
+        map.current.resize();
+      });
     });
   }, [setSelectedCell, data]);
 
   return (
     <>
-      <Sidebar
-        selectedCell={selectedCell}
-        setSelectedCell={setSelectedCell}
-        map={map}
-      />
       <div
         className={`${styles["map-wrapper"]} ${
           selectedCell ? styles["map-wrapper-sidebar-open"] : ""
         }`}
+        ref={mapWrapper}
       >
-        <div ref={mapContainer} className={styles["map-container"]} />
-        <ToggleLayersControl map={map} />
+        <div ref={mapContainer} className={styles["map-container"]}>
+          <Sidebar
+            selectedCell={selectedCell}
+            setSelectedCell={setSelectedCell}
+            map={map}
+          />
+          <ToggleLayersControl map={map} />
+        </div>
       </div>
     </>
   );

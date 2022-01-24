@@ -11,14 +11,16 @@
   height: 100%;
 }
 
-.map-wrapper-sidebar-open {
-  margin-left: 300px;
+.map-wrapper-sidebar-open .map-container {
+  width: calc(100% - 300px);
+  left: 300px;
 }
 
 @media only screen and (max-width: 600px) {
-  .map-wrapper-sidebar-open {
-    margin-left: initial;
-    margin-bottom: 45%;
-    height: 55%;
+  .map-wrapper-sidebar-open .map-container {
+    height: calc(100% - 45%);
+    width: 100%;
+    left: 0;
+    bottom: 45%;
   }
 }
