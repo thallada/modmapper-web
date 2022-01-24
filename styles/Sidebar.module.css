@@ -8,6 +8,7 @@
   overflow-x: hidden;
   width: 300px;
   padding: 12px;
+  padding-top: 0px;
   border-right: 1px solid #222222;
   font-size: 0.875rem;
 }
@@ -23,14 +24,22 @@
 }
 
 .close {
-  position: absolute;
-  top: 4px;
-  right: 8px;
+  position: fixed;
+  top: 8px;
+  left: 232px;
   font-size: 24px;
   margin-left: 12px;
   border: none;
   background: none;
   cursor: pointer;
+}
+
+@media only screen and (max-width: 600px) {
+  .close {
+    top: calc(55% + 8px);
+    left: initial;
+    right: 12px;
+  }
 }
 
 .close:hover {
