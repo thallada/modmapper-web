@@ -2,8 +2,10 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import type mapboxgl from "mapbox-gl";
 import Fuse from "fuse.js";
+import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/SearchBar.module.css";
+import { join } from "path/posix";
 
 type Props = {
   clearSelectedCell: () => void;
@@ -11,8 +13,8 @@ type Props = {
 };
 
 interface Mod {
-  title: string;
-  nexus_mod_id: number;
+  name: string;
+  id: number;
 }
 
 interface SearchResult {
@@ -20,15 +22,36 @@ interface SearchResult {
   refIndex: number;
 }
 
-const list: Mod[] = [
-  { title: "Unofficial Skyrim Special Edition Patch", nexus_mod_id: 1 },
-  { title: "Enhanced Lights and FX", nexus_mod_id: 2 },
-  { title: "Majestic Mountains", nexus_mod_id: 3 },
-];
+const jsonFetcher = async (url: string): Promise<Mod | null> => {
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    if (res.status === 404) {
+      return null;
+    }
+    const error = new Error("An error occurred while fetching the data.");
+    throw error;
+  }
+  return res.json();
+};
 
 const SearchBar: React.FC<Props> = ({ clearSelectedCell, map }) => {
   const router = useRouter();
-  const fuse = new Fuse(list, { keys: ["title"] });
+
+  const fuse = useRef<Fuse<Mod> | null>(null) as React.MutableRefObject<
+    Fuse<Mod>
+  >;
+
+  const { data, error } = useSWRImmutable(
+    `https://mods.modmapper.com/mod_search_index.json`,
+    jsonFetcher
+  );
+
+  useEffect(() => {
+    if (data && !fuse.current) {
+      fuse.current = new Fuse(data as unknown as Mod[], { keys: ["name"] });
+    }
+  }, [data]);
 
   const searchInput = useRef<HTMLInputElement | null>(null);
   const [search, setSearch] = useState<string>("");
@@ -54,17 +77,19 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, map }) => {
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    const results: { item: Mod; refIndex: number }[] = fuse.search(
-      e.target.value
-    );
-    setResults(results);
+    if (fuse.current) {
+      const results: { item: Mod; refIndex: number }[] = fuse.current.search(
+        e.target.value
+      );
+      setResults(results);
+    }
   };
 
   const onChooseResult =
     (item: Mod) =>
     (e: React.MouseEvent<HTMLElement> | React.TouchEvent<HTMLElement>) => {
       clearSelectedCell();
-      router.push({ query: { mod: item.nexus_mod_id } });
+      router.push({ query: { mod: item.id } });
       setSearch("");
       setResults([]);
       setClickingResult(false);
@@ -91,17 +116,18 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, map }) => {
         }}
         value={search}
         ref={searchInput}
+        disabled={!data}
       />
       {results.length > 0 && (
         <ul className={styles["search-results"]}>
           {results.map((result) => (
             <li
-              key={result.item.nexus_mod_id}
+              key={result.item.id}
               onClick={onChooseResult(result.item)}
               onTouchStart={() => setClickingResult(true)}
               onMouseDown={() => setClickingResult(true)}
             >
-              {result.item.title}
+              {result.item.name}
             </li>
           ))}
         </ul>

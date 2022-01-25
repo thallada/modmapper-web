@@ -1,18 +1,14 @@
 import { format } from "date-fns";
 import React from "react";
-import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/CellModList.module.css";
 import type { Mod } from "./CellData";
 
 const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
-const LIVE_DOWNLOAD_COUNTS_URL =
-  "https://staticstats.nexusmods.com/live_download_counts/mods/1704.csv";
-
-const csvFetcher = (url: string) => fetch(url).then((res) => res.text());
 
 type Props = {
   mods: Mod[];
+  counts: [number, number, number, number][];
 };
 
 type ModWithCounts = Mod & {
@@ -21,18 +17,7 @@ type ModWithCounts = Mod & {
   views: number;
 };
 
-const CellModList: React.FC<Props> = ({ mods }) => {
-  // The live download counts are not really immutable, but I'd still rather load them once per session
-  const { data, error } = useSWRImmutable(LIVE_DOWNLOAD_COUNTS_URL, csvFetcher);
-
-  if (error)
-    return <div>{`Error loading live download counts: ${error.message}`}</div>;
-  if (!data) return <div>Loading...</div>;
-
-  const counts = data
-    .split("\n")
-    .map((line) => line.split(",").map((count) => parseInt(count, 10)));
-
+const CellModList: React.FC<Props> = ({ mods, counts }) => {
   const modsWithCounts: ModWithCounts[] = mods.map((mod) => {
     const modCounts = counts.find((count) => count[0] === mod.nexus_mod_id);
     return {

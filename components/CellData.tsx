@@ -48,9 +48,10 @@ const jsonFetcher = async (url: string): Promise<Cell | null> => {
 
 type Props = {
   selectedCell: { x: number; y: number };
+  counts: [number, number, number, number][];
 };
 
-const CellData: React.FC<Props> = ({ selectedCell }) => {
+const CellData: React.FC<Props> = ({ selectedCell, counts }) => {
   const { data, error } = useSWRImmutable(
     `https://cells.modmapper.com/${selectedCell.x}/${selectedCell.y}.json`,
     jsonFetcher
@@ -82,7 +83,7 @@ const CellData: React.FC<Props> = ({ selectedCell }) => {
             <span>{data.plugins_count}</span>
           </li>
         </ul>
-        <CellModList mods={data.mods} />
+        <CellModList mods={data.mods} counts={counts} />
       </>
     )
   );
