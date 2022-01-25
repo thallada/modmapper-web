@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import type mapboxgl from "mapbox-gl";
-import Fuse from "fuse.js";
+import MiniSearch, { SearchResult } from "minisearch";
 import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/SearchBar.module.css";
@@ -15,11 +15,6 @@ type Props = {
 interface Mod {
   name: string;
   id: number;
-}
-
-interface SearchResult {
-  item: Mod;
-  refIndex: number;
 }
 
 const jsonFetcher = async (url: string): Promise<Mod | null> => {
@@ -38,9 +33,9 @@ const jsonFetcher = async (url: string): Promise<Mod | null> => {
 const SearchBar: React.FC<Props> = ({ clearSelectedCell, map }) => {
   const router = useRouter();
 
-  const fuse = useRef<Fuse<Mod> | null>(null) as React.MutableRefObject<
-    Fuse<Mod>
-  >;
+  const searchEngine = useRef<MiniSearch<Mod> | null>(
+    null
+  ) as React.MutableRefObject<MiniSearch<Mod>>;
 
   const { data, error } = useSWRImmutable(
     `https://mods.modmapper.com/mod_search_index.json`,
@@ -48,8 +43,16 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, map }) => {
   );
 
   useEffect(() => {
-    if (data && !fuse.current) {
-      fuse.current = new Fuse(data as unknown as Mod[], { keys: ["name"] });
+    if (data && !searchEngine.current) {
+      searchEngine.current = new MiniSearch({
+        fields: ["name"],
+        storeFields: ["name", "id"],
+        searchOptions: {
+          fields: ["name"],
+          fuzzy: 0.2,
+        },
+      });
+      searchEngine.current.addAll(data as unknown as Mod[]);
     }
   }, [data]);
 
@@ -77,8 +80,8 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, map }) => {
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    if (fuse.current) {
-      const results: { item: Mod; refIndex: number }[] = fuse.current.search(
+    if (searchEngine.current) {
+      const results: SearchResult[] = searchEngine.current.search(
         e.target.value
       );
       setResults(results);
@@ -122,12 +125,12 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, map }) => {
         <ul className={styles["search-results"]}>
           {results.map((result) => (
             <li
-              key={result.item.id}
-              onClick={onChooseResult(result.item)}
+              key={result.id}
+              onClick={onChooseResult({ id: result.id, name: result.name })}
               onTouchStart={() => setClickingResult(true)}
               onMouseDown={() => setClickingResult(true)}
             >
-              {result.item.name}
+              {result.name}
             </li>
           ))}
         </ul>
