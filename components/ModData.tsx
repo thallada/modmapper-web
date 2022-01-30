@@ -76,7 +76,7 @@ const ModData: React.FC<Props> = ({ selectedMod, counts }) => {
         <h1>
           <a
             href={`${NEXUS_MODS_URL}/mods/${data.nexus_mod_id}`}
-            className={styles.link}
+            className={`${styles.link} ${styles.name}`}
           >
             {data.name}
           </a>

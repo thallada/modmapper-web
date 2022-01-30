@@ -147,7 +147,6 @@ const Map: React.FC = () => {
 
   const clearSelectedCell = useCallback(() => {
     setSelectedCell(null);
-    router.push({ query: {} });
     if (map.current) map.current.removeFeatureState({ source: "grid-source" });
     if (map.current && map.current.getLayer("selected-cell-layer")) {
       map.current.removeLayer("selected-cell-layer");
@@ -158,7 +157,13 @@ const Map: React.FC = () => {
     requestAnimationFrame(() => {
       if (map.current) map.current.resize();
     });
-  }, [map, router]);
+  }, [map]);
+
+  const clearSelectedMod = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (map.current) map.current.resize();
+    });
+  }, [map]);
 
   useEffect(() => {
     if (!heatmapLoaded) return; // wait for all map layers to load
@@ -183,10 +188,18 @@ const Map: React.FC = () => {
   }, [
     selectedCell,
     router.query.cell,
+    router.query.mod,
     selectCell,
     clearSelectedCell,
     heatmapLoaded,
   ]);
+
+  useEffect(() => {
+    if (!heatmapLoaded) return; // wait for all map layers to load
+    if (!router.query.mod || typeof router.query.mod !== "string") {
+      clearSelectedMod();
+    }
+  }, [router.query.mod, clearSelectedMod, heatmapLoaded]);
 
   useEffect(() => {
     if (map.current) return; // initialize map only once

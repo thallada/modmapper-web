@@ -91,7 +91,6 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, map }) => {
   const onChooseResult =
     (item: Mod) =>
     (e: React.MouseEvent<HTMLElement> | React.TouchEvent<HTMLElement>) => {
-      clearSelectedCell();
       router.push({ query: { mod: item.id } });
       setSearch("");
       setResults([]);
