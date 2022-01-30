@@ -8,7 +8,7 @@ const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
 
 type Props = {
   mods: Mod[];
-  counts: [number, number, number, number][];
+  counts: Record<number, [number, number, number]> | null;
 };
 
 type ModWithCounts = Mod & {
@@ -19,12 +19,12 @@ type ModWithCounts = Mod & {
 
 const CellModList: React.FC<Props> = ({ mods, counts }) => {
   const modsWithCounts: ModWithCounts[] = mods.map((mod) => {
-    const modCounts = counts.find((count) => count[0] === mod.nexus_mod_id);
+    const modCounts = counts && counts[mod.nexus_mod_id];
     return {
       ...mod,
-      total_downloads: modCounts ? modCounts[1] : 0,
-      unique_downloads: modCounts ? modCounts[2] : 0,
-      views: modCounts ? modCounts[3] : 0,
+      total_downloads: modCounts ? modCounts[0] : 0,
+      unique_downloads: modCounts ? modCounts[1] : 0,
+      views: modCounts ? modCounts[2] : 0,
     };
   });
 

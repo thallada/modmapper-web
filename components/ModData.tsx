@@ -45,7 +45,7 @@ const jsonFetcher = async (url: string): Promise<Mod | null> => {
 
 type Props = {
   selectedMod: number;
-  counts: [number, number, number, number][];
+  counts: Record<number, [number, number, number]> | null;
 };
 
 const ModData: React.FC<Props> = ({ selectedMod, counts }) => {
@@ -65,10 +65,10 @@ const ModData: React.FC<Props> = ({ selectedMod, counts }) => {
     return <div className={styles.status}>Mod could not be found.</div>;
 
   let numberFmt = new Intl.NumberFormat("en-US");
-  const modCounts = counts.find((count) => count[0] === data.nexus_mod_id);
-  const total_downloads = modCounts ? modCounts[1] : 0;
-  const unique_downloads = modCounts ? modCounts[2] : 0;
-  const views = modCounts ? modCounts[3] : 0;
+  const modCounts = counts && counts[data.nexus_mod_id];
+  const total_downloads = modCounts ? modCounts[0] : 0;
+  const unique_downloads = modCounts ? modCounts[1] : 0;
+  const views = modCounts ? modCounts[2] : 0;
 
   if (selectedMod && data) {
     return (

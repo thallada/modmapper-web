@@ -6,10 +6,12 @@ import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/SearchBar.module.css";
 import { join } from "path/posix";
+import { countReset } from "console";
 
 type Props = {
   clearSelectedCell: () => void;
   map: React.MutableRefObject<mapboxgl.Map>;
+  counts: Record<number, [number, number, number]> | null;
 };
 
 interface Mod {
@@ -30,7 +32,7 @@ const jsonFetcher = async (url: string): Promise<Mod | null> => {
   return res.json();
 };
 
-const SearchBar: React.FC<Props> = ({ clearSelectedCell, map }) => {
+const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
   const router = useRouter();
 
   const searchEngine = useRef<MiniSearch<Mod> | null>(
@@ -122,16 +124,25 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, map }) => {
       />
       {results.length > 0 && (
         <ul className={styles["search-results"]}>
-          {results.map((result) => (
-            <li
-              key={result.id}
-              onClick={onChooseResult({ id: result.id, name: result.name })}
-              onTouchStart={() => setClickingResult(true)}
-              onMouseDown={() => setClickingResult(true)}
-            >
-              {result.name}
-            </li>
-          ))}
+          {results
+            .sort((resultA, resultB) => {
+              if (counts) {
+                const countA = counts[resultA.id];
+                const countB = counts[resultB.id];
+                if (countA && countB) return countB[2] - countA[2];
+              }
+              return 0;
+            })
+            .map((result) => (
+              <li
+                key={result.id}
+                onClick={onChooseResult({ id: result.id, name: result.name })}
+                onTouchStart={() => setClickingResult(true)}
+                onMouseDown={() => setClickingResult(true)}
+              >
+                {result.name}
+              </li>
+            ))}
         </ul>
       )}
     </div>

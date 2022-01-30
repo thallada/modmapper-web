@@ -21,7 +21,11 @@ colorGradient.setGradient(
 );
 colorGradient.setMidpoint(360);
 
+const LIVE_DOWNLOAD_COUNTS_URL =
+  "https://staticstats.nexusmods.com/live_download_counts/mods/1704.csv";
+
 const jsonFetcher = (url: string) => fetch(url).then((res) => res.json());
+const csvFetcher = (url: string) => fetch(url).then((res) => res.text());
 
 const Map: React.FC = () => {
   const router = useRouter();
@@ -43,9 +47,18 @@ const Map: React.FC = () => {
   } | null>(null);
   const sidebarOpen = selectedCell !== null || router.query.mod !== undefined;
 
-  const { data, error } = useSWRImmutable(
+  const { data: cellsData, error: cellsError } = useSWRImmutable(
     "https://cells.modmapper.com/edits.json",
     jsonFetcher
+  );
+  // The live download counts are not really immutable, but I'd still rather load them once per session
+  const [counts, setCounts] = useState<Record<
+    number,
+    [number, number, number]
+  > | null>(null);
+  const { data: countsData, error: countsError } = useSWRImmutable(
+    LIVE_DOWNLOAD_COUNTS_URL,
+    csvFetcher
   );
 
   const selectMapCell = useCallback(
@@ -240,7 +253,7 @@ const Map: React.FC = () => {
   }, [setMapLoaded]);
 
   useEffect(() => {
-    if (!data || !router.isReady || !mapLoaded) return; // wait for map to initialize and data to load
+    if (!cellsData || !router.isReady || !mapLoaded) return; // wait for map to initialize and data to load
     if (map.current.getSource("graticule")) return; // don't initialize twice
 
     const zoom = map.current.getZoom();
@@ -368,7 +381,7 @@ const Map: React.FC = () => {
           x * cellSize + viewportNW.x,
           y * cellSize + viewportNW.y + cellSize,
         ]);
-        const editCount = (data as Record<string, number>)[
+        const editCount = (cellsData as Record<string, number>)[
           `${x - 57},${50 - y}`
         ];
         grid.features.push({
@@ -462,7 +475,18 @@ const Map: React.FC = () => {
     });
 
     setHeatmapLoaded(true);
-  }, [data, mapLoaded, router, setHeatmapLoaded]);
+  }, [cellsData, mapLoaded, router, setHeatmapLoaded]);
+
+  useEffect(() => {
+    if (countsData) {
+      const newCounts: Record<number, [number, number, number]> = {};
+      for (const line of countsData.split("\n")) {
+        const nums = line.split(",").map((count) => parseInt(count, 10));
+        newCounts[nums[0]] = [nums[1], nums[2], nums[3]];
+      }
+      setCounts(newCounts);
+    }
+  }, [setCounts, countsData]);
 
   return (
     <>
@@ -477,11 +501,14 @@ const Map: React.FC = () => {
             selectedCell={selectedCell}
             clearSelectedCell={() => router.push({ query: {} })}
             map={map}
+            counts={counts}
+            countsError={countsError}
           />
           <ToggleLayersControl map={map} />
           <SearchBar
             map={map}
             clearSelectedCell={() => router.push({ query: {} })}
+            counts={counts}
           />
         </div>
       </div>

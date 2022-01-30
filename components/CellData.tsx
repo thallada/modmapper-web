@@ -48,7 +48,7 @@ const jsonFetcher = async (url: string): Promise<Cell | null> => {
 
 type Props = {
   selectedCell: { x: number; y: number };
-  counts: [number, number, number, number][];
+  counts: Record<number, [number, number, number]> | null;
 };
 
 const CellData: React.FC<Props> = ({ selectedCell, counts }) => {
