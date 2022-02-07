@@ -44,3 +44,7 @@
 .search-results li:first-child {
   border-top: none;
 }
+
+.highlighted-result {
+  background-color: #bde4ff;
+}

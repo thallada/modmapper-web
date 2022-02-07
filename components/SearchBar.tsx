@@ -1,3 +1,4 @@
+import { useCombobox } from "downshift";
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import type mapboxgl from "mapbox-gl";
@@ -5,8 +6,6 @@ import MiniSearch, { SearchResult } from "minisearch";
 import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/SearchBar.module.css";
-import { join } from "path/posix";
-import { countReset } from "console";
 
 type Props = {
   clearSelectedCell: () => void;
@@ -59,93 +58,87 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
   }, [data]);
 
   const searchInput = useRef<HTMLInputElement | null>(null);
-  const [search, setSearch] = useState<string>("");
   const [searchFocused, setSearchFocused] = useState<boolean>(false);
-  const [clickingResult, setClickingResult] = useState<boolean>(false);
   const [results, setResults] = useState<SearchResult[]>([]);
 
-  useEffect(() => {
-    if (searchInput.current) {
-      if (
-        searchFocused &&
-        global.document.activeElement !== searchInput.current
-      ) {
-        searchInput.current.focus();
-      } else if (
-        !searchFocused &&
-        global.document.activeElement === searchInput.current
-      ) {
-        searchInput.current.blur();
+  const {
+    isOpen,
+    getMenuProps,
+    getInputProps,
+    getComboboxProps,
+    highlightedIndex,
+    getItemProps,
+    reset,
+  } = useCombobox({
+    items: results,
+    itemToString: (item) => (item ? item.name : ""),
+    onInputValueChange: ({ inputValue }) => {
+      if (searchEngine.current && inputValue) {
+        const results: SearchResult[] = searchEngine.current.search(inputValue);
+        setResults(results);
       }
-    }
-  }, [searchFocused]);
-
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    if (searchEngine.current) {
-      const results: SearchResult[] = searchEngine.current.search(
-        e.target.value
-      );
-      setResults(results);
-    }
-  };
-
-  const onChooseResult =
-    (item: Mod) =>
-    (e: React.MouseEvent<HTMLElement> | React.TouchEvent<HTMLElement>) => {
-      router.push({ query: { mod: item.id } });
-      setSearch("");
-      setResults([]);
-      setClickingResult(false);
-      setSearchFocused(false);
-    };
+    },
+    onSelectedItemChange: ({ selectedItem }) => {
+      if (selectedItem) {
+        setSearchFocused(false);
+        router.push({ query: { mod: selectedItem.id } });
+        if (searchInput.current) searchInput.current.blur();
+        reset();
+      }
+    },
+  });
 
   return (
-    <div
-      className={`${styles["search-bar"]} ${
-        searchFocused ? styles["search-bar-focused"] : ""
-      }`}
-    >
-      <input
-        type="text"
-        placeholder="Search mods or cells…"
-        onChange={onChange}
-        onFocus={() => setSearchFocused(true)}
-        onBlur={() => {
-          if (!clickingResult) {
-            setSearch("");
-            setResults([]);
-            setSearchFocused(false);
-          }
-        }}
-        value={search}
-        ref={searchInput}
-        disabled={!data}
-      />
-      {results.length > 0 && (
-        <ul className={styles["search-results"]}>
-          {results
-            .sort((resultA, resultB) => {
-              if (counts) {
-                const countA = counts[resultA.id];
-                const countB = counts[resultB.id];
-                if (countA && countB) return countB[2] - countA[2];
-              }
-              return 0;
-            })
-            .map((result) => (
-              <li
-                key={result.id}
-                onClick={onChooseResult({ id: result.id, name: result.name })}
-                onTouchStart={() => setClickingResult(true)}
-                onMouseDown={() => setClickingResult(true)}
-              >
-                {result.name}
-              </li>
-            ))}
+    <>
+      <div
+        className={`${styles["search-bar"]} ${
+          searchFocused ? styles["search-bar-focused"] : ""
+        }`}
+        {...getComboboxProps()}
+      >
+        <input
+          {...getInputProps({
+            type: "text",
+            placeholder: "Search mods or cells…",
+            onFocus: () => setSearchFocused(true),
+            onBlur: () => {
+              if (!isOpen) setSearchFocused(false);
+            },
+            disabled: !data,
+            ref: searchInput,
+          })}
+        />
+        <ul
+          className={styles["search-results"]}
+          style={!isOpen ? { display: "none" } : {}}
+          {...getMenuProps()}
+        >
+          {isOpen &&
+            results
+              .sort((resultA, resultB) => {
+                if (counts) {
+                  const countA = counts[resultA.id];
+                  const countB = counts[resultB.id];
+                  if (countA && countB) return countB[2] - countA[2];
+                }
+                return 0;
+              })
+              .map((result, index) => (
+                <li
+                  key={result.id}
+                  {...getItemProps({ item: result, index })}
+                  className={`${
+                    highlightedIndex === index
+                      ? styles["highlighted-result"]
+                      : ""
+                  }`}
+                >
+                  {result.name}
+                </li>
+              ))}
         </ul>
-      )}
-    </div>
+      </div>
+    </>
   );
 };
 
