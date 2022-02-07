@@ -238,7 +238,7 @@ const Map: React.FC = () => {
         if (map.current) {
           map.current.resize();
           if (bounds) {
-            map.current.fitBounds(bounds, { padding: 20 });
+            map.current.fitBounds(bounds, { padding: 40 });
           }
         }
       });
