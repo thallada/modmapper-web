@@ -31,10 +31,30 @@ const jsonFetcher = async (url: string): Promise<Mod | null> => {
   return res.json();
 };
 
+let cells = [];
+
+for (let x = -77; x < 76; x++) {
+  for (let y = -50; y < 45; y++) {
+    const id = `${x},${y}`;
+    cells.push({ id, name: `Cell ${id}`, x, y });
+  }
+}
+const cellSearch = new MiniSearch({
+  fields: ["id"],
+  storeFields: ["id", "name", "x", "y"],
+  tokenize: (s) => [s.replace(/cell\s?/gi, "")],
+  searchOptions: {
+    fields: ["id"],
+    prefix: true,
+    fuzzy: false,
+  },
+});
+cellSearch.addAll(cells);
+
 const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
   const router = useRouter();
 
-  const searchEngine = useRef<MiniSearch<Mod> | null>(
+  const modSearch = useRef<MiniSearch<Mod> | null>(
     null
   ) as React.MutableRefObject<MiniSearch<Mod>>;
 
@@ -44,8 +64,8 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
   );
 
   useEffect(() => {
-    if (data && !searchEngine.current) {
-      searchEngine.current = new MiniSearch({
+    if (data && !modSearch.current) {
+      modSearch.current = new MiniSearch({
         fields: ["name"],
         storeFields: ["name", "id"],
         searchOptions: {
@@ -53,7 +73,7 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
           fuzzy: 0.2,
         },
       });
-      searchEngine.current.addAll(data as unknown as Mod[]);
+      modSearch.current.addAll(data as unknown as Mod[]);
     }
   }, [data]);
 
@@ -73,15 +93,34 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
     items: results,
     itemToString: (item) => (item ? item.name : ""),
     onInputValueChange: ({ inputValue }) => {
-      if (searchEngine.current && inputValue) {
-        const results: SearchResult[] = searchEngine.current.search(inputValue);
-        setResults(results);
+      if (inputValue) {
+        let results: SearchResult[] = [];
+        if (modSearch.current && !/^(cell)?\s?-?\d+,-?\d+$/i.test(inputValue)) {
+          results = results.concat(
+            modSearch.current.search(inputValue).sort((resultA, resultB) => {
+              if (counts) {
+                const countA = counts[resultA.id];
+                const countB = counts[resultB.id];
+                if (countA && countB) return countB[2] - countA[2];
+              }
+              return 0;
+            })
+          );
+        }
+        results = results.concat(cellSearch.search(inputValue));
+        setResults(results.splice(0, 30));
       }
     },
     onSelectedItemChange: ({ selectedItem }) => {
       if (selectedItem) {
         setSearchFocused(false);
-        router.push({ query: { mod: selectedItem.id } });
+        if (selectedItem.x && selectedItem.y) {
+          router.push({
+            query: { cell: `${selectedItem.x},${selectedItem.y}` },
+          });
+        } else {
+          router.push({ query: { mod: selectedItem.id } });
+        }
         if (searchInput.current) searchInput.current.blur();
         reset();
       }
@@ -114,28 +153,17 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
           {...getMenuProps()}
         >
           {isOpen &&
-            results
-              .sort((resultA, resultB) => {
-                if (counts) {
-                  const countA = counts[resultA.id];
-                  const countB = counts[resultB.id];
-                  if (countA && countB) return countB[2] - countA[2];
-                }
-                return 0;
-              })
-              .map((result, index) => (
-                <li
-                  key={result.id}
-                  {...getItemProps({ item: result, index })}
-                  className={`${
-                    highlightedIndex === index
-                      ? styles["highlighted-result"]
-                      : ""
-                  }`}
-                >
-                  {result.name}
-                </li>
-              ))}
+            results.map((result, index) => (
+              <li
+                key={result.id}
+                {...getItemProps({ item: result, index })}
+                className={`${
+                  highlightedIndex === index ? styles["highlighted-result"] : ""
+                }`}
+              >
+                {result.name}
+              </li>
+            ))}
         </ul>
       </div>
     </>
