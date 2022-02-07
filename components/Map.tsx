@@ -45,6 +45,13 @@ const Map: React.FC = () => {
     x: number;
     y: number;
   } | null>(null);
+  const [selectedCells, setSelectedCells] = useState<
+    | {
+        x: number;
+        y: number;
+      }[]
+    | null
+  >(null);
   const sidebarOpen = selectedCell !== null || router.query.mod !== undefined;
 
   const { data: cellsData, error: cellsError } = useSWRImmutable(
@@ -149,6 +156,96 @@ const Map: React.FC = () => {
     [map]
   );
 
+  const selectCells = useCallback(
+    (cells: { x: number; y: number }[]) => {
+      if (!map.current) return;
+      if (map.current && !map.current.getSource("grid-source")) return;
+
+      var zoom = map.current.getZoom();
+      var viewportNW = map.current.project([-180, 85.051129]);
+      var cellSize = Math.pow(2, zoom + 2);
+
+      const selectedCellsLines: GeoJSON.FeatureCollection<
+        GeoJSON.Geometry,
+        GeoJSON.GeoJsonProperties
+      > = {
+        type: "FeatureCollection",
+        features: [],
+      };
+      let bounds: mapboxgl.LngLatBounds | null = null;
+
+      for (const cell of cells) {
+        const x = cell.x + 57;
+        const y = 50 - cell.y;
+        let nw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y,
+        ]);
+        let ne = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y,
+        ]);
+        let se = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        let sw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        if (bounds) {
+          bounds.extend(new mapboxgl.LngLatBounds(sw, ne));
+        } else {
+          bounds = new mapboxgl.LngLatBounds(sw, ne);
+        }
+        selectedCellsLines.features.push({
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              [nw.lng, nw.lat],
+              [ne.lng, ne.lat],
+              [se.lng, se.lat],
+              [sw.lng, sw.lat],
+              [nw.lng, nw.lat],
+            ],
+          },
+          properties: { x: x, y: y },
+        });
+      }
+
+      if (map.current.getLayer("selected-cells-layer")) {
+        map.current.removeLayer("selected-cells-layer");
+      }
+      if (map.current.getSource("selected-cells-source")) {
+        map.current.removeSource("selected-cells-source");
+      }
+      map.current.addSource("selected-cells-source", {
+        type: "geojson",
+        data: selectedCellsLines,
+      });
+      map.current.addLayer({
+        id: "selected-cells-layer",
+        type: "line",
+        source: "selected-cells-source",
+        paint: {
+          "line-color": "purple",
+          "line-width": 4,
+        },
+      });
+
+      requestAnimationFrame(() => {
+        if (map.current) {
+          map.current.resize();
+          if (bounds) {
+            map.current.fitBounds(bounds, { padding: 20 });
+          }
+        }
+      });
+    },
+    [map]
+  );
+
   const selectCell = useCallback(
     (cell) => {
       router.push({ query: { cell: cell.x + "," + cell.y } });
@@ -166,6 +263,19 @@ const Map: React.FC = () => {
     }
     if (map.current && map.current.getSource("selected-cell-source")) {
       map.current.removeSource("selected-cell-source");
+    }
+    requestAnimationFrame(() => {
+      if (map.current) map.current.resize();
+    });
+  }, [map]);
+
+  const clearSelectedCells = useCallback(() => {
+    setSelectedCells(null);
+    if (map.current && map.current.getLayer("selected-cells-layer")) {
+      map.current.removeLayer("selected-cells-layer");
+    }
+    if (map.current && map.current.getSource("selected-cells-source")) {
+      map.current.removeSource("selected-cells-source");
     }
     requestAnimationFrame(() => {
       if (map.current) map.current.resize();
@@ -204,6 +314,27 @@ const Map: React.FC = () => {
     router.query.mod,
     selectCell,
     clearSelectedCell,
+    heatmapLoaded,
+  ]);
+
+  useEffect(() => {
+    if (!heatmapLoaded) return; // wait for all map layers to load
+    if (
+      router.query.mod &&
+      typeof router.query.mod === "string" &&
+      selectedCells
+    ) {
+      selectCells(selectedCells);
+    } else {
+      if (selectedCells) {
+        clearSelectedCells();
+      }
+    }
+  }, [
+    selectedCells,
+    router.query.mod,
+    selectCells,
+    clearSelectedCells,
     heatmapLoaded,
   ]);
 
@@ -500,6 +631,7 @@ const Map: React.FC = () => {
           <Sidebar
             selectedCell={selectedCell}
             clearSelectedCell={() => router.push({ query: {} })}
+            setSelectedCells={setSelectedCells}
             map={map}
             counts={counts}
             countsError={countsError}

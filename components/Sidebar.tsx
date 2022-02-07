@@ -16,6 +16,7 @@ interface Cell {
 type Props = {
   selectedCell: { x: number; y: number } | null;
   clearSelectedCell: () => void;
+  setSelectedCells: (cells: { x: number; y: number }[] | null) => void;
   map: React.MutableRefObject<mapboxgl.Map | null>;
   counts: Record<number, [number, number, number]> | null;
   countsError: Error | null;
@@ -24,6 +25,7 @@ type Props = {
 const Sidebar: React.FC<Props> = ({
   selectedCell,
   clearSelectedCell,
+  setSelectedCells,
   counts,
   countsError,
   map,
@@ -47,7 +49,13 @@ const Sidebar: React.FC<Props> = ({
     if (countsError) return renderLoadError(countsError);
     if (!counts) return renderLoading();
 
-    return <ModData selectedMod={selectedMod} counts={counts} />;
+    return (
+      <ModData
+        selectedMod={selectedMod}
+        counts={counts}
+        setSelectedCells={setSelectedCells}
+      />
+    );
   };
 
   const onClose = () => {

@@ -47,9 +47,14 @@ const jsonFetcher = async (url: string): Promise<Mod | null> => {
 type Props = {
   selectedMod: number;
   counts: Record<number, [number, number, number]> | null;
+  setSelectedCells: (cells: { x: number; y: number }[] | null) => void;
 };
 
-const ModData: React.FC<Props> = ({ selectedMod, counts }) => {
+const ModData: React.FC<Props> = ({
+  selectedMod,
+  counts,
+  setSelectedCells,
+}) => {
   const { data, error } = useSWRImmutable(
     `https://mods.modmapper.com/${selectedMod}.json`,
     jsonFetcher
@@ -71,12 +76,16 @@ const ModData: React.FC<Props> = ({ selectedMod, counts }) => {
   const unique_downloads = modCounts ? modCounts[1] : 0;
   const views = modCounts ? modCounts[2] : 0;
 
+  setSelectedCells(data.cells);
+
   if (selectedMod && data) {
     return (
       <>
         <h1>
           <a
             href={`${NEXUS_MODS_URL}/mods/${data.nexus_mod_id}`}
+            target="_blank"
+            rel="noreferrer noopener"
             className={`${styles.link} ${styles.name}`}
           >
             {data.name}
@@ -86,6 +95,8 @@ const ModData: React.FC<Props> = ({ selectedMod, counts }) => {
           <strong>Category:&nbsp;</strong>
           <a
             href={`${NEXUS_MODS_URL}/mods/categories/${data.category_id}`}
+            target="_blank"
+            rel="noreferrer noopener"
             className={styles.link}
           >
             {data.category_name}
@@ -95,6 +106,8 @@ const ModData: React.FC<Props> = ({ selectedMod, counts }) => {
           <strong>Author:&nbsp;</strong>
           <a
             href={`${NEXUS_MODS_URL}/users/${data.author_id}`}
+            target="_blank"
+            rel="noreferrer noopener"
             className={styles.link}
           >
             {data.author_name}

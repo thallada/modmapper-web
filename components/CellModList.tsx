@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import React from "react";
+import Link from "next/link";
 
 import styles from "../styles/CellModList.module.css";
 import type { Mod } from "./CellData";
@@ -41,18 +42,27 @@ const CellModList: React.FC<Props> = ({ mods, counts }) => {
               <li key={mod.id} className={styles["mod-list-item"]}>
                 <div className={styles["mod-title"]}>
                   <strong>
-                    <a
-                      href={`${NEXUS_MODS_URL}/mods/${mod.nexus_mod_id}`}
-                      className={styles.link}
-                    >
-                      {mod.name}
-                    </a>
+                    <Link href={`/?mod=${mod.nexus_mod_id}`}>
+                      <a className={styles.link}>{mod.name}</a>
+                    </Link>
                   </strong>
+                </div>
+                <div>
+                  <a
+                    href={`${NEXUS_MODS_URL}/mods/${mod.nexus_mod_id}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className={styles.link}
+                  >
+                    View on Nexus Mods
+                  </a>
                 </div>
                 <div>
                   <strong>Category:&nbsp;</strong>
                   <a
                     href={`${NEXUS_MODS_URL}/mods/categories/${mod.category_id}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
                     className={styles.link}
                   >
                     {mod.category_name}
@@ -62,6 +72,8 @@ const CellModList: React.FC<Props> = ({ mods, counts }) => {
                   <strong>Author:&nbsp;</strong>
                   <a
                     href={`${NEXUS_MODS_URL}/users/${mod.author_id}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
                     className={styles.link}
                   >
                     {mod.author_name}
