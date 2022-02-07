@@ -70,7 +70,8 @@ const CellData: React.FC<Props> = ({ selectedCell, counts }) => {
       <>
         <ul className={styles["cell-data-list"]}>
           <li>
-            <strong>Form ID:</strong> <span>{data.form_id}</span>
+            <strong>Form ID:</strong>{" "}
+            <span>{data.form_id.toString(16).padStart(8, "0")}</span>
           </li>
           <li>
             <strong>Mods that edit:</strong> <span>{data.mods_count}</span>
