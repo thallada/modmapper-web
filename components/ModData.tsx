@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import React from "react";
 import useSWRImmutable from "swr/immutable";
 
+import ModCellList from "./ModCellList";
 import styles from "../styles/ModData.module.css";
 
 export interface CellCoord {
@@ -114,6 +115,7 @@ const ModData: React.FC<Props> = ({ selectedMod, counts }) => {
           <strong>Unique Downloads:</strong>{" "}
           {numberFmt.format(unique_downloads)}
         </div>
+        <ModCellList cells={data.cells} />
       </>
     );
   }

@@ -1,0 +1,16 @@
+.cell-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.cell-list-item {
+  margin-bottom: 12px;
+}
+
+.cell-title {
+  margin-bottom: 8px;
+}
+
+a.link {
+  color: #72030a;
+}
