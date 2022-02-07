@@ -357,7 +357,7 @@ const Map: React.FC = () => {
             tiles: ["https://tiles.modmapper.com/{z}/{x}/{y}.jpg"],
             tileSize: 256,
             attribution:
-              'Map tiles by <a href="https://en.uesp.net/wiki/Skyrim:Skyrim">UESP</a>',
+              'Map tiles by <a href="https://en.uesp.net/wiki/Skyrim:Skyrim" target="_blank">UESP</a>. Mod data from <a href="https://nexusmods.com" target="_blank">Nexus Mods</a>.',
           },
         },
         layers: [
