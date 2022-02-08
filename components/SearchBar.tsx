@@ -71,6 +71,7 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
         searchOptions: {
           fields: ["name"],
           fuzzy: 0.2,
+          prefix: true,
         },
       });
       modSearch.current.addAll(data as unknown as Mod[]);
@@ -101,7 +102,15 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
               if (counts) {
                 const countA = counts[resultA.id];
                 const countB = counts[resultB.id];
-                if (countA && countB) return countB[2] - countA[2];
+                const scoreA = resultA.score;
+                const scoreB = resultB.score;
+                if (countA && countB && scoreA && scoreB) {
+                  if (scoreA === scoreB) {
+                    return countB[2] - countA[2];
+                  } else {
+                    return scoreB - scoreA;
+                  }
+                }
               }
               return 0;
             })
