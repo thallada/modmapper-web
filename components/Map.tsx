@@ -377,6 +377,7 @@ const Map: React.FC = () => {
         [-180, -85.051129],
         [180, 85.051129],
       ],
+      dragRotate: false,
       pitchWithRotate: false,
     });
     map.current.on("load", () => {
@@ -583,7 +584,9 @@ const Map: React.FC = () => {
     (fullscreenControl as unknown as { _container: HTMLElement })._container =
       mapWrapper.current;
     map.current.addControl(fullscreenControl);
-    map.current.addControl(new mapboxgl.NavigationControl());
+    map.current.addControl(
+      new mapboxgl.NavigationControl({ showCompass: false })
+    );
 
     let singleClickTimeout: NodeJS.Timeout | null = null;
     map.current.on("click", "grid-layer", (e) => {
