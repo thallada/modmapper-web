@@ -377,6 +377,7 @@ const Map: React.FC = () => {
         [-180, -85.051129],
         [180, 85.051129],
       ],
+      pitchWithRotate: false,
     });
     map.current.on("load", () => {
       setMapLoaded(true);
