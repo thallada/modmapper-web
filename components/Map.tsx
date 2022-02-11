@@ -73,6 +73,7 @@ const Map: React.FC = () => {
       if (!map.current) return;
       if (map.current && !map.current.getSource("grid-source")) return;
 
+      map.current.removeFeatureState({ source: "grid-source" });
       map.current.setFeatureState(
         {
           source: "grid-source",
@@ -82,75 +83,49 @@ const Map: React.FC = () => {
           selected: true,
         }
       );
+      map.current.removeFeatureState({ source: "selected-cell-source" });
+      map.current.setFeatureState(
+        {
+          source: "selected-cell-source",
+          id: (cell.x + 57) * 100 + 50 - cell.y,
+        },
+        {
+          cellSelected: true,
+          modSelected: false,
+        }
+      );
       requestAnimationFrame(() => map.current && map.current.resize());
 
-      var zoom = map.current.getZoom();
-      var viewportNW = map.current.project([-180, 85.051129]);
-      var cellSize = Math.pow(2, zoom + 2);
-      const x = cell.x + 57;
-      const y = 50 - cell.y;
-      let nw = map.current.unproject([
-        x * cellSize + viewportNW.x,
-        y * cellSize + viewportNW.y,
-      ]);
-      let ne = map.current.unproject([
-        x * cellSize + viewportNW.x + cellSize,
-        y * cellSize + viewportNW.y,
-      ]);
-      let se = map.current.unproject([
-        x * cellSize + viewportNW.x + cellSize,
-        y * cellSize + viewportNW.y + cellSize,
-      ]);
-      let sw = map.current.unproject([
-        x * cellSize + viewportNW.x,
-        y * cellSize + viewportNW.y + cellSize,
-      ]);
-      const selectedCellLines: GeoJSON.FeatureCollection<
-        GeoJSON.Geometry,
-        GeoJSON.GeoJsonProperties
-      > = {
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            geometry: {
-              type: "LineString",
-              coordinates: [
-                [nw.lng, nw.lat],
-                [ne.lng, ne.lat],
-                [se.lng, se.lat],
-                [sw.lng, sw.lat],
-                [nw.lng, nw.lat],
-              ],
-            },
-            properties: { x: x, y: y },
-          },
-        ],
+      const panTo = () => {
+        const zoom = map.current.getZoom();
+        const viewportNW = map.current.project([-180, 85.051129]);
+        const cellSize = Math.pow(2, zoom + 2);
+        const x = cell.x + 57;
+        const y = 50 - cell.y;
+        let nw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y,
+        ]);
+        let se = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+
+        const bounds = map.current.getBounds();
+        if (!bounds.contains(nw) || !bounds.contains(se)) {
+          map.current.panTo(nw);
+        }
       };
-
-      if (map.current.getLayer("selected-cell-layer")) {
-        map.current.removeLayer("selected-cell-layer");
-      }
-      if (map.current.getSource("selected-cell-source")) {
-        map.current.removeSource("selected-cell-source");
-      }
-      map.current.addSource("selected-cell-source", {
-        type: "geojson",
-        data: selectedCellLines,
-      });
-      map.current.addLayer({
-        id: "selected-cell-layer",
-        type: "line",
-        source: "selected-cell-source",
-        paint: {
-          "line-color": "blue",
-          "line-width": 3,
-        },
-      });
-
-      const bounds = map.current.getBounds();
-      if (!bounds.contains(nw) || !bounds.contains(se)) {
-        map.current.panTo(nw);
+      const bearing = map.current.getBearing();
+      const pitch = map.current.getPitch();
+      // This logic breaks with camera rotation / pitch
+      if (bearing !== 0 || pitch !== 0) {
+        map.current.easeTo({ bearing: 0, pitch: 0, duration: 300 });
+        setTimeout(() => {
+          panTo();
+        }, 300);
+      } else {
+        panTo();
       }
     },
     [map]
@@ -161,87 +136,65 @@ const Map: React.FC = () => {
       if (!map.current) return;
       if (map.current && !map.current.getSource("grid-source")) return;
 
-      var zoom = map.current.getZoom();
-      var viewportNW = map.current.project([-180, 85.051129]);
-      var cellSize = Math.pow(2, zoom + 2);
-
-      const selectedCellsLines: GeoJSON.FeatureCollection<
-        GeoJSON.Geometry,
-        GeoJSON.GeoJsonProperties
-      > = {
-        type: "FeatureCollection",
-        features: [],
-      };
-      let bounds: mapboxgl.LngLatBounds | null = null;
-
-      for (const cell of cells) {
-        const x = cell.x + 57;
-        const y = 50 - cell.y;
-        let nw = map.current.unproject([
-          x * cellSize + viewportNW.x,
-          y * cellSize + viewportNW.y,
-        ]);
-        let ne = map.current.unproject([
-          x * cellSize + viewportNW.x + cellSize,
-          y * cellSize + viewportNW.y,
-        ]);
-        let se = map.current.unproject([
-          x * cellSize + viewportNW.x + cellSize,
-          y * cellSize + viewportNW.y + cellSize,
-        ]);
-        let sw = map.current.unproject([
-          x * cellSize + viewportNW.x,
-          y * cellSize + viewportNW.y + cellSize,
-        ]);
-        if (bounds) {
-          bounds.extend(new mapboxgl.LngLatBounds(sw, ne));
-        } else {
-          bounds = new mapboxgl.LngLatBounds(sw, ne);
-        }
-        selectedCellsLines.features.push({
-          type: "Feature",
-          geometry: {
-            type: "LineString",
-            coordinates: [
-              [nw.lng, nw.lat],
-              [ne.lng, ne.lat],
-              [se.lng, se.lat],
-              [sw.lng, sw.lat],
-              [nw.lng, nw.lat],
-            ],
+      map.current.removeFeatureState({ source: "selected-cell-source" });
+      for (let cell of cells) {
+        map.current.setFeatureState(
+          {
+            source: "selected-cell-source",
+            id: (cell.x + 57) * 100 + 50 - cell.y,
           },
-          properties: { x: x, y: y },
-        });
+          {
+            modSelected: true,
+            cellSelected: false,
+          }
+        );
       }
 
-      if (map.current.getLayer("selected-cells-layer")) {
-        map.current.removeLayer("selected-cells-layer");
-      }
-      if (map.current.getSource("selected-cells-source")) {
-        map.current.removeSource("selected-cells-source");
-      }
-      map.current.addSource("selected-cells-source", {
-        type: "geojson",
-        data: selectedCellsLines,
-      });
-      map.current.addLayer({
-        id: "selected-cells-layer",
-        type: "line",
-        source: "selected-cells-source",
-        paint: {
-          "line-color": "purple",
-          "line-width": 4,
-        },
-      });
+      let bounds: mapboxgl.LngLatBounds | null = null;
+      const fitBounds = () => {
+        const zoom = map.current.getZoom();
+        const viewportNW = map.current.project([-180, 85.051129]);
+        const cellSize = Math.pow(2, zoom + 2);
 
-      requestAnimationFrame(() => {
-        if (map.current) {
-          map.current.resize();
+        for (const cell of cells) {
+          const x = cell.x + 57;
+          const y = 50 - cell.y;
+          let ne = map.current.unproject([
+            x * cellSize + viewportNW.x + cellSize,
+            y * cellSize + viewportNW.y,
+          ]);
+          let sw = map.current.unproject([
+            x * cellSize + viewportNW.x,
+            y * cellSize + viewportNW.y + cellSize,
+          ]);
           if (bounds) {
-            map.current.fitBounds(bounds, { padding: 40 });
+            bounds.extend(new mapboxgl.LngLatBounds(sw, ne));
+          } else {
+            bounds = new mapboxgl.LngLatBounds(sw, ne);
           }
         }
-      });
+
+        requestAnimationFrame(() => {
+          if (map.current) {
+            map.current.resize();
+            if (bounds) {
+              map.current.fitBounds(bounds, { padding: 40 });
+            }
+          }
+        });
+      };
+
+      const bearing = map.current.getBearing();
+      const pitch = map.current.getPitch();
+      // This logic breaks with camera rotation / pitch
+      if (bearing !== 0 || pitch !== 0) {
+        map.current.easeTo({ bearing: 0, pitch: 0, duration: 300 });
+        setTimeout(() => {
+          fitBounds();
+        }, 300);
+      } else {
+        fitBounds();
+      }
     },
     [map]
   );
@@ -258,11 +211,8 @@ const Map: React.FC = () => {
   const clearSelectedCell = useCallback(() => {
     setSelectedCell(null);
     if (map.current) map.current.removeFeatureState({ source: "grid-source" });
-    if (map.current && map.current.getLayer("selected-cell-layer")) {
-      map.current.removeLayer("selected-cell-layer");
-    }
-    if (map.current && map.current.getSource("selected-cell-source")) {
-      map.current.removeSource("selected-cell-source");
+    if (map.current) {
+      map.current.removeFeatureState({ source: "selected-cell-source" });
     }
     requestAnimationFrame(() => {
       if (map.current) map.current.resize();
@@ -271,11 +221,8 @@ const Map: React.FC = () => {
 
   const clearSelectedCells = useCallback(() => {
     setSelectedCells(null);
-    if (map.current && map.current.getLayer("selected-cells-layer")) {
-      map.current.removeLayer("selected-cells-layer");
-    }
-    if (map.current && map.current.getSource("selected-cells-source")) {
-      map.current.removeSource("selected-cells-source");
+    if (map.current) {
+      map.current.removeFeatureState({ source: "selected-cell-source" });
     }
     requestAnimationFrame(() => {
       if (map.current) map.current.resize();
@@ -301,39 +248,32 @@ const Map: React.FC = () => {
         selectedCell.x !== cell.x ||
         selectedCell.y !== cell.y
       ) {
+        clearSelectedCells();
         selectCell(cell);
       }
-    } else {
-      if (selectedCell) {
-        clearSelectedCell();
-      }
-    }
-  }, [
-    selectedCell,
-    router.query.cell,
-    router.query.mod,
-    selectCell,
-    clearSelectedCell,
-    heatmapLoaded,
-  ]);
-
-  useEffect(() => {
-    if (!heatmapLoaded) return; // wait for all map layers to load
-    if (
+    } else if (
       router.query.mod &&
       typeof router.query.mod === "string" &&
       selectedCells
     ) {
+      clearSelectedCell();
       selectCells(selectedCells);
     } else {
+      if (selectedCell) {
+        clearSelectedCell();
+      }
       if (selectedCells) {
         clearSelectedCells();
       }
     }
   }, [
+    selectedCell,
     selectedCells,
+    router.query.cell,
     router.query.mod,
+    selectCell,
     selectCells,
+    clearSelectedCell,
     clearSelectedCells,
     heatmapLoaded,
   ]);
@@ -377,8 +317,6 @@ const Map: React.FC = () => {
         [-180, -85.051129],
         [180, 85.051129],
       ],
-      dragRotate: false,
-      pitchWithRotate: false,
     });
     map.current.on("load", () => {
       setMapLoaded(true);
@@ -580,33 +518,91 @@ const Map: React.FC = () => {
       },
       "grid-labels-layer"
     );
+
+    const selectedCellLines: GeoJSON.FeatureCollection<
+      GeoJSON.Geometry,
+      GeoJSON.GeoJsonProperties
+    > = {
+      type: "FeatureCollection",
+      features: [],
+    };
+    for (let x = 0; x < 128; x += 1) {
+      for (let y = 0; y < 128; y += 1) {
+        let nw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y,
+        ]);
+        let ne = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y,
+        ]);
+        let se = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        let sw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        selectedCellLines.features.push({
+          type: "Feature",
+          id: x * 100 + y,
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              [nw.lng, nw.lat],
+              [ne.lng, ne.lat],
+              [se.lng, se.lat],
+              [sw.lng, sw.lat],
+              [nw.lng, nw.lat],
+            ],
+          },
+          properties: { x: x, y: y },
+        });
+      }
+    }
+
+    map.current.addSource("selected-cell-source", {
+      type: "geojson",
+      data: selectedCellLines,
+    });
+    map.current.addLayer({
+      id: "selected-cell-layer",
+      type: "line",
+      source: "selected-cell-source",
+      paint: {
+        "line-color": [
+          "case",
+          ["boolean", ["feature-state", "cellSelected"], false],
+          "blue",
+          ["boolean", ["feature-state", "modSelected"], false],
+          "purple",
+          "transparent",
+        ],
+        "line-width": [
+          "case",
+          ["boolean", ["feature-state", "modSelected"], false],
+          4,
+          3,
+        ],
+      },
+    });
+
     const fullscreenControl = new mapboxgl.FullscreenControl();
     (fullscreenControl as unknown as { _container: HTMLElement })._container =
       mapWrapper.current;
     map.current.addControl(fullscreenControl);
-    map.current.addControl(
-      new mapboxgl.NavigationControl({ showCompass: false })
-    );
+    map.current.addControl(new mapboxgl.NavigationControl());
 
-    let singleClickTimeout: NodeJS.Timeout | null = null;
     map.current.on("click", "grid-layer", (e) => {
       const features = e.features;
-      if (singleClickTimeout) return;
-      singleClickTimeout = setTimeout(() => {
-        singleClickTimeout = null;
-        if (features && features[0]) {
-          const cell = {
-            x: features[0].properties!.cellX,
-            y: features[0].properties!.cellY,
-          };
-          router.push({ query: { cell: cell.x + "," + cell.y } });
-        }
-      }, 200);
-    });
-
-    map.current.on("dblclick", "grid-layer", (e) => {
-      if (singleClickTimeout) clearTimeout(singleClickTimeout);
-      singleClickTimeout = null;
+      if (features && features[0]) {
+        const cell = {
+          x: features[0].properties!.cellX,
+          y: features[0].properties!.cellY,
+        };
+        router.push({ query: { cell: cell.x + "," + cell.y } });
+      }
     });
 
     setHeatmapLoaded(true);
