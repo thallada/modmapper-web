@@ -25,25 +25,29 @@
   }
 }
 
+.sidebar-header {
+  position: sticky;
+  top: 0px;
+  width: 100%;
+}
+
 .close {
-  position: fixed;
-  top: 4px;
-  left: 240px;
+  position: absolute;
+  display: block;
+  top: 0px;
+  right: 0px;
   font-size: 24px;
-  margin-left: 12px;
   border: none;
   background: none;
   cursor: pointer;
-}
-
-@media only screen and (max-width: 600px) {
-  .close {
-    top: calc(55% + 8px);
-    left: initial;
-    right: 12px;
-  }
+  margin-top: -16px;
 }
 
 .close:hover {
   color: #888888;
+}
+
+.cell-name-header {
+  line-height: 1.75rem;
+  word-wrap: break-word;
 }

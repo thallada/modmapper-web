@@ -65,10 +65,12 @@ const Sidebar: React.FC<Props> = ({
   if (selectedCell) {
     return (
       <div className={styles.sidebar}>
-        <button className={styles.close} onClick={onClose}>
-          ✖
-        </button>
-        <h1>
+        <div className={styles["sidebar-header"]}>
+          <button className={styles.close} onClick={onClose}>
+            ✖
+          </button>
+        </div>
+        <h1 className={styles["cell-name-header"]}>
           Cell {selectedCell.x}, {selectedCell.y}
         </h1>
         {renderCellData(selectedCell)}
@@ -78,9 +80,11 @@ const Sidebar: React.FC<Props> = ({
     const modId = parseInt(router.query.mod as string, 10);
     return (
       <div className={styles.sidebar}>
-        <button className={styles.close} onClick={onClose}>
-          ✖
-        </button>
+        <div className={styles["sidebar-header"]}>
+          <button className={styles.close} onClick={onClose}>
+            ✖
+          </button>
+        </div>
         {!Number.isNaN(modId) && renderModData(modId)}
       </div>
     );
