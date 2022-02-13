@@ -19,14 +19,20 @@ const Home: NextPage = () => {
         <meta property="og:description" content="Map of Skyrim mods" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://modmapper.com" />
-        <meta property="og:image" content="/img/screenshot.jpg" />
+        <meta
+          property="og:image"
+          content="https://modmapper.com/img/screenshot.jpg"
+        />
         <meta
           property="og:image:alt"
           content="A screenshot of Modmapper displaying a map of Skyrim with a grid of cells overlayed colored green to red indicating how many mods edited each cell"
         />
         <meta name="twitter:title" content="Modmapper" />
         <meta name="twitter:description" content="Map of Skyrim mods" />
-        <meta name="twitter:image" content="/img/screenshot.jpg" />
+        <meta
+          name="twitter:image"
+          content="https://modmapper.com/img/screenshot.jpg"
+        />
         <meta
           name="twitter:image:alt"
           content="A screenshot of Modmapper displaying a map of Skyrim with a grid of cells overlayed colored green to red indicating how many mods edited each cell"
