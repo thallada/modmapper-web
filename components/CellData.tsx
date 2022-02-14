@@ -1,3 +1,4 @@
+import Head from "next/head";
 import React from "react";
 import useSWRImmutable from "swr/immutable";
 
@@ -68,6 +69,41 @@ const CellData: React.FC<Props> = ({ selectedCell, counts }) => {
   return (
     selectedCell && (
       <>
+        <Head>
+          <title key="title">{`Modmapper - Cell ${data.x}, ${data.y}`}</title>
+          <meta
+            key="description"
+            name="description"
+            content={`Map of Skyrim showing ${data.mods_count} mods that edit cell ${data.x}, ${data.y}`}
+          />
+          <meta
+            key="og:title"
+            property="og:title"
+            content={`Modmapper - Cell ${data.x}, ${data.y}`}
+          />
+          <meta
+            key="og:description"
+            property="og:description"
+            content={`Map of Skyrim showing ${data.mods_count} mods that edit cell ${data.x}, ${data.y}`}
+          />
+          <meta
+            key="twitter:title"
+            name="twitter:title"
+            content={`Modmapper - Cell ${data.x}, ${data.y}`}
+          />
+          <meta
+            key="twitter:description"
+            name="twitter:description"
+            content={`Map of Skyrim showing ${data.mods_count} mods that edit cell ${data.x}, ${data.y}`}
+          />
+          <meta
+            key="og:url"
+            property="og:url"
+            content={`https://modmapper.com/?cell=${encodeURIComponent(
+              `${data.x},${data.y}`
+            )}`}
+          />
+        </Head>
         <ul className={styles["cell-data-list"]}>
           <li>
             <strong>Form ID:</strong>{" "}

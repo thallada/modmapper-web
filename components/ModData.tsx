@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import Head from "next/head";
 import React from "react";
 import useSWRImmutable from "swr/immutable";
 
@@ -81,6 +82,39 @@ const ModData: React.FC<Props> = ({
   if (selectedMod && data) {
     return (
       <>
+        <Head>
+          <title key="title">{`Modmapper - ${data.name}`}</title>
+          <meta
+            key="description"
+            name="description"
+            content={`Map of Skyrim showing ${data.cells.length} cell edits from the mod: ${data.name}`}
+          />
+          <meta
+            key="og:title"
+            property="og:title"
+            content={`Modmapper - ${data.name}`}
+          />
+          <meta
+            key="og:description"
+            property="og:description"
+            content={`Map of Skyrim showing ${data.cells.length} cell edits from the mod: ${data.name}`}
+          />
+          <meta
+            key="twitter:title"
+            name="twitter:title"
+            content={`Modmapper - ${data.name}`}
+          />
+          <meta
+            key="twitter:description"
+            name="twitter:description"
+            content={`Map of Skyrim showing ${data.cells.length} cell edits from the mod: ${data.name}`}
+          />
+          <meta
+            key="og:url"
+            property="og:url"
+            content={`https://modmapper.com/?mod=${data.nexus_mod_id}`}
+          />
+        </Head>
         <h1>
           <a
             href={`${NEXUS_MODS_URL}/mods/${data.nexus_mod_id}`}

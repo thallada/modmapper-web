@@ -10,15 +10,23 @@ const Home: NextPage = () => {
       <Head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Modmapper</title>
+        <title key="title">Modmapper</title>
         <link rel="icon" href="/favicon.ico" />
 
-        <meta name="description" content="Map of Skyrim mods" />
-        <meta property="og:title" content="Modmapper" />
+        <meta
+          key="description"
+          name="description"
+          content="Map of Skyrim mods"
+        />
+        <meta key="og:title" property="og:title" content="Modmapper" />
         <meta property="og:site_name" content="Modmapper"></meta>
-        <meta property="og:description" content="Map of Skyrim mods" />
+        <meta
+          key="og:description"
+          property="og:description"
+          content="Map of Skyrim mods"
+        />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://modmapper.com" />
+        <meta key="og:url" property="og:url" content="https://modmapper.com" />
         <meta
           property="og:image"
           content="https://modmapper.com/img/screenshot.jpg"
@@ -27,8 +35,12 @@ const Home: NextPage = () => {
           property="og:image:alt"
           content="A screenshot of Modmapper displaying a map of Skyrim with a grid of cells overlayed colored green to red indicating how many mods edited each cell"
         />
-        <meta name="twitter:title" content="Modmapper" />
-        <meta name="twitter:description" content="Map of Skyrim mods" />
+        <meta key="twitter:title" name="twitter:title" content="Modmapper" />
+        <meta
+          key="twitter:description"
+          name="twitter:description"
+          content="Map of Skyrim mods"
+        />
         <meta
           name="twitter:image"
           content="https://modmapper.com/img/screenshot.jpg"
