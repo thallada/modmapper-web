@@ -143,6 +143,7 @@ const Map: React.FC = () => {
 
   const selectCells = useCallback(
     (cells: { x: number; y: number }[]) => {
+      console.log("selectCells");
       if (!map.current) return;
       if (map.current && !map.current.getSource("grid-source")) return;
 
@@ -233,6 +234,7 @@ const Map: React.FC = () => {
   );
 
   const clearSelectedCell = useCallback(() => {
+    console.log("clearSelectedCell");
     setSelectedCell(null);
     if (map.current) map.current.removeFeatureState({ source: "grid-source" });
     if (map.current) {
@@ -245,6 +247,7 @@ const Map: React.FC = () => {
   }, [map]);
 
   const clearSelectedCells = useCallback(() => {
+    console.log("clearSelectedCells");
     setSelectedCells(null);
     if (map.current) {
       map.current.removeFeatureState({ source: "selected-cell-source" });
@@ -295,24 +298,45 @@ const Map: React.FC = () => {
       clearSelectedCell();
       setSidebarOpen(true);
       selectCells(selectedCells);
+    } else if (router.query.plugin && typeof router.query.plugin === "string") {
+      clearSelectedCells();
+      setSidebarOpen(true);
+      if (plugins && plugins.length > 0 && pluginsPending === 0) {
+        const plugin = plugins.find((p) => p.hash === router.query.plugin);
+        if (plugin && plugin.parsed) {
+          const cells = [];
+          const cellSet = new Set<number>();
+          for (const cell of plugin.parsed.cells) {
+            if (
+              cell.x !== undefined &&
+              cell.y !== undefined &&
+              cell.world_form_id === 60 &&
+              cellSet.has(cell.x + cell.y * 1000) === false
+            ) {
+              cells.push({ x: cell.x, y: cell.y });
+              cellSet.add(cell.x + cell.y * 1000);
+            }
+          }
+          selectCells(cells);
+        }
+      }
     } else {
-      if (selectedCell) {
-        clearSelectedCell();
-      }
-      if (selectedCells) {
-        clearSelectedCells();
-      }
+      clearSelectedCell();
+      clearSelectedCells();
     }
   }, [
     selectedCell,
     selectedCells,
     router.query.cell,
     router.query.mod,
+    router.query.plugin,
     selectCell,
     selectCells,
     clearSelectedCell,
     clearSelectedCells,
     heatmapLoaded,
+    plugins,
+    pluginsPending,
   ]);
 
   useEffect(() => {
@@ -324,7 +348,14 @@ const Map: React.FC = () => {
 
   useEffect(() => {
     if (!heatmapLoaded) return; // wait for all map layers to load
-    if (plugins && plugins.length > 0 && pluginsPending === 0) {
+    if (
+      plugins &&
+      plugins.length > 0 &&
+      pluginsPending === 0 &&
+      !router.query.cell &&
+      !router.query.mod &&
+      !router.query.plugin
+    ) {
       clearSelectedCells();
       const cells = plugins.reduce(
         (acc: { x: number; y: number }[], plugin: PluginFile) => {
@@ -347,7 +378,16 @@ const Map: React.FC = () => {
       );
       selectCells(cells);
     }
-  }, [plugins, pluginsPending, heatmapLoaded, clearSelectedCells, selectCells]);
+  }, [
+    plugins,
+    pluginsPending,
+    heatmapLoaded,
+    clearSelectedCells,
+    selectCells,
+    router.query.cell,
+    router.query.mod,
+    router.query.plugin,
+  ]);
 
   useEffect(() => {
     if (map.current) return; // initialize map only once

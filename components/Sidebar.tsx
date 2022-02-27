@@ -4,6 +4,7 @@ import { formatRelative } from "date-fns";
 
 import CellData from "./CellData";
 import ModData from "./ModData";
+import PluginData from "./PluginData";
 import PluginsLoader from "./PluginsLoader";
 import styles from "../styles/Sidebar.module.css";
 
@@ -56,6 +57,13 @@ const Sidebar: React.FC<Props> = ({
     );
   };
 
+  const renderPluginData = (plugin: string) => {
+    if (countsError) return renderLoadError(countsError);
+    if (!counts) return renderLoading();
+
+    return <PluginData hash={plugin} counts={counts} />;
+  };
+
   const renderOpenSidebar = () => {
     if (selectedCell) {
       return (
@@ -87,6 +95,24 @@ const Sidebar: React.FC<Props> = ({
             </button>
           </div>
           {!Number.isNaN(modId) && renderModData(modId)}
+        </div>
+      );
+    } else if (router.query.plugin) {
+      return (
+        <div
+          className={styles.sidebar}
+          style={!open ? { display: "none" } : {}}
+        >
+          <div className={styles["sidebar-header"]}>
+            <button className={styles.close} onClick={onClose}>
+              ✖
+            </button>
+          </div>
+          {renderPluginData(
+            typeof router.query.plugin === "string"
+              ? router.query.plugin
+              : router.query.plugin[0]
+          )}
         </div>
       );
     } else {
