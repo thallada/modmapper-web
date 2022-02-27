@@ -9,8 +9,8 @@
   width: 300px;
   padding: 12px;
   padding-top: 24px;
-  border-right: 1px solid #222222;
   font-size: 0.875rem;
+  border: 1px solid #222222;
 }
 
 @media only screen and (max-width: 600px) {
@@ -29,13 +29,12 @@
   position: sticky;
   top: 0px;
   width: 100%;
+  display: flex;
+  justify-content: right;
 }
 
 .close {
-  position: absolute;
   display: block;
-  top: 0px;
-  right: 0px;
   font-size: 24px;
   border: none;
   background: none;
@@ -47,7 +46,114 @@
   color: #888888;
 }
 
+.hide {
+  position: fixed;
+  display: block;
+  font-size: 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  top: 46%;
+  left: 299px;
+  z-index: 4;
+  background-color: #fbefd5;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-top: 2px solid #222222;
+  border-bottom: 2px solid #222222;
+  border-right: 2px solid #222222;
+}
+
+.hide:after {
+  content: "🠈";
+}
+
+@media only screen and (max-width: 600px) {
+  .hide {
+    top: calc(55% - 22px);
+    left: 47%;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 0px;
+    border-top-left-radius: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-bottom: none;
+    border-left: 2px solid #222222;
+  }
+
+  .hide:after {
+    content: "🠋";
+  }
+}
+
+.hide:hover {
+  color: #888888;
+}
+
+.open {
+  position: fixed;
+  display: block;
+  font-size: 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  top: 46%;
+  left: -1px;
+  z-index: 3;
+  background-color: #fbefd5;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-top: 2px solid #222222;
+  border-bottom: 2px solid #222222;
+  border-right: 2px solid #222222;
+}
+
+.open:after {
+  content: "🠊";
+}
+
+@media only screen and (max-width: 600px) {
+  .open {
+    top: initial;
+    bottom: 0;
+    left: 47%;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 0px;
+    border-top-left-radius: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-bottom: none;
+    border-left: 2px solid #222222;
+  }
+
+  .open:after {
+    content: "🠉";
+  }
+}
+
 .cell-name-header {
   line-height: 1.75rem;
   word-wrap: break-word;
+}
+
+.default-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sidebar-modified-date {
+  margin-top: auto;
+}
+
+.subheader {
+  margin-top: 0;
 }

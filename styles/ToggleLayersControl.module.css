@@ -11,7 +11,8 @@
 }
 
 .heatmap-toggle span {
-  background-image: url(/img/heatmap.svg);
+  background: rgba(255, 255, 255, 0.2) url(/img/heatmap.svg);
+  background-blend-mode: lighten;
 }
 
 .grid-toggle {
@@ -19,7 +20,8 @@
 }
 
 .grid-toggle span {
-  background-image: url(/img/grid.svg);
+  background: rgba(255, 255, 255, 0.2) url(/img/grid.svg);
+  background-blend-mode: lighten;
 }
 
 .labels-toggle {
@@ -27,7 +29,8 @@
 }
 
 .labels-toggle span {
-  background-image: url(/img/labels.svg);
+  background: rgba(255, 255, 255, 0.2) url(/img/labels.svg);
+  background-blend-mode: lighten;
 }
 
 .toggle-off {

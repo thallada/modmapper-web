@@ -30,7 +30,7 @@ const ModCellList: React.FC<Props> = ({ cells }) => {
                         `${cell.x},${cell.y}`
                       )}`}
                     >
-                      <a className={styles.link}>
+                      <a>
                         {cell.x}, {cell.y}
                       </a>
                     </Link>

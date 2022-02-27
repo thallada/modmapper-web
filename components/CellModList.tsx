@@ -43,7 +43,7 @@ const CellModList: React.FC<Props> = ({ mods, counts }) => {
                 <div className={styles["mod-title"]}>
                   <strong>
                     <Link href={`/?mod=${mod.nexus_mod_id}`}>
-                      <a className={styles.link}>{mod.name}</a>
+                      <a>{mod.name}</a>
                     </Link>
                   </strong>
                 </div>
@@ -52,7 +52,6 @@ const CellModList: React.FC<Props> = ({ mods, counts }) => {
                     href={`${NEXUS_MODS_URL}/mods/${mod.nexus_mod_id}`}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className={styles.link}
                   >
                     View on Nexus Mods
                   </a>
@@ -63,7 +62,6 @@ const CellModList: React.FC<Props> = ({ mods, counts }) => {
                     href={`${NEXUS_MODS_URL}/mods/categories/${mod.category_id}`}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className={styles.link}
                   >
                     {mod.category_name}
                   </a>
@@ -74,7 +72,6 @@ const CellModList: React.FC<Props> = ({ mods, counts }) => {
                     href={`${NEXUS_MODS_URL}/users/${mod.author_id}`}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className={styles.link}
                   >
                     {mod.author_name}
                   </a>

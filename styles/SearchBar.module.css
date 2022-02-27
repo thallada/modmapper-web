@@ -11,6 +11,10 @@
   left: calc(50% - max(20vw, 125px));
 }
 
+.search-bar.search-bar-sidebar-open {
+  left: calc(50% + 75px);
+}
+
 .search-bar input {
   width: 150px;
   border-radius: 8px;

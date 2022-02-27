@@ -1,16 +1,14 @@
 import { useCombobox } from "downshift";
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
-import type mapboxgl from "mapbox-gl";
 import MiniSearch, { SearchResult } from "minisearch";
 import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/SearchBar.module.css";
 
 type Props = {
-  clearSelectedCell: () => void;
-  map: React.MutableRefObject<mapboxgl.Map>;
   counts: Record<number, [number, number, number]> | null;
+  sidebarOpen: boolean;
 };
 
 interface Mod {
@@ -51,7 +49,7 @@ const cellSearch = new MiniSearch({
 });
 cellSearch.addAll(cells);
 
-const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
+const SearchBar: React.FC<Props> = ({ counts, sidebarOpen }) => {
   const router = useRouter();
 
   const modSearch = useRef<MiniSearch<Mod> | null>(
@@ -141,7 +139,7 @@ const SearchBar: React.FC<Props> = ({ clearSelectedCell, counts, map }) => {
       <div
         className={`${styles["search-bar"]} ${
           searchFocused ? styles["search-bar-focused"] : ""
-        }`}
+        } ${sidebarOpen ? styles["search-bar-sidebar-open"] : ""}`}
         {...getComboboxProps()}
       >
         <input

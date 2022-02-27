@@ -120,7 +120,7 @@ const ModData: React.FC<Props> = ({
             href={`${NEXUS_MODS_URL}/mods/${data.nexus_mod_id}`}
             target="_blank"
             rel="noreferrer noopener"
-            className={`${styles.link} ${styles.name}`}
+            className={styles.name}
           >
             {data.name}
           </a>
@@ -131,7 +131,6 @@ const ModData: React.FC<Props> = ({
             href={`${NEXUS_MODS_URL}/mods/categories/${data.category_id}`}
             target="_blank"
             rel="noreferrer noopener"
-            className={styles.link}
           >
             {data.category_name}
           </a>
@@ -142,7 +141,6 @@ const ModData: React.FC<Props> = ({
             href={`${NEXUS_MODS_URL}/users/${data.author_id}`}
             target="_blank"
             rel="noreferrer noopener"
-            className={styles.link}
           >
             {data.author_name}
           </a>

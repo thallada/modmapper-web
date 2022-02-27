@@ -3,8 +3,11 @@ import Head from "next/head";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import Map from "../components/Map";
+import { useAppDispatch } from "../lib/hooks";
+import { setPluginsTxt } from "../slices/pluginsTxt";
 
 const Home: NextPage = () => {
+  const dispatch = useAppDispatch();
   return (
     <>
       <Head>
@@ -53,7 +56,31 @@ const Home: NextPage = () => {
         <meta name="twitter:site" content="@tyhallada" />
         <meta name="twitter:creator" content="@tyhallada" />
       </Head>
-      <Map />
+      <div
+        style={{
+          margin: 0,
+          padding: 0,
+          width: "100%",
+          height: "100%",
+        }}
+        onDragOver={(evt) => {
+          console.log("drag over!");
+          evt.preventDefault();
+        }}
+        onDrop={async (evt) => {
+          console.log("drop!");
+          evt.preventDefault();
+
+          if (evt.dataTransfer.items && evt.dataTransfer.items.length > 0) {
+            const file = evt.dataTransfer.items[0].getAsFile();
+            if (file) {
+              dispatch(setPluginsTxt(await file.text()));
+            }
+          }
+        }}
+      >
+        <Map />
+      </div>
     </>
   );
 };

@@ -4,6 +4,8 @@ import Gradient from "javascript-color-gradient";
 import mapboxgl from "mapbox-gl";
 import useSWRImmutable from "swr/immutable";
 
+import { useAppSelector } from "../lib/hooks";
+import { PluginFile } from "../slices/plugins";
 import styles from "../styles/Map.module.css";
 import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
@@ -24,7 +26,11 @@ colorGradient.setMidpoint(360);
 const LIVE_DOWNLOAD_COUNTS_URL =
   "https://staticstats.nexusmods.com/live_download_counts/mods/1704.csv";
 
-const jsonFetcher = (url: string) => fetch(url).then((res) => res.json());
+const jsonFetcher = (url: string) =>
+  fetch(url).then(async (res) => ({
+    lastModified: res.headers.get("Last-Modified"),
+    data: await res.json(),
+  }));
 const csvFetcher = (url: string) => fetch(url).then((res) => res.text());
 
 const Map: React.FC = () => {
@@ -52,7 +58,10 @@ const Map: React.FC = () => {
       }[]
     | null
   >(null);
-  const sidebarOpen = selectedCell !== null || router.query.mod !== undefined;
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const plugins = useAppSelector((state) => state.plugins.plugins);
+  const pluginsPending = useAppSelector((state) => state.plugins.pending);
 
   const { data: cellsData, error: cellsError } = useSWRImmutable(
     "https://cells.modmapper.com/edits.json",
@@ -77,17 +86,18 @@ const Map: React.FC = () => {
       map.current.setFeatureState(
         {
           source: "grid-source",
-          id: (cell.x + 57) * 100 + 50 - cell.y,
+          id: (cell.x + 57) * 1000 + 50 - cell.y,
         },
         {
           selected: true,
         }
       );
       map.current.removeFeatureState({ source: "selected-cell-source" });
+      map.current.removeFeatureState({ source: "conflicted-cell-source" });
       map.current.setFeatureState(
         {
           source: "selected-cell-source",
-          id: (cell.x + 57) * 100 + 50 - cell.y,
+          id: (cell.x + 57) * 1000 + 50 - cell.y,
         },
         {
           cellSelected: true,
@@ -137,17 +147,30 @@ const Map: React.FC = () => {
       if (map.current && !map.current.getSource("grid-source")) return;
 
       map.current.removeFeatureState({ source: "selected-cell-source" });
+      map.current.removeFeatureState({ source: "conflicted-cell-source" });
+      const visited: { [id: number]: boolean } = {};
       for (let cell of cells) {
+        const id = (cell.x + 57) * 1000 + 50 - cell.y;
         map.current.setFeatureState(
           {
             source: "selected-cell-source",
-            id: (cell.x + 57) * 100 + 50 - cell.y,
+            id,
           },
           {
             modSelected: true,
             cellSelected: false,
           }
         );
+        map.current.setFeatureState(
+          {
+            source: "conflicted-cell-source",
+            id,
+          },
+          {
+            conflicted: visited[id] === true ? true : false,
+          }
+        );
+        visited[id] = true;
       }
 
       let bounds: mapboxgl.LngLatBounds | null = null;
@@ -203,6 +226,7 @@ const Map: React.FC = () => {
     (cell) => {
       router.push({ query: { cell: cell.x + "," + cell.y } });
       setSelectedCell(cell);
+      setSidebarOpen(true);
       selectMapCell(cell);
     },
     [setSelectedCell, selectMapCell, router]
@@ -213,6 +237,7 @@ const Map: React.FC = () => {
     if (map.current) map.current.removeFeatureState({ source: "grid-source" });
     if (map.current) {
       map.current.removeFeatureState({ source: "selected-cell-source" });
+      map.current.removeFeatureState({ source: "conflicted-cell-source" });
     }
     requestAnimationFrame(() => {
       if (map.current) map.current.resize();
@@ -223,6 +248,7 @@ const Map: React.FC = () => {
     setSelectedCells(null);
     if (map.current) {
       map.current.removeFeatureState({ source: "selected-cell-source" });
+      map.current.removeFeatureState({ source: "conflicted-cell-source" });
     }
     requestAnimationFrame(() => {
       if (map.current) map.current.resize();
@@ -234,6 +260,16 @@ const Map: React.FC = () => {
       if (map.current) map.current.resize();
     });
   }, [map]);
+
+  const setSidebarOpenWithResize = useCallback(
+    (open) => {
+      setSidebarOpen(open);
+      requestAnimationFrame(() => {
+        if (map.current) map.current.resize();
+      });
+    },
+    [map]
+  );
 
   useEffect(() => {
     if (!heatmapLoaded) return; // wait for all map layers to load
@@ -257,6 +293,7 @@ const Map: React.FC = () => {
       selectedCells
     ) {
       clearSelectedCell();
+      setSidebarOpen(true);
       selectCells(selectedCells);
     } else {
       if (selectedCell) {
@@ -284,6 +321,33 @@ const Map: React.FC = () => {
       clearSelectedMod();
     }
   }, [router.query.mod, clearSelectedMod, heatmapLoaded]);
+
+  useEffect(() => {
+    if (!heatmapLoaded) return; // wait for all map layers to load
+    if (plugins && plugins.length > 0 && pluginsPending === 0) {
+      clearSelectedCells();
+      const cells = plugins.reduce(
+        (acc: { x: number; y: number }[], plugin: PluginFile) => {
+          if (plugin.enabled && plugin.parsed) {
+            const newCells = [...acc];
+            for (const cell of plugin.parsed.cells) {
+              if (
+                cell.x !== undefined &&
+                cell.y !== undefined &&
+                cell.world_form_id === 60
+              ) {
+                newCells.push({ x: cell.x, y: cell.y });
+              }
+            }
+            return newCells;
+          }
+          return acc;
+        },
+        []
+      );
+      selectCells(cells);
+    }
+  }, [plugins, pluginsPending, heatmapLoaded, clearSelectedCells, selectCells]);
 
   useEffect(() => {
     if (map.current) return; // initialize map only once
@@ -452,12 +516,12 @@ const Map: React.FC = () => {
           x * cellSize + viewportNW.x,
           y * cellSize + viewportNW.y + cellSize,
         ]);
-        const editCount = (cellsData as Record<string, number>)[
+        const editCount = (cellsData.data as Record<string, number>)[
           `${x - 57},${50 - y}`
         ];
         grid.features.push({
           type: "Feature",
-          id: x * 100 + y,
+          id: x * 1000 + y,
           geometry: {
             type: "Polygon",
             coordinates: [
@@ -546,7 +610,7 @@ const Map: React.FC = () => {
         ]);
         selectedCellLines.features.push({
           type: "Feature",
-          id: x * 100 + y,
+          id: x * 1000 + y,
           geometry: {
             type: "LineString",
             coordinates: [
@@ -555,6 +619,7 @@ const Map: React.FC = () => {
               [se.lng, se.lat],
               [sw.lng, sw.lat],
               [nw.lng, nw.lat],
+              [ne.lng, ne.lat],
             ],
           },
           properties: { x: x, y: y },
@@ -585,6 +650,75 @@ const Map: React.FC = () => {
           4,
           3,
         ],
+      },
+      layout: {
+        "line-join": "round",
+      },
+    });
+
+    const conflictedCellLines: GeoJSON.FeatureCollection<
+      GeoJSON.Geometry,
+      GeoJSON.GeoJsonProperties
+    > = {
+      type: "FeatureCollection",
+      features: [],
+    };
+    for (let x = 0; x < 128; x += 1) {
+      for (let y = 0; y < 128; y += 1) {
+        let nw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y,
+        ]);
+        let ne = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y,
+        ]);
+        let se = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        let sw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        conflictedCellLines.features.push({
+          type: "Feature",
+          id: x * 1000 + y,
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              [nw.lng, nw.lat],
+              [ne.lng, ne.lat],
+              [se.lng, se.lat],
+              [sw.lng, sw.lat],
+              [nw.lng, nw.lat],
+              [ne.lng, ne.lat],
+            ],
+          },
+          properties: { x: x, y: y },
+        });
+      }
+    }
+
+    map.current.addSource("conflicted-cell-source", {
+      type: "geojson",
+      data: conflictedCellLines,
+    });
+    map.current.addLayer({
+      id: "conflicted-cell-layer",
+      type: "line",
+      source: "conflicted-cell-source",
+      paint: {
+        "line-color": [
+          "case",
+          ["boolean", ["feature-state", "conflicted"], false],
+          "red",
+          "transparent",
+        ],
+        "line-width": 4,
+      },
+      layout: {
+        "line-join": "round",
       },
     });
 
@@ -632,16 +766,14 @@ const Map: React.FC = () => {
             selectedCell={selectedCell}
             clearSelectedCell={() => router.push({ query: {} })}
             setSelectedCells={setSelectedCells}
-            map={map}
             counts={counts}
             countsError={countsError}
+            open={sidebarOpen}
+            setOpen={setSidebarOpenWithResize}
+            lastModified={cellsData && cellsData.lastModified}
           />
           <ToggleLayersControl map={map} />
-          <SearchBar
-            map={map}
-            clearSelectedCell={() => router.push({ query: {} })}
-            counts={counts}
-          />
+          <SearchBar counts={counts} sidebarOpen={sidebarOpen} />
         </div>
       </div>
     </>
