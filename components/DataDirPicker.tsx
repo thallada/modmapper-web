@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 
+import { WorkerContext } from "../pages/index";
 import { useAppSelector, useAppDispatch } from "../lib/hooks";
 import {
   addPluginInOrder,
@@ -21,35 +22,12 @@ export const excludedPlugins = [
 type Props = {};
 
 const DataDirPicker: React.FC<Props> = () => {
-  const workerRef = useRef<Worker>();
+  const worker = useContext(WorkerContext);
   const dispatch = useAppDispatch();
   const plugins = useAppSelector((state) => state.plugins.plugins);
 
-  useEffect(() => {
-    async function loadWorker() {
-      const { default: Worker } = await import(
-        "worker-loader?filename=static/[fullhash].worker.js!../workers/PluginsLoader.worker"
-      );
-      console.log(Worker);
-      workerRef.current = new Worker();
-      workerRef.current.onmessage = (evt: { data: PluginFile }) => {
-        const { data } = evt;
-        console.log(`WebWorker Response =>`);
-        dispatch(decrementPending(1));
-        console.log(data.parsed);
-        dispatch(addPluginInOrder(data));
-      };
-    }
-    loadWorker();
-    return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate();
-      }
-    };
-  }, [dispatch]);
-
   const onDataDirButtonClick = async () => {
-    if (!workerRef.current) {
+    if (!worker) {
       return alert("Worker not loaded yet");
     }
     const dirHandle = await (
@@ -81,7 +59,7 @@ const DataDirPicker: React.FC<Props> = () => {
       console.log(file.lastModifiedDate);
       const contents = new Uint8Array(await file.arrayBuffer());
       try {
-        workerRef.current.postMessage(
+        worker.postMessage(
           {
             skipParsing: excludedPlugins.includes(plugin.name),
             filename: plugin.name,
@@ -102,7 +80,7 @@ const DataDirPicker: React.FC<Props> = () => {
         To see all of the cell edits and conflicts for your current mod load
         order select your <code>Data</code> directory below to load the plugins.
       </p>
-      <button onClick={onDataDirButtonClick}>
+      <button onClick={onDataDirButtonClick} disabled={!worker}>
         {plugins.length === 0 ? "Open" : "Reload"} Skyrim Data directory
       </button>
     </>

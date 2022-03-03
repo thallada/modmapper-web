@@ -66,7 +66,7 @@ export const selectPlugins = (state: AppState) => state.plugins
 
 export const applyLoadOrder = (): AppThunk => (dispatch, getState) => {
   const { plugins, pluginsTxt } = getState();
-  console.log("applying load order!", pluginsTxt);
+  console.log("applying load order!");
   const originalPlugins = [...plugins.plugins];
   console.log(originalPlugins);
   console.log(originalPlugins[0] && originalPlugins[0].filename);

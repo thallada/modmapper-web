@@ -1,13 +1,46 @@
+import { createContext, useEffect, useRef, useState } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import Map from "../components/Map";
 import { useAppDispatch } from "../lib/hooks";
+import {
+  addPluginInOrder,
+  decrementPending,
+  PluginFile,
+} from "../slices/plugins";
 import { setPluginsTxtAndApplyLoadOrder } from "../slices/pluginsTxt";
 
+export const WorkerContext = createContext<Worker | null>(null);
+
 const Home: NextPage = () => {
+  const [worker, setWorker] = useState<Worker | null>(null);
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    async function loadWorker() {
+      const { default: Worker } = await import(
+        "worker-loader?filename=static/[fullhash].worker.js!../workers/PluginsLoader.worker"
+      );
+      const newWorker = new Worker();
+      newWorker.onmessage = (evt: { data: PluginFile }) => {
+        const { data } = evt;
+        dispatch(decrementPending(1));
+        console.log(data.parsed);
+        dispatch(addPluginInOrder(data));
+      };
+      setWorker(newWorker);
+    }
+    loadWorker();
+    return () => {
+      if (worker) {
+        worker.terminate();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
+
   return (
     <>
       <Head>
@@ -56,31 +89,31 @@ const Home: NextPage = () => {
         <meta name="twitter:site" content="@tyhallada" />
         <meta name="twitter:creator" content="@tyhallada" />
       </Head>
-      <div
-        style={{
-          margin: 0,
-          padding: 0,
-          width: "100%",
-          height: "100%",
-        }}
-        onDragOver={(evt) => {
-          console.log("drag over!");
-          evt.preventDefault();
-        }}
-        onDrop={async (evt) => {
-          console.log("drop!");
-          evt.preventDefault();
+      <WorkerContext.Provider value={worker}>
+        <div
+          style={{
+            margin: 0,
+            padding: 0,
+            width: "100%",
+            height: "100%",
+          }}
+          onDragOver={(evt) => {
+            evt.preventDefault();
+          }}
+          onDrop={async (evt) => {
+            evt.preventDefault();
 
-          if (evt.dataTransfer.items && evt.dataTransfer.items.length > 0) {
-            const file = evt.dataTransfer.items[0].getAsFile();
-            if (file) {
-              dispatch(setPluginsTxtAndApplyLoadOrder(await file.text()));
+            if (evt.dataTransfer.items && evt.dataTransfer.items.length > 0) {
+              const file = evt.dataTransfer.items[0].getAsFile();
+              if (file) {
+                dispatch(setPluginsTxtAndApplyLoadOrder(await file.text()));
+              }
             }
-          }
-        }}
-      >
-        <Map />
-      </div>
+          }}
+        >
+          <Map />
+        </div>
+      </WorkerContext.Provider>
     </>
   );
 };
