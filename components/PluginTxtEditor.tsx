@@ -2,7 +2,7 @@ import { createPortal } from "react-dom";
 import React, { useEffect, useState } from "react";
 
 import { useAppSelector, useAppDispatch } from "../lib/hooks";
-import { setPluginsTxt } from "../slices/pluginsTxt";
+import { setPluginsTxtAndApplyLoadOrder } from "../slices/pluginsTxt";
 import { applyLoadOrder } from "../slices/plugins";
 import styles from "../styles/PluginTxtEditor.module.css";
 
@@ -24,8 +24,6 @@ const PluginsLoader: React.FC<Props> = () => {
 
   useEffect(() => {
     setPluginsTxtShown(false);
-    console.log("going to apply!");
-    dispatch(applyLoadOrder());
   }, [dispatch, pluginsTxt]);
 
   const onPluginsTxtButtonClick = async () => {
@@ -69,7 +67,9 @@ const PluginsLoader: React.FC<Props> = () => {
               </button>
               <button
                 onClick={() => {
-                  dispatch(setPluginsTxt(editPluginsTxt ?? ""));
+                  dispatch(
+                    setPluginsTxtAndApplyLoadOrder(editPluginsTxt ?? "")
+                  );
                   setPluginsTxtShown(false);
                 }}
               >

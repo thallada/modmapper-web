@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
-import type { AppState } from "../lib/store"
+import type { AppState, AppThunk } from "../lib/store"
+import { applyLoadOrder } from "./plugins";
 
 export type PluginsTxtState = string;
 
@@ -11,12 +12,17 @@ export const pluginsTxtSlice = createSlice({
   initialState,
   reducers: {
     setPluginsTxt: (state, action: PayloadAction<string>) => action.payload,
-    clearPluginsTxt: (state) => "",
+    clearPluginsTxt: () => "",
   },
 })
 
 export const { setPluginsTxt, clearPluginsTxt } = pluginsTxtSlice.actions
 
 export const selectPluginsTxt = (state: AppState) => state.pluginsTxt
+
+export const setPluginsTxtAndApplyLoadOrder = (pluginsTxt: string): AppThunk => (dispatch) => {
+  dispatch(setPluginsTxt(pluginsTxt));
+  dispatch(applyLoadOrder());
+}
 
 export default pluginsTxtSlice.reducer

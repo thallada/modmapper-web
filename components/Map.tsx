@@ -290,14 +290,15 @@ const Map: React.FC = () => {
         clearSelectedCells();
         selectCell(cell);
       }
-    } else if (
-      router.query.mod &&
-      typeof router.query.mod === "string" &&
-      selectedCells
-    ) {
-      clearSelectedCell();
-      setSidebarOpen(true);
-      selectCells(selectedCells);
+    } else if (router.query.mod && typeof router.query.mod === "string") {
+      if (selectedCells) {
+        clearSelectedCell();
+        setSidebarOpen(true);
+        selectCells(selectedCells);
+      } else {
+        // TODO: this is so spaghetti
+        clearSelectedCell();
+      }
     } else if (router.query.plugin && typeof router.query.plugin === "string") {
       clearSelectedCells();
       setSidebarOpen(true);
@@ -320,9 +321,32 @@ const Map: React.FC = () => {
           selectCells(cells);
         }
       }
-    } else {
-      clearSelectedCell();
+    } else if (plugins && plugins.length > 0 && pluginsPending === 0) {
       clearSelectedCells();
+      clearSelectedCell();
+      const cells = plugins.reduce(
+        (acc: { x: number; y: number }[], plugin: PluginFile) => {
+          if (plugin.enabled && plugin.parsed) {
+            const newCells = [...acc];
+            for (const cell of plugin.parsed.cells) {
+              if (
+                cell.x !== undefined &&
+                cell.y !== undefined &&
+                cell.world_form_id === 60
+              ) {
+                newCells.push({ x: cell.x, y: cell.y });
+              }
+            }
+            return newCells;
+          }
+          return acc;
+        },
+        []
+      );
+      selectCells(cells);
+    } else {
+      clearSelectedCells();
+      clearSelectedCell();
     }
   }, [
     selectedCell,
@@ -345,49 +369,6 @@ const Map: React.FC = () => {
       clearSelectedMod();
     }
   }, [router.query.mod, clearSelectedMod, heatmapLoaded]);
-
-  useEffect(() => {
-    if (!heatmapLoaded) return; // wait for all map layers to load
-    if (
-      plugins &&
-      plugins.length > 0 &&
-      pluginsPending === 0 &&
-      !router.query.cell &&
-      !router.query.mod &&
-      !router.query.plugin
-    ) {
-      clearSelectedCells();
-      const cells = plugins.reduce(
-        (acc: { x: number; y: number }[], plugin: PluginFile) => {
-          if (plugin.enabled && plugin.parsed) {
-            const newCells = [...acc];
-            for (const cell of plugin.parsed.cells) {
-              if (
-                cell.x !== undefined &&
-                cell.y !== undefined &&
-                cell.world_form_id === 60
-              ) {
-                newCells.push({ x: cell.x, y: cell.y });
-              }
-            }
-            return newCells;
-          }
-          return acc;
-        },
-        []
-      );
-      selectCells(cells);
-    }
-  }, [
-    plugins,
-    pluginsPending,
-    heatmapLoaded,
-    clearSelectedCells,
-    selectCells,
-    router.query.cell,
-    router.query.mod,
-    router.query.plugin,
-  ]);
 
   useEffect(() => {
     if (map.current) return; // initialize map only once

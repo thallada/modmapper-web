@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { StateChangeTypes } from "downshift";
 
 import type { AppState, AppThunk } from "../lib/store"
 
@@ -98,7 +97,7 @@ export const applyLoadOrder = (): AppThunk => (dispatch, getState) => {
   dispatch(setPlugins([...originalPlugins.sort((a, b) => b.lastModified - a.lastModified), ...newPlugins]));
 }
 
-export const addPluginInOrder = (plugin: PluginFile): AppThunk => (dispatch, getState) => {
+export const addPluginInOrder = (plugin: PluginFile): AppThunk => (dispatch) => {
   dispatch(addPlugin(plugin));
   dispatch(applyLoadOrder());
 }

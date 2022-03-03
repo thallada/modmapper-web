@@ -4,7 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import Map from "../components/Map";
 import { useAppDispatch } from "../lib/hooks";
-import { setPluginsTxt } from "../slices/pluginsTxt";
+import { setPluginsTxtAndApplyLoadOrder } from "../slices/pluginsTxt";
 
 const Home: NextPage = () => {
   const dispatch = useAppDispatch();
@@ -74,7 +74,7 @@ const Home: NextPage = () => {
           if (evt.dataTransfer.items && evt.dataTransfer.items.length > 0) {
             const file = evt.dataTransfer.items[0].getAsFile();
             if (file) {
-              dispatch(setPluginsTxt(await file.text()));
+              dispatch(setPluginsTxtAndApplyLoadOrder(await file.text()));
             }
           }
         }}
