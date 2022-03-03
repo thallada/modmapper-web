@@ -12,30 +12,36 @@ import {
 } from "../slices/plugins";
 import { setPluginsTxtAndApplyLoadOrder } from "../slices/pluginsTxt";
 
-export const WorkerContext = createContext<Worker | null>(null);
+export const WorkersContext = createContext<Worker[]>([]);
 
 const Home: NextPage = () => {
-  const [worker, setWorker] = useState<Worker | null>(null);
+  const [workers, setWorkers] = useState<Worker[]>([]);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    async function loadWorker() {
+    async function loadWorkers(count: number) {
       const { default: Worker } = await import(
         "worker-loader?filename=static/[fullhash].worker.js!../workers/PluginsLoader.worker"
       );
-      const newWorker = new Worker();
-      newWorker.onmessage = (evt: { data: PluginFile }) => {
-        const { data } = evt;
-        dispatch(decrementPending(1));
-        console.log(data.parsed);
-        dispatch(addPluginInOrder(data));
-      };
-      setWorker(newWorker);
+      const newWorkers = [];
+      for (let i = 0; i < count; i++) {
+        const worker = new Worker();
+        worker.onmessage = (evt: { data: PluginFile }) => {
+          const { data } = evt;
+          dispatch(decrementPending(1));
+          console.log(data.parsed);
+          dispatch(addPluginInOrder(data));
+        };
+        newWorkers.push(worker);
+      }
+      setWorkers(newWorkers);
     }
-    loadWorker();
+    loadWorkers(window.navigator.hardwareConcurrency ?? 8);
     return () => {
-      if (worker) {
-        worker.terminate();
+      if (workers) {
+        for (const worker of workers) {
+          worker.terminate();
+        }
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,7 +95,7 @@ const Home: NextPage = () => {
         <meta name="twitter:site" content="@tyhallada" />
         <meta name="twitter:creator" content="@tyhallada" />
       </Head>
-      <WorkerContext.Provider value={worker}>
+      <WorkersContext.Provider value={workers}>
         <div
           style={{
             margin: 0,
@@ -113,7 +119,7 @@ const Home: NextPage = () => {
         >
           <Map />
         </div>
-      </WorkerContext.Provider>
+      </WorkersContext.Provider>
     </>
   );
 };
