@@ -5,7 +5,9 @@ import { formatRelative } from "date-fns";
 import CellData from "./CellData";
 import ModData from "./ModData";
 import PluginData from "./PluginData";
-import PluginsLoader from "./PluginsLoader";
+import DataDirPicker from "./DataDirPicker";
+import PluginTxtEditor from "./PluginTxtEditor";
+import PluginsList from "./PluginsList";
 import styles from "../styles/Sidebar.module.css";
 
 type Props = {
@@ -126,7 +128,9 @@ const Sidebar: React.FC<Props> = ({
             <p className={styles.subheader}>
               An interactive map of Skyrim mods.
             </p>
-            <PluginsLoader />
+            <DataDirPicker />
+            <PluginTxtEditor />
+            <PluginsList />
             {lastModified && (
               <div className={styles["sidebar-modified-date"]}>
                 <strong>Last updated:</strong>{" "}
