@@ -47,7 +47,6 @@ const DataDirPicker: React.FC<Props> = () => {
           next.value.name.endsWith(".esm") ||
           next.value.name.endsWith(".esl"))
       ) {
-        console.log(next.value);
         plugins.push(next.value);
       }
     }
@@ -55,8 +54,6 @@ const DataDirPicker: React.FC<Props> = () => {
 
     plugins.forEach(async (plugin, index) => {
       const file = await plugin.getFile();
-      console.log(file.lastModified);
-      console.log(file.lastModifiedDate);
       const contents = new Uint8Array(await file.arrayBuffer());
       try {
         workers[index % workers.length].postMessage(

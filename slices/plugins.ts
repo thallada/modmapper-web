@@ -66,10 +66,7 @@ export const selectPlugins = (state: AppState) => state.plugins
 
 export const applyLoadOrder = (): AppThunk => (dispatch, getState) => {
   const { plugins, pluginsTxt } = getState();
-  console.log("applying load order!");
   const originalPlugins = [...plugins.plugins];
-  console.log(originalPlugins);
-  console.log(originalPlugins[0] && originalPlugins[0].filename);
   let newPlugins = [];
   for (let line of pluginsTxt.split("\n")) {
     let enabled = false;
@@ -82,18 +79,14 @@ export const applyLoadOrder = (): AppThunk => (dispatch, getState) => {
       line = line.slice(1);
     }
 
-    console.log(line);
     const originalIndex = originalPlugins.findIndex((p) => p.filename === line);
     if (originalIndex >= 0) {
       const original = originalPlugins.splice(originalIndex, 1)[0];
-      console.log(original);
       if (original) {
         newPlugins.push({ ...original, enabled });
       }
     }
   }
-  console.log(originalPlugins);
-  console.log(newPlugins);
   dispatch(setPlugins([...originalPlugins.sort((a, b) => b.lastModified - a.lastModified), ...newPlugins]));
 }
 

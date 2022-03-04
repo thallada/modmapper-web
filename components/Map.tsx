@@ -143,7 +143,6 @@ const Map: React.FC = () => {
 
   const selectCells = useCallback(
     (cells: { x: number; y: number }[]) => {
-      console.log("selectCells");
       if (!map.current) return;
       if (map.current && !map.current.getSource("grid-source")) return;
 
@@ -234,7 +233,6 @@ const Map: React.FC = () => {
   );
 
   const clearSelectedCell = useCallback(() => {
-    console.log("clearSelectedCell");
     setSelectedCell(null);
     if (map.current) map.current.removeFeatureState({ source: "grid-source" });
     if (map.current) {
@@ -247,7 +245,6 @@ const Map: React.FC = () => {
   }, [map]);
 
   const clearSelectedCells = useCallback(() => {
-    console.log("clearSelectedCells");
     setSelectedCells(null);
     if (map.current) {
       map.current.removeFeatureState({ source: "selected-cell-source" });

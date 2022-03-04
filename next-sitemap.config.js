@@ -7,7 +7,6 @@ module.exports = {
   siteUrl: process.env.SITE_URL || 'https://modmapper.com',
   generateRobotsTxt: true,
   additionalPaths: async (config) => {
-    console.log("additional paths");
     const result = []
 
     const response = await fetch(MOD_SEARCH_INDEX_URL);

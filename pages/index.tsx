@@ -4,7 +4,7 @@ import Head from "next/head";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import Map from "../components/Map";
-import { useAppDispatch } from "../lib/hooks";
+import { useAppDispatch, useAppSelector } from "../lib/hooks";
 import {
   addPluginInOrder,
   decrementPending,
@@ -16,6 +16,7 @@ export const WorkersContext = createContext<Worker[]>([]);
 
 const Home: NextPage = () => {
   const [workers, setWorkers] = useState<Worker[]>([]);
+  const pluginsPending = useAppSelector((state) => state.plugins.pending);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -29,7 +30,6 @@ const Home: NextPage = () => {
         worker.onmessage = (evt: { data: PluginFile }) => {
           const { data } = evt;
           dispatch(decrementPending(1));
-          console.log(data.parsed);
           dispatch(addPluginInOrder(data));
         };
         newWorkers.push(worker);
