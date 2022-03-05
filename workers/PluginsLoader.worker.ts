@@ -2,7 +2,7 @@ import { hash_plugin, parse_plugin } from "skyrim-cell-dump-wasm";
 
 self.postMessage("ready");
 
-self.addEventListener('message', async (event: MessageEvent<{ skipParsing?: boolean; filename: string; lastModified: number; contents: Uint8Array }>) => {
+self.addEventListener("message", async (event: MessageEvent<{ skipParsing?: boolean; filename: string; lastModified: number; contents: Uint8Array }>) => {
   const { skipParsing, filename, lastModified, contents } = event.data;
   let parsed = undefined;
   let parseError = undefined;
