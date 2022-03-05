@@ -1,14 +1,8 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext } from "react";
 
-import { WorkersContext } from "../pages/index";
-import { useAppSelector, useAppDispatch } from "../lib/hooks";
-import {
-  addPluginInOrder,
-  clearPlugins,
-  setPending,
-  decrementPending,
-  PluginFile,
-} from "../slices/plugins";
+import { WorkerPoolContext } from "../pages/index";
+import { useAppDispatch } from "../lib/hooks";
+import { clearPlugins, setPending } from "../slices/plugins";
 import styles from "../styles/DataDirPicker.module.css";
 
 export const excludedPlugins = [
@@ -22,49 +16,39 @@ export const excludedPlugins = [
 type Props = {};
 
 const DataDirPicker: React.FC<Props> = () => {
-  const workers = useContext(WorkersContext);
+  const workerPool = useContext(WorkerPoolContext);
   const dispatch = useAppDispatch();
-  const plugins = useAppSelector((state) => state.plugins.plugins);
 
-  const onDataDirButtonClick = async () => {
-    if (workers.length === 0) {
-      return alert("Worker not loaded yet");
+  const onDataDirButtonClick = async (event: {
+    target: { files: FileList | null };
+  }) => {
+    if (!workerPool) {
+      return alert("Workers not loaded yet");
     }
-    const dirHandle = await (
-      window as Window & typeof globalThis & { showDirectoryPicker: () => any }
-    ).showDirectoryPicker();
+    const files = event.target.files ?? [];
     dispatch(clearPlugins());
-    const values = dirHandle.values();
     const plugins = [];
-    while (true) {
-      const next = await values.next();
-      if (next.done) {
-        break;
-      }
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       if (
-        next.value.kind == "file" &&
-        (next.value.name.endsWith(".esp") ||
-          next.value.name.endsWith(".esm") ||
-          next.value.name.endsWith(".esl"))
+        file.name.endsWith(".esp") ||
+        file.name.endsWith(".esm") ||
+        file.name.endsWith(".esl")
       ) {
-        plugins.push(next.value);
+        plugins.push(file);
       }
     }
     dispatch(setPending(plugins.length));
 
     plugins.forEach(async (plugin, index) => {
-      const file = await plugin.getFile();
-      const contents = new Uint8Array(await file.arrayBuffer());
+      const contents = new Uint8Array(await plugin.arrayBuffer());
       try {
-        workers[index % workers.length].postMessage(
-          {
-            skipParsing: excludedPlugins.includes(plugin.name),
-            filename: plugin.name,
-            lastModified: file.lastModified,
-            contents,
-          },
-          [contents.buffer]
-        );
+        workerPool.pushTask({
+          skipParsing: excludedPlugins.includes(plugin.name),
+          filename: plugin.name,
+          lastModified: plugin.lastModified,
+          contents,
+        });
       } catch (error) {
         console.error(error);
       }
@@ -77,9 +61,12 @@ const DataDirPicker: React.FC<Props> = () => {
         To see all of the cell edits and conflicts for your current mod load
         order select your <code>Data</code> directory below to load the plugins.
       </p>
-      <button onClick={onDataDirButtonClick} disabled={workers.length === 0}>
-        {plugins.length === 0 ? "Open" : "Reload"} Skyrim Data directory
-      </button>
+      <input
+        type="file"
+        webkitdirectory=""
+        onChange={onDataDirButtonClick}
+        disabled={!workerPool}
+      />
     </>
   );
 };
