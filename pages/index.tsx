@@ -1,4 +1,4 @@
-import { createContext, useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -6,9 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import Map from "../components/Map";
 import { useAppDispatch } from "../lib/hooks";
 import { setPluginsTxtAndApplyLoadOrder } from "../slices/pluginsTxt";
-import { WorkerPool } from "../lib/WorkerPool";
-
-export const WorkerPoolContext = createContext<WorkerPool | null>(null);
+import { WorkerPool, WorkerPoolContext } from "../lib/WorkerPool";
 
 const Home: NextPage = () => {
   const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 
-import { WorkerPoolContext } from "../pages/index";
+import { WorkerPoolContext } from "../lib/WorkerPool";
 import { useAppDispatch } from "../lib/hooks";
 import { clearPlugins, setPending } from "../slices/plugins";
 import styles from "../styles/DataDirPicker.module.css";

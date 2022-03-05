@@ -1,3 +1,5 @@
+import { createContext } from "react";
+
 import {
   addPluginInOrder,
   decrementPending,
@@ -79,3 +81,5 @@ export class WorkerPool {
     this.availableWorkers = [];
   }
 }
+
+export const WorkerPoolContext = createContext<WorkerPool | null>(null);
