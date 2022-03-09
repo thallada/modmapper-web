@@ -2,9 +2,9 @@ import Link from "next/link";
 import React from "react";
 
 import { useAppSelector, useAppDispatch } from "../lib/hooks";
+import { excludedPlugins } from "../lib/plugins";
 import { togglePlugin } from "../slices/plugins";
 import styles from "../styles/PluginList.module.css";
-import { excludedPlugins } from "./DataDirPicker";
 
 type Props = {};
 
