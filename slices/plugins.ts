@@ -52,6 +52,7 @@ export const pluginsSlice = createSlice({
   initialState,
   reducers: {
     addPlugin: (state, action: PayloadAction<PluginFile>) => ({ plugins: [...state.plugins, action.payload], pending: state.pending }),
+    updatePlugin: (state, action: PayloadAction<PluginFile>) => ({ plugins: [...state.plugins.filter(plugin => plugin.hash !== action.payload.hash), action.payload], pending: state.pending }),
     setPlugins: (state, action: PayloadAction<PluginFile[]>) => ({ plugins: action.payload, pending: state.pending }),
     setPending: (state, action: PayloadAction<number>) => ({ plugins: state.plugins, pending: action.payload }),
     decrementPending: (state, action: PayloadAction<number>) => ({ plugins: state.plugins, pending: state.pending - action.payload }),

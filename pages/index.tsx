@@ -4,14 +4,11 @@ import Head from "next/head";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import Map from "../components/Map";
-import { useAppDispatch } from "../lib/hooks";
-import { isPlugin, isPluginPath, parsePluginFiles } from "../lib/plugins";
-import { setPluginsTxtAndApplyLoadOrder } from "../slices/pluginsTxt";
 import { WorkerPool, WorkerPoolContext } from "../lib/WorkerPool";
+import { DropZone } from "../components/DropZone";
 
 const Home: NextPage = () => {
   const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);
-  const dispatch = useAppDispatch();
 
   const createWorkerPool = useCallback(async () => {
     setWorkerPool(
@@ -26,7 +23,7 @@ const Home: NextPage = () => {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch]);
+  }, []);
 
   useEffect(() => {
     createWorkerPool();
@@ -81,129 +78,9 @@ const Home: NextPage = () => {
         <meta name="twitter:creator" content="@tyhallada" />
       </Head>
       <WorkerPoolContext.Provider value={workerPool}>
-        <div
-          style={{
-            margin: 0,
-            padding: 0,
-            width: "100%",
-            height: "100%",
-          }}
-          onDragOver={(evt) => {
-            evt.preventDefault();
-          }}
-          onDrop={async (evt) => {
-            evt.preventDefault();
-
-            if (evt.dataTransfer.items && evt.dataTransfer.items.length > 0) {
-              const item = evt.dataTransfer.items[0];
-              if (item.kind === "file") {
-                // Gotta love all these competing web file system standards...
-                if (
-                  (
-                    item as DataTransferItem & {
-                      getAsFileSystemHandle?: () => Promise<FileSystemHandle>;
-                    }
-                  ).getAsFileSystemHandle
-                ) {
-                  const entry = await (
-                    item as DataTransferItem & {
-                      getAsFileSystemHandle: () => Promise<FileSystemHandle>;
-                    }
-                  ).getAsFileSystemHandle();
-                  if (entry.kind === "file") {
-                    const file = await (
-                      entry as FileSystemFileHandle
-                    ).getFile();
-                    dispatch(setPluginsTxtAndApplyLoadOrder(await file.text()));
-                    return;
-                  } else if (entry.kind === "directory") {
-                    const plugins: { getFile: () => Promise<File> }[] = [];
-                    const values = (
-                      entry as FileSystemDirectoryHandle & { values: any }
-                    ).values();
-                    // I'm scared of yield and generators so I'm just going to do a lame while loop
-                    while (true) {
-                      const next = await values.next();
-                      if (next.done) {
-                        break;
-                      }
-                      if (
-                        next.value.kind == "file" &&
-                        isPluginPath(next.value.name)
-                      ) {
-                        plugins.push(next.value);
-                      }
-                    }
-                    const pluginFiles = await Promise.all(
-                      plugins.map(async (plugin) => plugin.getFile())
-                    );
-                    if (workerPool) {
-                      parsePluginFiles(pluginFiles, workerPool);
-                    } else {
-                      alert("Workers not loaded yet");
-                    }
-                  }
-                } else if (
-                  (
-                    item as DataTransferItem & {
-                      webkitGetAsEntry?: FileSystemEntry | null;
-                    }
-                  ).webkitGetAsEntry
-                ) {
-                  const entry = item.webkitGetAsEntry();
-                  if (entry?.isFile) {
-                    (entry as FileSystemFileEntry).file(async (file) => {
-                      dispatch(
-                        setPluginsTxtAndApplyLoadOrder(await file.text())
-                      );
-                    });
-                  } else if (entry?.isDirectory) {
-                    const reader = (
-                      entry as FileSystemDirectoryEntry
-                    ).createReader();
-                    const plugins = await new Promise<FileSystemFileEntry[]>(
-                      (resolve, reject) => {
-                        const plugins: FileSystemFileEntry[] = [];
-                        reader.readEntries((entries) => {
-                          entries.forEach((entry) => {
-                            if (entry?.isFile && isPluginPath(entry.name)) {
-                              plugins.push(entry as FileSystemFileEntry);
-                            }
-                          });
-                          resolve(plugins);
-                        }, reject);
-                      }
-                    );
-                    const pluginFiles = await Promise.all(
-                      plugins.map(
-                        (plugin) =>
-                          new Promise<File>((resolve, reject) =>
-                            plugin.file((file) => resolve(file), reject)
-                          )
-                      )
-                    );
-                    if (workerPool) {
-                      parsePluginFiles(pluginFiles, workerPool);
-                    } else {
-                      alert("Workers not loaded yet");
-                    }
-                  }
-                } else {
-                  const file = item.getAsFile();
-                  if (file) {
-                    dispatch(setPluginsTxtAndApplyLoadOrder(await file.text()));
-                  }
-                }
-              } else if (item.kind === "string") {
-                item.getAsString((str) => {
-                  dispatch(setPluginsTxtAndApplyLoadOrder(str));
-                });
-              }
-            }
-          }}
-        >
+        <DropZone workerPool={workerPool}>
           <Map />
-        </div>
+        </DropZone>
       </WorkerPoolContext.Provider>
     </>
   );

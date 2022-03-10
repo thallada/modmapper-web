@@ -1,0 +1,26 @@
+.drop-zone {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 6;
+  position: fixed;
+}
+
+.overlay {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 7;
+  position: fixed;
+  pointer-events: none;
+  border: 8px dashed #0087f7;
+  font-size: 2rem;
+  color: white;
+  text-shadow: -8px -8px 8px #000, 8px -8px 8px #000, -8px 8px 8px #000,
+    8px 8px 8px #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
