@@ -7,7 +7,7 @@ import { togglePlugin } from "../slices/plugins";
 import styles from "../styles/PluginList.module.css";
 
 type Props = {
-  selectedCell: { x: number; y: number };
+  selectedCell?: { x: number; y: number };
 };
 
 const PluginsList: React.FC<Props> = ({ selectedCell }) => {
