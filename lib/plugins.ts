@@ -26,6 +26,10 @@ export const isPlugin = (file: File) => {
 }
 
 export const parsePluginFiles = (pluginFiles: File[], workerPool: WorkerPool) => {
+  if (pluginFiles.length === 0) {
+    alert("Found no plugins in the folder. Please select the Data folder underneath the Skyrim installation folder.");
+    return;
+  }
   store.dispatch(clearPlugins());
   store.dispatch(setPending(pluginFiles.length));
 
