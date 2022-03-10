@@ -4,6 +4,7 @@ import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/CellData.module.css";
 import CellModList from "./CellModList";
+import PluginList from "./PluginsList";
 
 export interface Mod {
   id: number;
@@ -120,6 +121,8 @@ const CellData: React.FC<Props> = ({ selectedCell, counts }) => {
             <span>{data.plugins_count}</span>
           </li>
         </ul>
+        <h2>Loaded Plugins</h2>
+        <PluginList selectedCell={selectedCell} />
         <CellModList mods={data.mods} counts={counts} />
       </>
     )

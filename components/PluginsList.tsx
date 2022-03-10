@@ -6,11 +6,21 @@ import { excludedPlugins } from "../lib/plugins";
 import { togglePlugin } from "../slices/plugins";
 import styles from "../styles/PluginList.module.css";
 
-type Props = {};
+type Props = {
+  selectedCell: { x: number; y: number };
+};
 
-const PluginsList: React.FC<Props> = () => {
+const PluginsList: React.FC<Props> = ({ selectedCell }) => {
   const dispatch = useAppDispatch();
-  const plugins = useAppSelector((state) => state.plugins.plugins);
+  const plugins = useAppSelector((state) =>
+    selectedCell
+      ? state.plugins.plugins.filter((plugin) =>
+          plugin.parsed?.cells.some(
+            (cell) => cell.x === selectedCell.x && cell.y === selectedCell.y
+          )
+        )
+      : state.plugins.plugins
+  );
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
 
   return (
