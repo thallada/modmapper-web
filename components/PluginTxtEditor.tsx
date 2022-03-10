@@ -40,7 +40,7 @@ const PluginsLoader: React.FC<Props> = () => {
       <button onClick={onPluginsTxtButtonClick}>
         {!pluginsTxt ? "Paste" : "Edit"} Skyrim plugins.txt file
       </button>
-      {process.browser &&
+      {typeof window !== "undefined" &&
         createPortal(
           <dialog open={pluginsTxtShown} className={styles.dialog}>
             <h3>Paste plugins.txt</h3>
@@ -79,8 +79,6 @@ const PluginsLoader: React.FC<Props> = () => {
           </dialog>,
           document.body
         )}
-      {process.browser &&
-        createPortal(<div className={styles["drop-area"]} />, document.body)}
     </>
   );
 };
