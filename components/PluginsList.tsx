@@ -16,7 +16,11 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
     selectedCell
       ? state.plugins.plugins.filter((plugin) =>
           plugin.parsed?.cells.some(
-            (cell) => cell.x === selectedCell.x && cell.y === selectedCell.y
+            (cell) =>
+              cell.x === selectedCell.x &&
+              cell.y === selectedCell.y &&
+              // TODO: support other worlds
+              cell.world_form_id === 60
           )
         )
       : state.plugins.plugins
@@ -25,6 +29,7 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
 
   return (
     <>
+      {selectedCell && plugins.length > 0 && <h2>Loaded Plugins</h2>}
       <ol className={styles["plugin-list"]}>
         {plugins.map((plugin) => (
           <li key={plugin.filename} title={plugin.filename}>

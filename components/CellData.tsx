@@ -121,7 +121,6 @@ const CellData: React.FC<Props> = ({ selectedCell, counts }) => {
             <span>{data.plugins_count}</span>
           </li>
         </ul>
-        <h2>Loaded Plugins</h2>
         <PluginList selectedCell={selectedCell} />
         <CellModList mods={data.mods} counts={counts} />
       </>
