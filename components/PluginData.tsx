@@ -1,63 +1,65 @@
 import Head from "next/head";
 import React from "react";
 
-import { useAppSelector } from "../lib/hooks";
 import styles from "../styles/PluginData.module.css";
+import { Cell } from "./CellData";
 
-export interface CellCoord {
-  x: number;
-  y: number;
+export interface Plugin {
+  id: number;
+  name: string;
+  hash: bigint;
+  file_id: number;
+  mod_id: number;
+  version: number;
+  size: number;
+  author?: string;
+  description?: string;
+  masters: string[];
+  file_name: string;
+  file_path: string;
+  updated_at: Date;
+  created_at: Date;
+  cells: Omit<Cell, "mods">[];
 }
 
-const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
-
 type Props = {
-  hash: string;
+  plugin: Plugin;
   counts: Record<number, [number, number, number]> | null;
 };
 
-const PluginData: React.FC<Props> = ({ hash, counts }) => {
-  const plugins = useAppSelector((state) => state.plugins.plugins);
-  const plugin = plugins.find((plugin) => plugin.hash === hash);
-
+const PluginData: React.FC<Props> = ({ plugin, counts }) => {
   if (!plugin) {
-    return <h3>Plugin could not be found</h3>;
+    return <h3>Plugin could not be found.</h3>;
   }
 
   return (
     <>
       <Head>
-        <title key="title">{`Modmapper - ${plugin.filename}`}</title>
+        <title key="title">{`Modmapper - ${plugin.file_name}`}</title>
         <meta
           key="description"
           name="description"
-          content={`Map of Skyrim showing ${
-            plugin.parsed ? plugin.parsed.cells.length : 0
-          } cell edits from the plugin: ${plugin.filename}`}
+          content={`Map of Skyrim showing ${plugin.cells.length} cell edits from the plugin: ${plugin.file_name}`}
         />
         <meta
           key="og:title"
           property="og:title"
-          content={`Modmapper - ${plugin.filename}`}
+          content={`Modmapper - ${plugin.file_name}`}
         />
         <meta
           key="og:description"
           property="og:description"
-          content={`Map of Skyrim showing ${
-            plugin.parsed ? plugin.parsed.cells.length : 0
-          } cell edits from the plugin: ${plugin.filename}`}
+          content={`Map of Skyrim showing ${plugin.cells.length} cell edits from the plugin: ${plugin.file_name}`}
         />
         <meta
           key="twitter:title"
           name="twitter:title"
-          content={`Modmapper - ${plugin.filename}`}
+          content={`Modmapper - ${plugin.file_name}`}
         />
         <meta
           key="twitter:description"
           name="twitter:description"
-          content={`Map of Skyrim showing ${
-            plugin.parsed ? plugin.parsed.cells.length : 0
-          } cell edits from the plugin: ${plugin.filename}`}
+          content={`Map of Skyrim showing ${plugin.cells.length} cell edits from the plugin: ${plugin.file_name}`}
         />
         <meta
           key="og:url"
@@ -65,47 +67,27 @@ const PluginData: React.FC<Props> = ({ hash, counts }) => {
           content={`https://modmapper.com/?plugin=${plugin.hash}`}
         />
       </Head>
-      <h1 className={styles.name}>{plugin.filename}</h1>
-      {plugin.parsed && (
-        <div>
-          <strong>Version:&nbsp;</strong>
-          {plugin.parsed.header.version}
-        </div>
-      )}
-      {plugin.parsed && plugin.parsed.header.author && (
+      <h1 className={styles.name}>{plugin.file_name}</h1>
+      {plugin.author && (
         <div>
           <strong>Author:&nbsp;</strong>
-          {plugin.parsed.header.author}
+          {plugin.author}
         </div>
       )}
-      {plugin.parsed && plugin.parsed.header.masters && (
+      {plugin.masters.length > 0 && (
         <div>
           <strong>Master plugins:&nbsp;</strong>
-          {plugin.parsed.header.masters.join(", ")}
+          {plugin.masters.join(", ")}
         </div>
       )}
-      {plugin.parsed && (
-        <div>
-          <strong>Cell edits:&nbsp;</strong>
-          {plugin.parsed.cells.length}
-        </div>
-      )}
-      {plugin.parsed && (
-        <div>
-          <strong>World edits:&nbsp;</strong>
-          {plugin.parsed.worlds.length}
-        </div>
-      )}
-      {plugin.parsed && plugin.parsed.header.description && (
+      <div>
+        <strong>Cell edits:&nbsp;</strong>
+        {plugin.cells.length}
+      </div>
+      {plugin.description && (
         <div>
           <h3>Description:</h3>
-          <p>{plugin.parsed.header.description}</p>
-        </div>
-      )}
-      {plugin.parseError && (
-        <div>
-          <h3>Failed to parse plugin:</h3>
-          <p>{plugin.parseError}</p>
+          <p>{plugin.description}</p>
         </div>
       )}
     </>

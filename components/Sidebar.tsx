@@ -4,7 +4,7 @@ import { formatRelative } from "date-fns";
 
 import CellData from "./CellData";
 import ModData from "./ModData";
-import PluginData from "./PluginData";
+import PluginDetail from "./PluginDetail";
 import DataDirPicker from "./DataDirPicker";
 import PluginTxtEditor from "./PluginTxtEditor";
 import PluginsList from "./PluginsList";
@@ -63,7 +63,7 @@ const Sidebar: React.FC<Props> = ({
     if (countsError) return renderLoadError(countsError);
     if (!counts) return renderLoading();
 
-    return <PluginData hash={plugin} counts={counts} />;
+    return <PluginDetail hash={plugin} counts={counts} />;
   };
 
   const renderOpenSidebar = () => {
