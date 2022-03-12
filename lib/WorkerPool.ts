@@ -42,7 +42,7 @@ export class WorkerPool {
     return new Promise((resolve) => {
       const worker = new Worker();
       worker.onmessage = (evt: {
-        data: string | PluginFile & { timeHashEnd: number };
+        data: string | PluginFile;
       }) => {
         const { data } = evt;
         if (typeof data === "string" && data === "ready") {

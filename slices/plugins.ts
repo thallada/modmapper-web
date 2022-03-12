@@ -38,6 +38,7 @@ export interface PluginFile {
   hash: string;
   parseError?: string;
   enabled: boolean;
+  size: number;
 }
 
 export type PluginsState = {

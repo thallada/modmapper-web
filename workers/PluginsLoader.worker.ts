@@ -19,7 +19,7 @@ self.addEventListener("message", async (event: MessageEvent<{ skipParsing?: bool
       }
     }
     const hash = hash_plugin(contents).toString(36);
-    self.postMessage({ filename, lastModified, parsed, hash, parseError, enabled: parsed && !parseError, timeHashEnd: Date.now() });
+    self.postMessage({ filename, lastModified, parsed, hash, parseError, enabled: parsed && !parseError, size: contents.length });
   } catch (error) {
     console.error(error);
     self.postMessage(error);

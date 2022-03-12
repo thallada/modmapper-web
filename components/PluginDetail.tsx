@@ -2,8 +2,11 @@ import React from "react";
 import useSWRImmutable from "swr/immutable";
 
 import { useAppSelector } from "../lib/hooks";
+import { PluginFile } from "../slices/plugins";
 import { Mod } from "./ModData";
-import PluginData from "./PluginData";
+import { Cell } from "./CellData";
+import CellModList from "./CellModList";
+import PluginData, { Plugin as PluginProps } from "./PluginData";
 import styles from "../styles/PluginData.module.css";
 
 export interface File {
@@ -40,13 +43,19 @@ export interface Plugin {
   file_path: string;
   updated_at: Date;
   created_at: Date;
-  file: File;
-  mod: Omit<Mod, "cells">;
+}
+
+export interface PluginsByHashWithMods {
+  hash: number;
+  plugins: Plugin[];
+  files: File[];
+  mods: Mod[];
+  cells: Cell[];
 }
 
 const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
 
-const jsonFetcher = async (url: string): Promise<Plugin | null> => {
+const jsonFetcher = async (url: string): Promise<PluginsByHashWithMods | null> => {
   const res = await fetch(url);
 
   if (!res.ok) {
@@ -58,6 +67,20 @@ const jsonFetcher = async (url: string): Promise<Plugin | null> => {
   }
   return res.json();
 };
+
+const buildPluginProps = (data?: PluginsByHashWithMods | null, plugin?: PluginFile): PluginProps => {
+  const dataPlugin = data && data.plugins.length > 0 && data.plugins[0];
+  return {
+    hash: (plugin && plugin.hash) || (dataPlugin && dataPlugin.hash.toString(36)) || "",
+    size: plugin?.size || (dataPlugin && dataPlugin.size) || 0,
+    author: plugin?.parsed?.header.author || (dataPlugin && dataPlugin.author) || undefined,
+    description: plugin?.parsed?.header.description || (dataPlugin && dataPlugin.description) || undefined,
+    masters: plugin?.parsed?.header.masters || (dataPlugin && dataPlugin.masters) || [],
+    file_name: plugin?.filename || (dataPlugin && dataPlugin.file_name) || "",
+    cell_count: plugin?.parsed?.cells.length || (data && data.cells.length) || 0,
+  }
+}
+
 
 type Props = {
   hash: string;
@@ -86,27 +109,10 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
   return (
     <>
       <PluginData
-        plugin={
-          // TODO: merge into one common plugin object
-          data || {
-            id: plugin!.id,
-            name: plugin!.name,
-            hash: plugin!.hash,
-            file_id: plugin!.file_id,
-            mod_id: plugin!.mod_id,
-            version: plugin!.version,
-            size: plugin!.size,
-            author: plugin!.author,
-            description: plugin!.description,
-            masters: plugin!.masters,
-            file_name: plugin!.filename,
-            file_path: plugin!.filepath,
-            updated_at: plugin!.updated_at,
-            created_at: plugin!.created_at,
-            cells: plugin!.cells,
-          }
-        }
+        plugin={buildPluginProps(data, plugin)}
+        counts={counts}
       />
+      {data && <CellModList mods={data.mods} counts={counts} />}
     </>
   );
 };

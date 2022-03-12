@@ -2,24 +2,16 @@ import Head from "next/head";
 import React from "react";
 
 import styles from "../styles/PluginData.module.css";
-import { Cell } from "./CellData";
+import { formatBytes } from "../lib/plugins";
 
 export interface Plugin {
-  id: number;
-  name: string;
-  hash: bigint;
-  file_id: number;
-  mod_id: number;
-  version: number;
+  hash: string;
   size: number;
   author?: string;
   description?: string;
   masters: string[];
   file_name: string;
-  file_path: string;
-  updated_at: Date;
-  created_at: Date;
-  cells: Omit<Cell, "mods">[];
+  cell_count: number;
 }
 
 type Props = {
@@ -39,7 +31,7 @@ const PluginData: React.FC<Props> = ({ plugin, counts }) => {
         <meta
           key="description"
           name="description"
-          content={`Map of Skyrim showing ${plugin.cells.length} cell edits from the plugin: ${plugin.file_name}`}
+          content={`Map of Skyrim showing ${plugin.cell_count} cell edits from the plugin: ${plugin.file_name}`}
         />
         <meta
           key="og:title"
@@ -49,7 +41,7 @@ const PluginData: React.FC<Props> = ({ plugin, counts }) => {
         <meta
           key="og:description"
           property="og:description"
-          content={`Map of Skyrim showing ${plugin.cells.length} cell edits from the plugin: ${plugin.file_name}`}
+          content={`Map of Skyrim showing ${plugin.cell_count} cell edits from the plugin: ${plugin.file_name}`}
         />
         <meta
           key="twitter:title"
@@ -59,7 +51,7 @@ const PluginData: React.FC<Props> = ({ plugin, counts }) => {
         <meta
           key="twitter:description"
           name="twitter:description"
-          content={`Map of Skyrim showing ${plugin.cells.length} cell edits from the plugin: ${plugin.file_name}`}
+          content={`Map of Skyrim showing ${plugin.cell_count} cell edits from the plugin: ${plugin.file_name}`}
         />
         <meta
           key="og:url"
@@ -81,8 +73,12 @@ const PluginData: React.FC<Props> = ({ plugin, counts }) => {
         </div>
       )}
       <div>
+        <strong>Size:&nbsp;</strong>
+        {formatBytes(plugin.size)}
+      </div>
+      <div>
         <strong>Cell edits:&nbsp;</strong>
-        {plugin.cells.length}
+        {plugin.cell_count}
       </div>
       {plugin.description && (
         <div>
