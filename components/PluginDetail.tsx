@@ -1,59 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import useSWRImmutable from "swr/immutable";
 
-import { useAppSelector } from "../lib/hooks";
-import { PluginFile } from "../slices/plugins";
-import { Mod } from "./ModData";
-import { Cell } from "./CellData";
+import { useAppDispatch, useAppSelector } from "../lib/hooks";
+import { setFetchedPlugin, PluginFile, PluginsByHashWithMods, Cell } from "../slices/plugins";
 import CellModList from "./CellModList";
 import PluginData, { Plugin as PluginProps } from "./PluginData";
 import styles from "../styles/PluginData.module.css";
-
-export interface File {
-  id: number;
-  name: string;
-  file_name: string;
-  nexus_file_id: number;
-  mod_id: number;
-  category?: string;
-  version?: string;
-  mod_version?: string;
-  size: number;
-  uploaded_at?: Date;
-  has_download_link: boolean;
-  updated_at: Date;
-  created_at: Date;
-  downloaded_at?: Date;
-  has_plugin: boolean;
-  unable_to_extract_plugins: boolean;
-}
-
-export interface Plugin {
-  id: number;
-  name: string;
-  hash: bigint;
-  file_id: number;
-  mod_id: number;
-  version: number;
-  size: number;
-  author?: string;
-  description?: string;
-  masters: string[];
-  file_name: string;
-  file_path: string;
-  updated_at: Date;
-  created_at: Date;
-}
-
-export interface PluginsByHashWithMods {
-  hash: number;
-  plugins: Plugin[];
-  files: File[];
-  mods: Mod[];
-  cells: Cell[];
-}
-
-const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
 
 const jsonFetcher = async (url: string): Promise<PluginsByHashWithMods | null> => {
   const res = await fetch(url);
@@ -81,7 +33,6 @@ const buildPluginProps = (data?: PluginsByHashWithMods | null, plugin?: PluginFi
   }
 }
 
-
 type Props = {
   hash: string;
   counts: Record<number, [number, number, number]> | null;
@@ -93,8 +44,17 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
     jsonFetcher
   );
 
+  const dispatch = useAppDispatch();
   const plugins = useAppSelector((state) => state.plugins.plugins);
+  const fetchedPlugin = useAppSelector((state) => state.plugins.fetchedPlugin);
   const plugin = plugins.find((plugin) => plugin.hash === hash);
+
+  useEffect(() => {
+    if (data && !fetchedPlugin) {
+      console.log("setting fetched plugins from PluginDetail", data);
+      dispatch(setFetchedPlugin(data));
+    }
+  }, [dispatch, data, fetchedPlugin])
 
   if (!plugin && error && error.status === 404) {
     return <h3>Plugin could not be found.</h3>;

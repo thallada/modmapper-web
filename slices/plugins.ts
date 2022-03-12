@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 import type { AppState, AppThunk } from "../lib/store"
+import { Mod } from "../components/ModData";
 
 export interface Header {
   author?: string;
@@ -41,8 +42,53 @@ export interface PluginFile {
   size: number;
 }
 
+export interface File {
+  id: number;
+  name: string;
+  file_name: string;
+  nexus_file_id: number;
+  mod_id: number;
+  category?: string;
+  version?: string;
+  mod_version?: string;
+  size: number;
+  uploaded_at?: Date;
+  has_download_link: boolean;
+  updated_at: Date;
+  created_at: Date;
+  downloaded_at?: Date;
+  has_plugin: boolean;
+  unable_to_extract_plugins: boolean;
+}
+
+export interface FetchedPlugin {
+  id: number;
+  name: string;
+  hash: bigint;
+  file_id: number;
+  mod_id: number;
+  version: number;
+  size: number;
+  author?: string;
+  description?: string;
+  masters: string[];
+  file_name: string;
+  file_path: string;
+  updated_at: Date;
+  created_at: Date;
+}
+
+export interface PluginsByHashWithMods {
+  hash: number;
+  plugins: FetchedPlugin[];
+  files: File[];
+  mods: Mod[];
+  cells: Cell[];
+}
+
 export type PluginsState = {
   plugins: PluginFile[];
+  fetchedPlugin?: PluginsByHashWithMods;
   pending: number;
 }
 
@@ -52,17 +98,50 @@ export const pluginsSlice = createSlice({
   name: "plugins",
   initialState,
   reducers: {
-    addPlugin: (state, action: PayloadAction<PluginFile>) => ({ plugins: [...state.plugins, action.payload], pending: state.pending }),
-    updatePlugin: (state, action: PayloadAction<PluginFile>) => ({ plugins: [...state.plugins.filter(plugin => plugin.hash !== action.payload.hash), action.payload], pending: state.pending }),
-    setPlugins: (state, action: PayloadAction<PluginFile[]>) => ({ plugins: action.payload, pending: state.pending }),
-    setPending: (state, action: PayloadAction<number>) => ({ plugins: state.plugins, pending: action.payload }),
-    decrementPending: (state, action: PayloadAction<number>) => ({ plugins: state.plugins, pending: state.pending - action.payload }),
-    togglePlugin: (state, action: PayloadAction<string>) => ({ plugins: state.plugins.map((plugin) => (plugin.filename === action.payload ? { ...plugin, enabled: !plugin.enabled } : plugin)), pending: state.pending }),
-    clearPlugins: () => ({ plugins: [], pending: 0 }),
+    addPlugin: (state, action: PayloadAction<PluginFile>) => ({
+      plugins: [...state.plugins, action.payload],
+      pending: state.pending,
+      fetchedPlugin: state.fetchedPlugin,
+    }),
+    updatePlugin: (state, action: PayloadAction<PluginFile>) => ({
+      plugins: [...state.plugins.filter(plugin => plugin.hash !== action.payload.hash), action.payload],
+      pending: state.pending,
+      fetchedPlugin: state.fetchedPlugin,
+    }),
+    setPlugins: (state, action: PayloadAction<PluginFile[]>) => ({
+      plugins: action.payload,
+      pending: state.pending,
+      fetchedPlugin: state.fetchedPlugin,
+    }),
+    setPending: (state, action: PayloadAction<number>) => ({
+      plugins: state.plugins,
+      pending: action.payload,
+      fetchedPlugin: state.fetchedPlugin,
+    }),
+    decrementPending: (state, action: PayloadAction<number>) => ({
+      plugins: state.plugins,
+      pending: state.pending - action.payload,
+      fetchedPlugin: state.fetchedPlugin,
+    }),
+    togglePlugin: (state, action: PayloadAction<string>) => ({
+      plugins: state.plugins.map((plugin) => (plugin.filename === action.payload ? { ...plugin, enabled: !plugin.enabled } : plugin)),
+      pending: state.pending,
+      fetchedPlugin: state.fetchedPlugin,
+    }),
+    setFetchedPlugin: (state, action: PayloadAction<PluginsByHashWithMods | undefined>) => ({
+      plugins: state.plugins,
+      pending: state.pending,
+      fetchedPlugin: action.payload,
+    }),
+    clearPlugins: () => ({
+      plugins: [],
+      pending: 0,
+      loadedPluginCells: [],
+    }),
   },
 })
 
-export const { addPlugin, setPlugins, setPending, decrementPending, togglePlugin, clearPlugins } = pluginsSlice.actions
+export const { addPlugin, setPlugins, setPending, decrementPending, togglePlugin, setFetchedPlugin, clearPlugins } = pluginsSlice.actions
 
 export const selectPlugins = (state: AppState) => state.plugins
 

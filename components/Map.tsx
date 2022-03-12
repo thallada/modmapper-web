@@ -4,8 +4,8 @@ import Gradient from "javascript-color-gradient";
 import mapboxgl from "mapbox-gl";
 import useSWRImmutable from "swr/immutable";
 
-import { useAppSelector } from "../lib/hooks";
-import { PluginFile } from "../slices/plugins";
+import { useAppDispatch, useAppSelector } from "../lib/hooks";
+import { PluginFile, setFetchedPlugin } from "../slices/plugins";
 import styles from "../styles/Map.module.css";
 import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
@@ -59,9 +59,11 @@ const Map: React.FC = () => {
     | null
   >(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const dispatch = useAppDispatch();
 
   const plugins = useAppSelector((state) => state.plugins.plugins);
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
+  const fetchedPlugin = useAppSelector((state) => state.plugins.fetchedPlugin);
 
   const { data: cellsData, error: cellsError } = useSWRImmutable(
     "https://cells.modmapper.com/edits.json",
@@ -246,6 +248,10 @@ const Map: React.FC = () => {
 
   const clearSelectedCells = useCallback(() => {
     setSelectedCells(null);
+    if (router.query.plugin !== fetchedPlugin?.hash.toString(36)) {
+      console.log("clearing fetched plugin");
+      dispatch(setFetchedPlugin(undefined));
+    }
     if (map.current) {
       map.current.removeFeatureState({ source: "selected-cell-source" });
       map.current.removeFeatureState({ source: "conflicted-cell-source" });
@@ -253,7 +259,7 @@ const Map: React.FC = () => {
     requestAnimationFrame(() => {
       if (map.current) map.current.resize();
     });
-  }, [map]);
+  }, [map, fetchedPlugin, dispatch, router.query.plugin]);
 
   const clearSelectedMod = useCallback(() => {
     requestAnimationFrame(() => {
@@ -305,7 +311,7 @@ const Map: React.FC = () => {
         if (plugin && plugin.parsed) {
           const cells = [];
           const cellSet = new Set<number>();
-          for (const cell of plugin.parsed.cells) {
+          for (const cell of plugin?.parsed?.cells) {
             if (
               cell.x !== undefined &&
               cell.y !== undefined &&
@@ -360,6 +366,25 @@ const Map: React.FC = () => {
     plugins,
     pluginsPending,
   ]);
+
+  useEffect(() => {
+    if (router.query.plugin && typeof router.query.plugin === "string" && fetchedPlugin && fetchedPlugin.cells) {
+      console.log("selecting fetchedPlugin cells");
+      const cells = [];
+      const cellSet = new Set<number>();
+      for (const cell of fetchedPlugin.cells) {
+        if (
+          cell.x !== undefined &&
+          cell.y !== undefined &&
+          cellSet.has(cell.x + cell.y * 1000) === false
+        ) {
+          cells.push({ x: cell.x, y: cell.y });
+          cellSet.add(cell.x + cell.y * 1000);
+        }
+      }
+      selectCells(cells);
+    }
+  }, [fetchedPlugin, selectCells, router.query.plugin]);
 
   useEffect(() => {
     if (!heatmapLoaded) return; // wait for all map layers to load
