@@ -24,11 +24,11 @@ export const DropZone: React.FC<Props> = ({ children, workerPool }) => {
       return false;
     }
     const entry = await item.getAsFileSystemHandle();
-    if (entry.kind === "file") {
+    if (entry?.kind === "file") {
       const file = await (entry as FileSystemFileHandle).getFile();
       dispatch(setPluginsTxtAndApplyLoadOrder(await file.text()));
       return true;
-    } else if (entry.kind === "directory") {
+    } else if (entry?.kind === "directory") {
       const plugins: { getFile: () => Promise<File> }[] = [];
       const values = (
         entry as FileSystemDirectoryHandle & { values: any }
