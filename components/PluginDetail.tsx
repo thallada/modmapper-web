@@ -50,8 +50,7 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
   const plugin = plugins.find((plugin) => plugin.hash === hash);
 
   useEffect(() => {
-    if (data && !fetchedPlugin) {
-      console.log("setting fetched plugins from PluginDetail", data);
+    if (data) {
       dispatch(setFetchedPlugin(data));
     }
   }, [dispatch, data, fetchedPlugin])

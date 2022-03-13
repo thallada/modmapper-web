@@ -248,10 +248,6 @@ const Map: React.FC = () => {
 
   const clearSelectedCells = useCallback(() => {
     setSelectedCells(null);
-    if (router.query.plugin !== fetchedPlugin?.hash.toString(36)) {
-      console.log("clearing fetched plugin");
-      dispatch(setFetchedPlugin(undefined));
-    }
     if (map.current) {
       map.current.removeFeatureState({ source: "selected-cell-source" });
       map.current.removeFeatureState({ source: "conflicted-cell-source" });
@@ -259,7 +255,7 @@ const Map: React.FC = () => {
     requestAnimationFrame(() => {
       if (map.current) map.current.resize();
     });
-  }, [map, fetchedPlugin, dispatch, router.query.plugin]);
+  }, [map]);
 
   const clearSelectedMod = useCallback(() => {
     requestAnimationFrame(() => {
@@ -303,8 +299,6 @@ const Map: React.FC = () => {
         clearSelectedCell();
       }
     } else if (router.query.plugin && typeof router.query.plugin === "string") {
-      clearSelectedCell();
-      clearSelectedCells();
       setSidebarOpen(true);
       if (plugins && plugins.length > 0 && pluginsPending === 0) {
         const plugin = plugins.find((p) => p.hash === router.query.plugin);
@@ -369,7 +363,6 @@ const Map: React.FC = () => {
 
   useEffect(() => {
     if (router.query.plugin && typeof router.query.plugin === "string" && fetchedPlugin && fetchedPlugin.cells) {
-      console.log("selecting fetchedPlugin cells");
       const cells = [];
       const cellSet = new Set<number>();
       for (const cell of fetchedPlugin.cells) {
