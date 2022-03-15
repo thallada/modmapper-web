@@ -1,34 +1,35 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# modmapper-web
+
+This is the frontend code for the modmapper project. Modmapper is an interactive map of Skyrim mods.
+
+This project renders every cell edit from all Skyrim SE mods on nexusmods.com as a heatmap on top of a map of Skyrim.
+
+You can click on a cell to see all of the mods that edit that cell sorted by popularity. Clicking on a mod in that list will show you all of the cells that the mod edits (across all files and versions of the mod). You can also search for a mod by name or a cell by x and y coordinates in the search bar at the top.
+
+You can also upload the plugins from your Skyrim Data folder and the load order from your `plugins.txt` to view all of the edited cells in your current load order. Red cells indicate multiple mods editing the same cell. Clicking on a plugin in your load order will show the cells that the plugin edits and the mods and files it belongs to on nexusmods.com (if it can be found on there).
+
+## Related Repositories
+
+- [modmapper](https://github.com/thallada/modmapper): program to automate downloading, extracting, and parsing plugins
+- [skyrim-cell-dump](https://github.com/thallada/skyrim-cell-dump): library for parsing skyrim plugin files and extracting CELL data
+- [skyrim-cell-dump-wasm](https://github.com/thallada/skyrim-cell-dump-wasm): exports skyrim-cell-dump's functions for WebAssembly
 
 ## Getting Started
 
-First, run the development server:
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+
+First, install the dependencies:
+
+```
+npm install
+```
+
+Then, run the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the site.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+This site is deployed as a static website (with `next build && next export`), so be aware that [SSR and other Node.js features are not supported](https://nextjs.org/docs/advanced-features/static-html-export).
