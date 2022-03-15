@@ -2,12 +2,20 @@ import React, { useEffect } from "react";
 import useSWRImmutable from "swr/immutable";
 
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
-import { setFetchedPlugin, PluginFile, PluginsByHashWithMods, Cell } from "../slices/plugins";
+import {
+  setFetchedPlugin,
+  PluginFile,
+  PluginsByHashWithMods,
+} from "../slices/plugins";
 import PluginModList from "./PluginModList";
+import CellList from "./CellList";
+import type { CellCoord } from "./ModData";
 import PluginData, { Plugin as PluginProps } from "./PluginData";
 import styles from "../styles/PluginData.module.css";
 
-const jsonFetcher = async (url: string): Promise<PluginsByHashWithMods | null> => {
+const jsonFetcher = async (
+  url: string
+): Promise<PluginsByHashWithMods | null> => {
   const res = await fetch(url);
 
   if (!res.ok) {
@@ -20,18 +28,34 @@ const jsonFetcher = async (url: string): Promise<PluginsByHashWithMods | null> =
   return res.json();
 };
 
-const buildPluginProps = (data?: PluginsByHashWithMods | null, plugin?: PluginFile): PluginProps => {
+const buildPluginProps = (
+  data?: PluginsByHashWithMods | null,
+  plugin?: PluginFile
+): PluginProps => {
   const dataPlugin = data && data.plugins.length > 0 && data.plugins[0];
   return {
-    hash: (plugin && plugin.hash) || (dataPlugin && dataPlugin.hash.toString(36)) || "",
+    hash:
+      (plugin && plugin.hash) ||
+      (dataPlugin && dataPlugin.hash.toString(36)) ||
+      "",
     size: plugin?.size || (dataPlugin && dataPlugin.size) || 0,
-    author: plugin?.parsed?.header.author || (dataPlugin && dataPlugin.author) || undefined,
-    description: plugin?.parsed?.header.description || (dataPlugin && dataPlugin.description) || undefined,
-    masters: plugin?.parsed?.header.masters || (dataPlugin && dataPlugin.masters) || [],
+    author:
+      plugin?.parsed?.header.author ||
+      (dataPlugin && dataPlugin.author) ||
+      undefined,
+    description:
+      plugin?.parsed?.header.description ||
+      (dataPlugin && dataPlugin.description) ||
+      undefined,
+    masters:
+      plugin?.parsed?.header.masters ||
+      (dataPlugin && dataPlugin.masters) ||
+      [],
     file_name: plugin?.filename || (dataPlugin && dataPlugin.file_name) || "",
-    cell_count: plugin?.parsed?.cells.length || (data && data.cells.length) || 0,
-  }
-}
+    cell_count:
+      plugin?.parsed?.cells.length || (data && data.cells.length) || 0,
+  };
+};
 
 type Props = {
   hash: string;
@@ -53,7 +77,7 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
     if (data) {
       dispatch(setFetchedPlugin(data));
     }
-  }, [dispatch, data, fetchedPlugin])
+  }, [dispatch, data, fetchedPlugin]);
 
   if (!plugin && error && error.status === 404) {
     return <h3>Plugin could not be found.</h3>;
@@ -67,11 +91,22 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
 
   return (
     <>
-      <PluginData
-        plugin={buildPluginProps(data, plugin)}
-        counts={counts}
+      <PluginData plugin={buildPluginProps(data, plugin)} counts={counts} />
+      {data && (
+        <PluginModList mods={data.mods} files={data.files} counts={counts} />
+      )}
+      <CellList
+        cells={
+          (plugin?.parsed?.cells.filter(
+            (cell) =>
+              cell.x !== undefined &&
+              cell.y !== undefined &&
+              cell.world_form_id === 60
+          ) as CellCoord[]) ||
+          data?.cells ||
+          []
+        }
       />
-      {data && <PluginModList mods={data.mods} files={data.files} counts={counts} />}
     </>
   );
 };

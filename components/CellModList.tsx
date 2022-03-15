@@ -34,7 +34,7 @@ const CellModList: React.FC<Props> = ({ mods, counts }) => {
   return (
     mods && (
       <>
-        <h2>Mods</h2>
+        <h2>Mods ({modsWithCounts.length})</h2>
         <ul className={styles["mod-list"]}>
           {modsWithCounts
             .sort((a, b) => b.unique_downloads - a.unique_downloads)

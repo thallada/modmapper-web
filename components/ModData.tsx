@@ -3,7 +3,7 @@ import Head from "next/head";
 import React from "react";
 import useSWRImmutable from "swr/immutable";
 
-import ModCellList from "./ModCellList";
+import CellList from "./CellList";
 import styles from "../styles/ModData.module.css";
 
 export interface CellCoord {
@@ -160,7 +160,7 @@ const ModData: React.FC<Props> = ({
           <strong>Unique Downloads:</strong>{" "}
           {numberFmt.format(unique_downloads)}
         </div>
-        <ModCellList cells={data.cells} />
+        <CellList cells={data.cells} />
       </>
     );
   }

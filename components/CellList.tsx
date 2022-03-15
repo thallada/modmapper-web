@@ -10,7 +10,7 @@ type Props = {
   cells: CellCoord[];
 };
 
-const ModCellList: React.FC<Props> = ({ cells }) => {
+const CellList: React.FC<Props> = ({ cells }) => {
   return (
     cells && (
       <>
@@ -44,4 +44,4 @@ const ModCellList: React.FC<Props> = ({ cells }) => {
   );
 };
 
-export default ModCellList;
+export default CellList;

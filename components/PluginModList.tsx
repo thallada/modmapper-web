@@ -37,7 +37,7 @@ const PluginModList: React.FC<Props> = ({ mods, files, counts }) => {
   return (
     mods && (
       <>
-        <h2>Mods</h2>
+        <h2>Mods ({modsWithCounts.length})</h2>
         <ul className={styles["mod-list"]}>
           {modsWithCounts
             .sort((a, b) => b.unique_downloads - a.unique_downloads)
@@ -96,42 +96,39 @@ const PluginModList: React.FC<Props> = ({ mods, files, counts }) => {
                   {numberFmt.format(mod.unique_downloads)}
                 </div>
                 <ul className={styles["file-list"]}>
-                  {files.filter(file => file.mod_id === mod.id).map(file => (
-                    <li key={file.id}>
-                      <div>
-                        <strong>File:</strong>{" "}
-                        {file.name}
-                      </div>
-                      {file.mod_version && (
+                  {files
+                    .filter((file) => file.mod_id === mod.id)
+                    .map((file) => (
+                      <li key={file.id}>
                         <div>
-                          <strong>Version:</strong>{" "}
-                          {file.mod_version}
+                          <strong>File:</strong> {file.name}
                         </div>
-                      )}
-                      {file.version && file.mod_version !== file.version && (
+                        {file.mod_version && (
+                          <div>
+                            <strong>Version:</strong> {file.mod_version}
+                          </div>
+                        )}
+                        {file.version && file.mod_version !== file.version && (
+                          <div>
+                            <strong>File Version:</strong> {file.version}
+                          </div>
+                        )}
+                        {file.category && (
+                          <div>
+                            <strong>Category:</strong> {file.category}
+                          </div>
+                        )}
                         <div>
-                          <strong>File Version:</strong>{" "}
-                          {file.version}
+                          <strong>Size:</strong> {formatBytes(file.size)}
                         </div>
-                      )}
-                      {file.category && (
-                        <div>
-                          <strong>Category:</strong>{" "}
-                          {file.category}
-                        </div>
-                      )}
-                      <div>
-                        <strong>Size:</strong>{" "}
-                        {formatBytes(file.size)}
-                      </div>
-                      {file.uploaded_at && (
-                        <div>
-                          <strong>Uploaded:</strong>{" "}
-                          {format(new Date(file.uploaded_at), "d MMM y")}
-                        </div>
-                      )}
-                    </li>
-                  ))}
+                        {file.uploaded_at && (
+                          <div>
+                            <strong>Uploaded:</strong>{" "}
+                            {format(new Date(file.uploaded_at), "d MMM y")}
+                          </div>
+                        )}
+                      </li>
+                    ))}
                 </ul>
               </li>
             ))}

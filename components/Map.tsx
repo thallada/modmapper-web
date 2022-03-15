@@ -362,7 +362,12 @@ const Map: React.FC = () => {
   ]);
 
   useEffect(() => {
-    if (router.query.plugin && typeof router.query.plugin === "string" && fetchedPlugin && fetchedPlugin.cells) {
+    if (
+      router.query.plugin &&
+      typeof router.query.plugin === "string" &&
+      fetchedPlugin &&
+      fetchedPlugin.cells
+    ) {
       const cells = [];
       const cellSet = new Set<number>();
       for (const cell of fetchedPlugin.cells) {
