@@ -34,8 +34,15 @@ const PluginsLoader: React.FC<Props> = () => {
   return (
     <>
       <p>
-        Paste or drag-and-drop your <code>plugins.txt</code> below to sort and
-        enable the loaded plugins by your current load order.
+        Paste or drag-and-drop your{" "}
+        <strong>
+          <code>plugins.txt</code>
+        </strong>{" "}
+        below to sort and enable the loaded plugins by your current load order.
+        The plugins.txt file is typically found at{" "}
+        <strong>
+          <code>%LOCALAPPDATA%\Skyrim Special Edition\plugins.txt</code>
+        </strong>
       </p>
       <button onClick={onPluginsTxtButtonClick} className={styles.button}>
         {!pluginsTxt ? "Paste" : "Edit"} Skyrim plugins.txt file
@@ -46,10 +53,16 @@ const PluginsLoader: React.FC<Props> = () => {
             <h3>Paste plugins.txt</h3>
             <p>
               The plugins.txt file is typically found at{" "}
-              <code>
-                C:\Users\username\AppData\Local\Skyrim Special Edition
-              </code>
-              . You can also drag-and-drop the file anywhere on the window to
+              <strong>
+                <code>
+                  C:\Users\username\AppData\Local\Skyrim Special Edition
+                </code>
+              </strong>{" "}
+              (or{" "}
+              <strong>
+                <code>%LOCALAPPDATA%\Skyrim Special Edition</code>
+              </strong>
+              ) . You can also drag-and-drop the file anywhere on the window to
               load the file.
             </p>
             <textarea

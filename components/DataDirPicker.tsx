@@ -47,9 +47,12 @@ const DataDirPicker: React.FC<Props> = () => {
   return (
     <>
       <p className={styles["no-top-margin"]}>
-        Select or drag-and-drop your <code>Data</code> directory below to load
-        the plugins and see all of the cell edits and conflicts for your current
-        mod load order.
+        Select or drag-and-drop your{" "}
+        <strong>
+          <code>Data</code>
+        </strong>{" "}
+        directory below to load the plugins and see all of the cell edits and
+        conflicts for your current mod load order.
       </p>
       <input
         type="file"

@@ -37,7 +37,7 @@ const PluginModList: React.FC<Props> = ({ mods, files, counts }) => {
   return (
     mods && (
       <>
-        <h2>Mods ({modsWithCounts.length})</h2>
+        <h2>Nexus Mods ({modsWithCounts.length})</h2>
         <ul className={styles["mod-list"]}>
           {modsWithCounts
             .sort((a, b) => b.unique_downloads - a.unique_downloads)
