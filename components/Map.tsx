@@ -4,8 +4,8 @@ import Gradient from "javascript-color-gradient";
 import mapboxgl from "mapbox-gl";
 import useSWRImmutable from "swr/immutable";
 
-import { useAppDispatch, useAppSelector } from "../lib/hooks";
-import { PluginFile, setFetchedPlugin } from "../slices/plugins";
+import { useAppSelector } from "../lib/hooks";
+import { PluginFile } from "../slices/plugins";
 import styles from "../styles/Map.module.css";
 import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
@@ -59,7 +59,6 @@ const Map: React.FC = () => {
     | null
   >(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const dispatch = useAppDispatch();
 
   const plugins = useAppSelector((state) => state.plugins.plugins);
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
@@ -362,6 +361,7 @@ const Map: React.FC = () => {
   ]);
 
   useEffect(() => {
+    if (!heatmapLoaded) return; // wait for all map layers to load
     if (
       router.query.plugin &&
       typeof router.query.plugin === "string" &&
@@ -382,7 +382,7 @@ const Map: React.FC = () => {
       }
       selectCells(cells);
     }
-  }, [fetchedPlugin, selectCells, router.query.plugin]);
+  }, [heatmapLoaded, fetchedPlugin, selectCells, router.query.plugin]);
 
   useEffect(() => {
     if (!heatmapLoaded) return; // wait for all map layers to load
