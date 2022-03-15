@@ -298,6 +298,7 @@ const Map: React.FC = () => {
         clearSelectedCell();
       }
     } else if (router.query.plugin && typeof router.query.plugin === "string") {
+      clearSelectedCell();
       setSidebarOpen(true);
       if (plugins && plugins.length > 0 && pluginsPending === 0) {
         const plugin = plugins.find((p) => p.hash === router.query.plugin);
