@@ -69,6 +69,17 @@ const Sidebar: React.FC<Props> = ({
     return <PluginDetail hash={plugin} counts={counts} />;
   };
 
+  const renderLastModified = (lastModified: string | null | undefined) => {
+    if (lastModified) {
+      return (
+        <div className={styles["sidebar-modified-date"]}>
+          <strong>Last updated:</strong>{" "}
+          {formatRelative(new Date(lastModified), new Date())}
+        </div>
+      );
+    }
+  };
+
   const renderOpenSidebar = () => {
     if (selectedCell) {
       return (
@@ -76,15 +87,18 @@ const Sidebar: React.FC<Props> = ({
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
         >
-          <div className={styles["sidebar-header"]}>
-            <button className={styles.close} onClick={onClose}>
-              <Image src={close} width={24} height={24} alt="close" />
-            </button>
+          <div className={styles["sidebar-content"]}>
+            <div className={styles["sidebar-header"]}>
+              <button className={styles.close} onClick={onClose}>
+                <Image src={close} width={24} height={24} alt="close" />
+              </button>
+            </div>
+            <h1 className={styles["cell-name-header"]}>
+              Cell {selectedCell.x}, {selectedCell.y}
+            </h1>
+            {renderCellData(selectedCell)}
+            {renderLastModified(lastModified)}
           </div>
-          <h1 className={styles["cell-name-header"]}>
-            Cell {selectedCell.x}, {selectedCell.y}
-          </h1>
-          {renderCellData(selectedCell)}
         </div>
       );
     } else if (router.query.mod) {
@@ -94,12 +108,15 @@ const Sidebar: React.FC<Props> = ({
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
         >
-          <div className={styles["sidebar-header"]}>
-            <button className={styles.close} onClick={onClose}>
-              <Image src={close} width={24} height={24} alt="close" />
-            </button>
+          <div className={styles["sidebar-content"]}>
+            <div className={styles["sidebar-header"]}>
+              <button className={styles.close} onClick={onClose}>
+                <Image src={close} width={24} height={24} alt="close" />
+              </button>
+            </div>
+            {!Number.isNaN(modId) && renderModData(modId)}
+            {renderLastModified(lastModified)}
           </div>
-          {!Number.isNaN(modId) && renderModData(modId)}
         </div>
       );
     } else if (router.query.plugin) {
@@ -108,16 +125,19 @@ const Sidebar: React.FC<Props> = ({
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
         >
-          <div className={styles["sidebar-header"]}>
-            <button className={styles.close} onClick={onClose}>
-              <Image src={close} width={24} height={24} alt="close" />
-            </button>
+          <div className={styles["sidebar-content"]}>
+            <div className={styles["sidebar-header"]}>
+              <button className={styles.close} onClick={onClose}>
+                <Image src={close} width={24} height={24} alt="close" />
+              </button>
+            </div>
+            {renderPluginData(
+              typeof router.query.plugin === "string"
+                ? router.query.plugin
+                : router.query.plugin[0]
+            )}
+            {renderLastModified(lastModified)}
           </div>
-          {renderPluginData(
-            typeof router.query.plugin === "string"
-              ? router.query.plugin
-              : router.query.plugin[0]
-          )}
         </div>
       );
     } else {
@@ -126,7 +146,7 @@ const Sidebar: React.FC<Props> = ({
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
         >
-          <div className={styles["default-sidebar"]}>
+          <div className={styles["sidebar-content"]}>
             <h2>Modmapper</h2>
             <p className={styles.subheader}>
               An interactive map of Skyrim mods.
@@ -134,12 +154,7 @@ const Sidebar: React.FC<Props> = ({
             <DataDirPicker />
             <PluginTxtEditor />
             <PluginsList />
-            {lastModified && (
-              <div className={styles["sidebar-modified-date"]}>
-                <strong>Last updated:</strong>{" "}
-                {formatRelative(new Date(lastModified), new Date())}
-              </div>
-            )}
+            {renderLastModified(lastModified)}
           </div>
         </div>
       );
@@ -157,13 +172,17 @@ const Sidebar: React.FC<Props> = ({
           className={styles.open}
           onClick={() => setOpen(true)}
           title="Show sidebar"
-        ><Image src={arrow} alt="show" width={16} height={16} /></button>
+        >
+          <Image src={arrow} alt="show" width={16} height={16} />
+        </button>
       ) : (
         <button
           className={styles.hide}
           onClick={() => setOpen(false)}
           title="Hide sidebar"
-        ><Image src={arrow} alt="hide" width={16} height={16} /></button>
+        >
+          <Image src={arrow} alt="hide" width={16} height={16} />
+        </button>
       )}
       {renderOpenSidebar()}
     </>

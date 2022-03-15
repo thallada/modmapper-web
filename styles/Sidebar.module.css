@@ -11,6 +11,7 @@
   padding-top: 24px;
   font-size: 0.875rem;
   border: 1px solid #222222;
+  height: 100%;
 }
 
 @media only screen and (max-width: 600px) {
@@ -123,7 +124,7 @@
     border-bottom: none;
     border-left: 2px solid #222222;
   }
-  
+
   .open span {
     transform: rotate(270deg);
   }
@@ -134,7 +135,7 @@
   word-wrap: break-word;
 }
 
-.default-sidebar {
+.sidebar-content {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -142,6 +143,8 @@
 
 .sidebar-modified-date {
   margin-top: auto;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .subheader {
