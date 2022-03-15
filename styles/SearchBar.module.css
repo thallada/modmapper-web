@@ -11,8 +11,14 @@
   left: calc(50% - max(20vw, 125px));
 }
 
-.search-bar.search-bar-sidebar-open {
-  left: calc(50% + 75px);
+@media only screen and (min-width: 600px) {
+  .search-bar.search-bar-sidebar-open {
+    left: calc(50% + 75px);
+  }
+
+  .search-bar.search-bar-focused.search-bar-sidebar-open {
+    left: calc(50% - max(20vw, 125px) + 125px);
+  }
 }
 
 .search-bar input {
