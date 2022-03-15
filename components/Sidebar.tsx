@@ -1,6 +1,6 @@
+/* eslint-disable @next/next/no-img-element */
 import React from "react";
 import { useRouter } from "next/router";
-import Image from "next/image";
 import { formatRelative } from "date-fns";
 
 import arrow from "../public/img/arrow.svg";
@@ -90,7 +90,7 @@ const Sidebar: React.FC<Props> = ({
           <div className={styles["sidebar-content"]}>
             <div className={styles["sidebar-header"]}>
               <button className={styles.close} onClick={onClose}>
-                <Image src={close} width={24} height={24} alt="close" />
+                <img src="/img/close.svg" width={24} height={24} alt="close" />
               </button>
             </div>
             <h1 className={styles["cell-name-header"]}>
@@ -111,7 +111,7 @@ const Sidebar: React.FC<Props> = ({
           <div className={styles["sidebar-content"]}>
             <div className={styles["sidebar-header"]}>
               <button className={styles.close} onClick={onClose}>
-                <Image src={close} width={24} height={24} alt="close" />
+                <img src="/img/close.svg" width={24} height={24} alt="close" />
               </button>
             </div>
             {!Number.isNaN(modId) && renderModData(modId)}
@@ -128,7 +128,7 @@ const Sidebar: React.FC<Props> = ({
           <div className={styles["sidebar-content"]}>
             <div className={styles["sidebar-header"]}>
               <button className={styles.close} onClick={onClose}>
-                <Image src={close} width={24} height={24} alt="close" />
+                <img src="/img/close.svg" width={24} height={24} alt="close" />
               </button>
             </div>
             {renderPluginData(
@@ -173,7 +173,7 @@ const Sidebar: React.FC<Props> = ({
           onClick={() => setOpen(true)}
           title="Show sidebar"
         >
-          <Image src={arrow} alt="show" width={16} height={16} />
+          <img src="/img/arrow.svg" alt="show" width={16} height={16} />
         </button>
       ) : (
         <button
@@ -181,7 +181,7 @@ const Sidebar: React.FC<Props> = ({
           onClick={() => setOpen(false)}
           title="Hide sidebar"
         >
-          <Image src={arrow} alt="hide" width={16} height={16} />
+          <img src="/img/arrow.svg" alt="hide" width={16} height={16} />
         </button>
       )}
       {renderOpenSidebar()}
