@@ -1,7 +1,10 @@
 import React from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import { formatRelative } from "date-fns";
 
+import arrow from "../public/img/arrow.svg";
+import close from "../public/img/close.svg";
 import CellData from "./CellData";
 import ModData from "./ModData";
 import PluginDetail from "./PluginDetail";
@@ -75,7 +78,7 @@ const Sidebar: React.FC<Props> = ({
         >
           <div className={styles["sidebar-header"]}>
             <button className={styles.close} onClick={onClose}>
-              ✖
+              <Image src={close} width={24} height={24} alt="close" />
             </button>
           </div>
           <h1 className={styles["cell-name-header"]}>
@@ -93,7 +96,7 @@ const Sidebar: React.FC<Props> = ({
         >
           <div className={styles["sidebar-header"]}>
             <button className={styles.close} onClick={onClose}>
-              ✖
+              <Image src={close} width={24} height={24} alt="close" />
             </button>
           </div>
           {!Number.isNaN(modId) && renderModData(modId)}
@@ -107,7 +110,7 @@ const Sidebar: React.FC<Props> = ({
         >
           <div className={styles["sidebar-header"]}>
             <button className={styles.close} onClick={onClose}>
-              ✖
+              <Image src={close} width={24} height={24} alt="close" />
             </button>
           </div>
           {renderPluginData(
@@ -154,13 +157,13 @@ const Sidebar: React.FC<Props> = ({
           className={styles.open}
           onClick={() => setOpen(true)}
           title="Show sidebar"
-        ></button>
+        ><Image src={arrow} alt="show" width={16} height={16} /></button>
       ) : (
         <button
           className={styles.hide}
           onClick={() => setOpen(false)}
           title="Hide sidebar"
-        ></button>
+        ><Image src={arrow} alt="hide" width={16} height={16} /></button>
       )}
       {renderOpenSidebar()}
     </>
