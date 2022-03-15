@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 import type { AppState, AppThunk } from "../lib/store"
+import { excludedPlugins } from "../lib/plugins";
 import { Mod } from "../components/ModData";
 
 export interface Header {
@@ -128,6 +129,16 @@ export const pluginsSlice = createSlice({
       pending: state.pending,
       fetchedPlugin: state.fetchedPlugin,
     }),
+    enableAllPlugins: (state) => ({
+      plugins: state.plugins.map((plugin) => ({ ...plugin, enabled: !plugin.parseError && !excludedPlugins.includes(plugin.filename) && true })),
+      pending: state.pending,
+      fetchedPlugin: state.fetchedPlugin,
+    }),
+    disableAllPlugins: (state) => ({
+      plugins: state.plugins.map((plugin) => ({ ...plugin, enabled: false })),
+      pending: state.pending,
+      fetchedPlugin: state.fetchedPlugin,
+    }),
     setFetchedPlugin: (state, action: PayloadAction<PluginsByHashWithMods | undefined>) => ({
       plugins: state.plugins,
       pending: state.pending,
@@ -141,7 +152,7 @@ export const pluginsSlice = createSlice({
   },
 })
 
-export const { addPlugin, setPlugins, setPending, decrementPending, togglePlugin, setFetchedPlugin, clearPlugins } = pluginsSlice.actions
+export const { addPlugin, setPlugins, setPending, decrementPending, togglePlugin, enableAllPlugins, disableAllPlugins, setFetchedPlugin, clearPlugins } = pluginsSlice.actions
 
 export const selectPlugins = (state: AppState) => state.plugins
 

@@ -3,7 +3,11 @@ import React from "react";
 
 import { useAppSelector, useAppDispatch } from "../lib/hooks";
 import { excludedPlugins } from "../lib/plugins";
-import { togglePlugin } from "../slices/plugins";
+import {
+  enableAllPlugins,
+  disableAllPlugins,
+  togglePlugin,
+} from "../slices/plugins";
 import styles from "../styles/PluginList.module.css";
 
 type Props = {
@@ -30,6 +34,16 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
   return (
     <>
       {plugins.length > 0 && <h2>Loaded Plugins ({plugins.length})</h2>}
+      {!selectedCell && plugins.length > 0 && (
+        <div className={styles.buttons}>
+          <button onClick={() => dispatch(enableAllPlugins())}>
+            Enable all
+          </button>
+          <button onClick={() => dispatch(disableAllPlugins())}>
+            Disable all
+          </button>
+        </div>
+      )}
       <ol className={styles["plugin-list"]}>
         {plugins.map((plugin) => (
           <li key={plugin.filename} title={plugin.filename}>
