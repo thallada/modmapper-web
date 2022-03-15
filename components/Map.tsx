@@ -4,8 +4,8 @@ import Gradient from "javascript-color-gradient";
 import mapboxgl from "mapbox-gl";
 import useSWRImmutable from "swr/immutable";
 
-import { useAppSelector } from "../lib/hooks";
-import { PluginFile } from "../slices/plugins";
+import { useAppDispatch, useAppSelector } from "../lib/hooks";
+import { setFetchedPlugin, PluginFile } from "../slices/plugins";
 import styles from "../styles/Map.module.css";
 import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
@@ -60,6 +60,7 @@ const Map: React.FC = () => {
   >(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  const dispatch = useAppDispatch();
   const plugins = useAppSelector((state) => state.plugins.plugins);
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
   const fetchedPlugin = useAppSelector((state) => state.plugins.fetchedPlugin);
@@ -247,6 +248,7 @@ const Map: React.FC = () => {
 
   const clearSelectedCells = useCallback(() => {
     setSelectedCells(null);
+    dispatch(setFetchedPlugin(undefined));
     if (map.current) {
       map.current.removeFeatureState({ source: "selected-cell-source" });
       map.current.removeFeatureState({ source: "conflicted-cell-source" });
