@@ -3,7 +3,7 @@ import useSWRImmutable from "swr/immutable";
 
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
 import { setFetchedPlugin, PluginFile, PluginsByHashWithMods, Cell } from "../slices/plugins";
-import CellModList from "./CellModList";
+import PluginModList from "./PluginModList";
 import PluginData, { Plugin as PluginProps } from "./PluginData";
 import styles from "../styles/PluginData.module.css";
 
@@ -71,7 +71,7 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
         plugin={buildPluginProps(data, plugin)}
         counts={counts}
       />
-      {data && <CellModList mods={data.mods} counts={counts} />}
+      {data && <PluginModList mods={data.mods} files={data.files} counts={counts} />}
     </>
   );
 };
