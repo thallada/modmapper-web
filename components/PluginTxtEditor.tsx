@@ -37,7 +37,7 @@ const PluginsLoader: React.FC<Props> = () => {
         Paste or drag-and-drop your <code>plugins.txt</code> below to sort and
         enable the loaded plugins by your current load order.
       </p>
-      <button onClick={onPluginsTxtButtonClick}>
+      <button onClick={onPluginsTxtButtonClick} className={styles.button}>
         {!pluginsTxt ? "Paste" : "Edit"} Skyrim plugins.txt file
       </button>
       {typeof window !== "undefined" &&

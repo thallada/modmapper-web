@@ -73,7 +73,7 @@ const Sidebar: React.FC<Props> = ({
     if (lastModified) {
       return (
         <div className={styles["sidebar-modified-date"]}>
-          <strong>Last updated:</strong>{" "}
+          <strong>Site last updated:</strong>{" "}
           {formatRelative(new Date(lastModified), new Date())}
         </div>
       );
@@ -147,7 +147,7 @@ const Sidebar: React.FC<Props> = ({
           style={!open ? { display: "none" } : {}}
         >
           <div className={styles["sidebar-content"]}>
-            <h2>Modmapper</h2>
+            <h1 className={styles.title}>Modmapper</h1>
             <p className={styles.subheader}>
               An interactive map of Skyrim mods.
             </p>

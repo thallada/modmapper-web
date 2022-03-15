@@ -29,7 +29,7 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
 
   return (
     <>
-      {selectedCell && plugins.length > 0 && <h2>Loaded Plugins</h2>}
+      {plugins.length > 0 && <h2>Loaded Plugins ({plugins.length})</h2>}
       <ol className={styles["plugin-list"]}>
         {plugins.map((plugin) => (
           <li key={plugin.filename} title={plugin.filename}>
@@ -55,7 +55,6 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
                 </Link>
               )}
             </label>
-            {/* <p>{plugin.parsed && plugin.parsed.header.description}</p> */}
           </li>
         ))}
       </ol>
