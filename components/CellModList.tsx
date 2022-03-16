@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 
 import styles from "../styles/CellModList.module.css";
@@ -19,15 +19,19 @@ type ModWithCounts = Mod & {
 };
 
 const CellModList: React.FC<Props> = ({ mods, counts }) => {
-  const modsWithCounts: ModWithCounts[] = mods.map((mod) => {
-    const modCounts = counts && counts[mod.nexus_mod_id];
-    return {
-      ...mod,
-      total_downloads: modCounts ? modCounts[0] : 0,
-      unique_downloads: modCounts ? modCounts[1] : 0,
-      views: modCounts ? modCounts[2] : 0,
-    };
-  });
+  const [includeTranslations, setIncludeTranslations] = useState(true);
+
+  const modsWithCounts: ModWithCounts[] = mods
+    .map((mod) => {
+      const modCounts = counts && counts[mod.nexus_mod_id];
+      return {
+        ...mod,
+        total_downloads: modCounts ? modCounts[0] : 0,
+        unique_downloads: modCounts ? modCounts[1] : 0,
+        views: modCounts ? modCounts[2] : 0,
+      };
+    })
+    .filter((mod) => includeTranslations || !mod.is_translation);
 
   let numberFmt = new Intl.NumberFormat("en-US");
 
@@ -35,6 +39,14 @@ const CellModList: React.FC<Props> = ({ mods, counts }) => {
     mods && (
       <>
         <h2>Nexus Mods ({modsWithCounts.length})</h2>
+        <label className={styles["include-translations"]}>
+          <input
+            type="checkbox"
+            checked={includeTranslations}
+            onChange={() => setIncludeTranslations(!includeTranslations)}
+          />
+          Include translations
+        </label>
         <ul className={styles["mod-list"]}>
           {modsWithCounts
             .sort((a, b) => b.unique_downloads - a.unique_downloads)

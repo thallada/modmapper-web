@@ -17,6 +17,7 @@ export interface Mod {
   description: string;
   thumbnail_link: string;
   game_id: number;
+  is_translation: boolean;
   updated_at: string;
   created_at: string;
   last_update_at: string;

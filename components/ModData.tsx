@@ -22,6 +22,7 @@ export interface Mod {
   description: string;
   thumbnail_link: string;
   game_id: number;
+  is_translation: boolean;
   updated_at: string;
   created_at: string;
   last_update_at: string;
@@ -134,6 +135,7 @@ const ModData: React.FC<Props> = ({
           >
             {data.category_name}
           </a>
+          {data.is_translation && <strong>&nbsp;(translation)</strong>}
         </div>
         <div>
           <strong>Author:&nbsp;</strong>

@@ -11,3 +11,11 @@
 .mod-title {
   margin-bottom: 8px;
 }
+
+.include-translations {
+  margin-bottom: 12px;
+}
+
+.include-translations input {
+  margin-right: 8px;
+}
