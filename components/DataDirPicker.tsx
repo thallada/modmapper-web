@@ -47,12 +47,15 @@ const DataDirPicker: React.FC<Props> = () => {
   return (
     <>
       <p className={styles["no-top-margin"]}>
-        Select or drag-and-drop your{" "}
+        Select or drag-and-drop your Skyrim{" "}
         <strong>
           <code>Data</code>
         </strong>{" "}
-        directory below to load the plugins and see all of the cell edits and
+        folder below to load the plugins and see all of the cell edits and
         conflicts for your current mod load order.
+        <br />
+        <br />
+        The Data folder can be found in the installation directory of the game.
       </p>
       <input
         type="file"

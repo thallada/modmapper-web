@@ -12,9 +12,7 @@ export const excludedPlugins = [
 
 export const isPluginPath = (path: string) => {
   if (
-    path.endsWith(".esp") ||
-    path.endsWith(".esm") ||
-    path.endsWith(".esl")
+    /^((Skyrim Special Edition|Skyrim|SkyrimVR)\/)?(Data\/)?[^/\\]*\.es[mpl]$/i.test(path)
   ) {
     return true;
   }
@@ -22,7 +20,7 @@ export const isPluginPath = (path: string) => {
 }
 
 export const isPlugin = (file: File) => {
-  return isPluginPath(file.name);
+  return isPluginPath(file.webkitRelativePath ?? file.name);
 }
 
 export const parsePluginFiles = (pluginFiles: File[], workerPool: WorkerPool) => {

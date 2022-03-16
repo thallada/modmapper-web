@@ -17,6 +17,29 @@ export const DropZone: React.FC<Props> = ({ children, workerPool }) => {
   const [entered, setEntered] = useState(0);
   const overlay = useRef<HTMLDivElement>(null);
 
+  const findPluginsInDirHandle = async (
+    dirHandle: FileSystemDirectoryHandle & { values: any }
+  ) => {
+    const plugins: { getFile: () => Promise<File> }[] = [];
+    const values = dirHandle.values();
+    // I'm scared of yield and generators so I'm just going to do a lame while loop
+    while (true) {
+      const next = await values.next();
+      if (next.done) {
+        break;
+      }
+      if (next.value.kind === "file" && isPluginPath(next.value.name)) {
+        plugins.push(next.value);
+      } else if (
+        next.value.kind === "directory" &&
+        next.value.name === "Data"
+      ) {
+        plugins.push(...(await findPluginsInDirHandle(next.value)));
+      }
+    }
+    return plugins;
+  };
+
   const handleDropFileSystemHandle = async (
     item: DataTransferItem
   ): Promise<boolean> => {
@@ -29,20 +52,9 @@ export const DropZone: React.FC<Props> = ({ children, workerPool }) => {
       dispatch(setPluginsTxtAndApplyLoadOrder(await file.text()));
       return true;
     } else if (entry?.kind === "directory") {
-      const plugins: { getFile: () => Promise<File> }[] = [];
-      const values = (
+      const plugins = await findPluginsInDirHandle(
         entry as FileSystemDirectoryHandle & { values: any }
-      ).values();
-      // I'm scared of yield and generators so I'm just going to do a lame while loop
-      while (true) {
-        const next = await values.next();
-        if (next.done) {
-          break;
-        }
-        if (next.value.kind == "file" && isPluginPath(next.value.name)) {
-          plugins.push(next.value);
-        }
-      }
+      );
       const pluginFiles = await Promise.all(
         plugins.map(async (plugin) => plugin.getFile())
       );
@@ -74,12 +86,26 @@ export const DropZone: React.FC<Props> = ({ children, workerPool }) => {
         (resolve, reject) => {
           const plugins: FileSystemFileEntry[] = [];
           reader.readEntries((entries) => {
+            let isData = true;
             entries.forEach((entry) => {
               if (entry?.isFile && isPluginPath(entry.name)) {
                 plugins.push(entry as FileSystemFileEntry);
+              } else if (entry?.isDirectory && entry.name === "Data") {
+                isData = false;
+                const dataReader = (
+                  entry as FileSystemDirectoryEntry
+                ).createReader();
+                dataReader.readEntries((entries) => {
+                  entries.forEach((entry) => {
+                    if (entry?.isFile && isPluginPath(entry.name)) {
+                      plugins.push(entry as FileSystemFileEntry);
+                    }
+                  });
+                  resolve(plugins);
+                });
               }
             });
-            resolve(plugins);
+            if (isData) resolve(plugins);
           }, reject);
         }
       );

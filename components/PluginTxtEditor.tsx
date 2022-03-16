@@ -33,15 +33,19 @@ const PluginsLoader: React.FC<Props> = () => {
 
   return (
     <>
-      <p>
+      <p className={styles["top-spacing"]}>
         Paste or drag-and-drop your{" "}
         <strong>
           <code>plugins.txt</code>
         </strong>{" "}
         below to sort and enable the loaded plugins by your current load order.
+        <br />
+        <br />
         The plugins.txt file is typically found at{" "}
         <strong>
-          <code>%LOCALAPPDATA%\Skyrim Special Edition\plugins.txt</code>
+          <code className={styles["break-word"]}>
+            C:\Users\username\AppData\Local\Skyrim Special Edition
+          </code>
         </strong>
       </p>
       <button onClick={onPluginsTxtButtonClick} className={styles.button}>
@@ -54,16 +58,21 @@ const PluginsLoader: React.FC<Props> = () => {
             <p>
               The plugins.txt file is typically found at{" "}
               <strong>
-                <code>
+                <code className={styles["break-word"]}>
                   C:\Users\username\AppData\Local\Skyrim Special Edition
                 </code>
               </strong>{" "}
               (or{" "}
               <strong>
-                <code>%LOCALAPPDATA%\Skyrim Special Edition</code>
+                <code className={styles["break-word"]}>
+                  %LOCALAPPDATA%\Skyrim Special Edition
+                </code>
               </strong>
-              ) . You can also drag-and-drop the file anywhere on the window to
-              load the file.
+              ).
+              <br />
+              <br />
+              You can also drag-and-drop the file anywhere on the window to load
+              the file.
             </p>
             <textarea
               value={editPluginsTxt ?? undefined}

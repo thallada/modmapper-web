@@ -25,3 +25,11 @@
 .button {
   margin-bottom: 24px;
 }
+
+.top-spacing {
+  margin-top: 34px;
+}
+
+.break-word {
+  word-break: break-word;
+}
