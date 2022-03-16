@@ -256,7 +256,7 @@ const Map: React.FC = () => {
     requestAnimationFrame(() => {
       if (map.current) map.current.resize();
     });
-  }, [map]);
+  }, [map, dispatch]);
 
   const clearSelectedMod = useCallback(() => {
     requestAnimationFrame(() => {

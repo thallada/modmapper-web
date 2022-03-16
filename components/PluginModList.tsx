@@ -98,6 +98,7 @@ const PluginModList: React.FC<Props> = ({ mods, files, counts }) => {
                 <ul className={styles["file-list"]}>
                   {files
                     .filter((file) => file.mod_id === mod.id)
+                    .sort((a, b) => b.nexus_file_id - a.nexus_file_id)
                     .map((file) => (
                       <li key={file.id}>
                         <div>

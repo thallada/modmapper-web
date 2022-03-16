@@ -53,7 +53,7 @@ export interface File {
   version?: string;
   mod_version?: string;
   size: number;
-  uploaded_at?: Date;
+  uploaded_at?: number;
   has_download_link: boolean;
   updated_at: Date;
   created_at: Date;
