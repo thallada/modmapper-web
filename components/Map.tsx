@@ -84,7 +84,7 @@ const Map: React.FC = () => {
       if (!map.current) return;
       if (map.current && !map.current.getSource("grid-source")) return;
 
-      map.current.removeFeatureState({ source: "grid-source" });
+      // map.current.removeFeatureState({ source: "grid-source" });
       map.current.setFeatureState(
         {
           source: "grid-source",
@@ -95,7 +95,7 @@ const Map: React.FC = () => {
         }
       );
       map.current.removeFeatureState({ source: "selected-cell-source" });
-      map.current.removeFeatureState({ source: "conflicted-cell-source" });
+      // map.current.removeFeatureState({ source: "conflicted-cell-source" });
       map.current.setFeatureState(
         {
           source: "selected-cell-source",
@@ -103,7 +103,7 @@ const Map: React.FC = () => {
         },
         {
           cellSelected: true,
-          modSelected: false,
+          // modSelected: false,
         }
       );
       requestAnimationFrame(() => map.current && map.current.resize());
@@ -148,19 +148,18 @@ const Map: React.FC = () => {
       if (!map.current) return;
       if (map.current && !map.current.getSource("grid-source")) return;
 
-      map.current.removeFeatureState({ source: "selected-cell-source" });
+      map.current.removeFeatureState({ source: "selected-cells-source" });
       map.current.removeFeatureState({ source: "conflicted-cell-source" });
       const visited: { [id: number]: boolean } = {};
       for (let cell of cells) {
         const id = (cell.x + 57) * 1000 + 50 - cell.y;
         map.current.setFeatureState(
           {
-            source: "selected-cell-source",
+            source: "selected-cells-source",
             id,
           },
           {
             modSelected: true,
-            cellSelected: false,
           }
         );
         map.current.setFeatureState(
@@ -239,7 +238,7 @@ const Map: React.FC = () => {
     if (map.current) map.current.removeFeatureState({ source: "grid-source" });
     if (map.current) {
       map.current.removeFeatureState({ source: "selected-cell-source" });
-      map.current.removeFeatureState({ source: "conflicted-cell-source" });
+      // map.current.removeFeatureState({ source: "conflicted-cell-source" });
     }
     requestAnimationFrame(() => {
       if (map.current) map.current.resize();
@@ -250,7 +249,7 @@ const Map: React.FC = () => {
     setSelectedCells(null);
     dispatch(setFetchedPlugin(undefined));
     if (map.current) {
-      map.current.removeFeatureState({ source: "selected-cell-source" });
+      map.current.removeFeatureState({ source: "selected-cells-source" });
       map.current.removeFeatureState({ source: "conflicted-cell-source" });
     }
     requestAnimationFrame(() => {
@@ -287,7 +286,7 @@ const Map: React.FC = () => {
         selectedCell.x !== cell.x ||
         selectedCell.y !== cell.y
       ) {
-        clearSelectedCells();
+        // clearSelectedCells();
         selectCell(cell);
       }
     } else if (router.query.mod && typeof router.query.mod === "string") {
@@ -672,19 +671,17 @@ const Map: React.FC = () => {
       }
     }
 
-    map.current.addSource("selected-cell-source", {
+    map.current.addSource("selected-cells-source", {
       type: "geojson",
       data: selectedCellLines,
     });
     map.current.addLayer({
-      id: "selected-cell-layer",
+      id: "selected-cells-layer",
       type: "line",
-      source: "selected-cell-source",
+      source: "selected-cells-source",
       paint: {
         "line-color": [
           "case",
-          ["boolean", ["feature-state", "cellSelected"], false],
-          "blue",
           ["boolean", ["feature-state", "modSelected"], false],
           "purple",
           "transparent",
@@ -761,6 +758,28 @@ const Map: React.FC = () => {
           "transparent",
         ],
         "line-width": 4,
+      },
+      layout: {
+        "line-join": "round",
+      },
+    });
+
+    map.current.addSource("selected-cell-source", {
+      type: "geojson",
+      data: selectedCellLines,
+    });
+    map.current.addLayer({
+      id: "selected-cell-layer",
+      type: "line",
+      source: "selected-cell-source",
+      paint: {
+        "line-color": [
+          "case",
+          ["boolean", ["feature-state", "cellSelected"], false],
+          "blue",
+          "transparent",
+        ],
+        "line-width": 3,
       },
       layout: {
         "line-join": "round",
