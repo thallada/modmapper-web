@@ -44,7 +44,11 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
           </button>
         </div>
       )}
-      <ol className={styles["plugin-list"]}>
+      <ol
+        className={`${styles["plugin-list"]} ${
+          plugins.length > 0 ? styles["bottom-spacing"] : ""
+        }`}
+      >
         {plugins.map((plugin) => (
           <li key={plugin.filename} title={plugin.filename}>
             <input

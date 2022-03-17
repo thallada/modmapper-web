@@ -7,7 +7,7 @@ import {
   PluginFile,
   PluginsByHashWithMods,
 } from "../slices/plugins";
-import PluginModList from "./PluginModList";
+import ModList from "./ModList";
 import CellList from "./CellList";
 import type { CellCoord } from "./ModData";
 import PluginData, { Plugin as PluginProps } from "./PluginData";
@@ -92,9 +92,7 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
   return (
     <>
       <PluginData plugin={buildPluginProps(data, plugin)} counts={counts} />
-      {data && (
-        <PluginModList mods={data.mods} files={data.files} counts={counts} />
-      )}
+      {data && <ModList mods={data.mods} files={data.files} counts={counts} />}
       <CellList
         cells={
           (plugin?.parsed?.cells.filter(

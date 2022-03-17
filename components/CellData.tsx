@@ -3,7 +3,7 @@ import React from "react";
 import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/CellData.module.css";
-import CellModList from "./CellModList";
+import ModList from "./ModList";
 import PluginList from "./PluginsList";
 
 export interface Mod {
@@ -123,7 +123,7 @@ const CellData: React.FC<Props> = ({ selectedCell, counts }) => {
           </li>
         </ul>
         <PluginList selectedCell={selectedCell} />
-        <CellModList mods={data.mods} counts={counts} />
+        <ModList mods={data.mods} counts={counts} />
       </>
     )
   );

@@ -1,0 +1,73 @@
+.mod-list {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 0;
+}
+
+.mod-list-item {
+  margin-bottom: 12px;
+}
+
+.mod-title {
+  margin-bottom: 8px;
+}
+
+.file-list {
+  list-style-type: none;
+  padding-left: 8px;
+  margin-top: 0;
+}
+
+.file-list li {
+  margin-top: 8px;
+}
+
+.filters {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.filters hr {
+  margin: 0;
+  width: 100%;
+}
+
+.filters hr:first-child {
+  margin-bottom: 8px;
+}
+
+.filters hr:last-child {
+  margin-top: 8px;
+}
+
+.filter-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.filter-row label,
+.filter-row input,
+.filter-row select {
+  flex: 1;
+}
+
+.sort-by {
+  min-width: 175px;
+}
+
+.category {
+  min-width: 175px;
+  width: 175px;
+}
+
+.filter {
+  width: 175px;
+}
+
+.include-translations input {
+  margin-right: 8px;
+}
