@@ -14,7 +14,7 @@ const CellList: React.FC<Props> = ({ cells }) => {
   return (
     cells && (
       <>
-        <h2>Cells ({cells.length})</h2>
+        <h2>Exterior Cells ({cells.length})</h2>
         <ul className={styles["cell-list"]}>
           {cells
             // .sort((a, b) => b.unique_downloads - a.unique_downloads)
