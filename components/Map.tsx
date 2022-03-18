@@ -10,6 +10,7 @@ import styles from "../styles/Map.module.css";
 import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
 import SearchBar from "./SearchBar";
+import { csvFetcher, jsonFetcherWithLastModified } from "../lib/api";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
@@ -25,13 +26,6 @@ colorGradient.setMidpoint(360);
 
 const LIVE_DOWNLOAD_COUNTS_URL =
   "https://staticstats.nexusmods.com/live_download_counts/mods/1704.csv";
-
-const jsonFetcher = (url: string) =>
-  fetch(url).then(async (res) => ({
-    lastModified: res.headers.get("Last-Modified"),
-    data: await res.json(),
-  }));
-const csvFetcher = (url: string) => fetch(url).then((res) => res.text());
 
 const Map: React.FC = () => {
   const router = useRouter();
@@ -67,7 +61,7 @@ const Map: React.FC = () => {
 
   const { data: cellsData, error: cellsError } = useSWRImmutable(
     "https://cells.modmapper.com/edits.json",
-    jsonFetcher
+    (_) => jsonFetcherWithLastModified<Record<string, number>>(_)
   );
   // The live download counts are not really immutable, but I'd still rather load them once per session
   const [counts, setCounts] = useState<Record<
@@ -560,9 +554,7 @@ const Map: React.FC = () => {
           x * cellSize + viewportNW.x,
           y * cellSize + viewportNW.y + cellSize,
         ]);
-        const editCount = (cellsData.data as Record<string, number>)[
-          `${x - 57},${50 - y}`
-        ];
+        const editCount = cellsData.data[`${x - 57},${50 - y}`];
         grid.features.push({
           type: "Feature",
           id: x * 1000 + y,

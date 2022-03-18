@@ -5,8 +5,6 @@ import MiniSearch from "minisearch";
 import styles from "../styles/CellList.module.css";
 import type { CellCoord } from "./ModData";
 
-const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
-
 type Props = {
   cells: CellCoord[];
 };

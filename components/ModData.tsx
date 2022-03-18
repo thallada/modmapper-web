@@ -5,6 +5,7 @@ import useSWRImmutable from "swr/immutable";
 
 import CellList from "./CellList";
 import styles from "../styles/ModData.module.css";
+import { jsonFetcher } from "../lib/api";
 
 export interface CellCoord {
   x: number;
@@ -33,19 +34,6 @@ export interface Mod {
 
 const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
 
-const jsonFetcher = async (url: string): Promise<Mod | null> => {
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    if (res.status === 404) {
-      return null;
-    }
-    const error = new Error("An error occurred while fetching the data.");
-    throw error;
-  }
-  return res.json();
-};
-
 type Props = {
   selectedMod: number;
   counts: Record<number, [number, number, number]> | null;
@@ -59,7 +47,7 @@ const ModData: React.FC<Props> = ({
 }) => {
   const { data, error } = useSWRImmutable(
     `https://mods.modmapper.com/${selectedMod}.json`,
-    jsonFetcher
+    (_) => jsonFetcher<Mod>(_)
   );
 
   if (error && error.status === 404) {

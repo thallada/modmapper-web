@@ -5,6 +5,7 @@ import useSWRImmutable from "swr/immutable";
 import styles from "../styles/CellData.module.css";
 import ModList from "./ModList";
 import PluginList from "./PluginsList";
+import { jsonFetcher } from "../lib/api";
 
 export interface Mod {
   id: number;
@@ -36,19 +37,6 @@ export interface Cell {
   mods: Mod[];
 }
 
-const jsonFetcher = async (url: string): Promise<Cell | null> => {
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    if (res.status === 404) {
-      return null;
-    }
-    const error = new Error("An error occurred while fetching the data.");
-    throw error;
-  }
-  return res.json();
-};
-
 type Props = {
   selectedCell: { x: number; y: number };
   counts: Record<number, [number, number, number]> | null;
@@ -57,7 +45,7 @@ type Props = {
 const CellData: React.FC<Props> = ({ selectedCell, counts }) => {
   const { data, error } = useSWRImmutable(
     `https://cells.modmapper.com/${selectedCell.x}/${selectedCell.y}.json`,
-    jsonFetcher
+    (_) => jsonFetcher<Cell>(_)
   );
 
   if (error && error.status === 404) {

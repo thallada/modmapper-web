@@ -2,11 +2,13 @@ import { format } from "date-fns";
 import React, { useEffect, useRef, useState } from "react";
 import MiniSearch from "minisearch";
 import Link from "next/link";
+import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/ModList.module.css";
 import type { Mod } from "./CellData";
 import type { File } from "../slices/plugins";
 import { formatBytes } from "../lib/plugins";
+import { jsonFetcher } from "../lib/api";
 
 const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
 
@@ -20,6 +22,7 @@ type ModWithCounts = Mod & {
   total_downloads: number;
   unique_downloads: number;
   views: number;
+  exterior_cells_edited: number;
 };
 
 const ModList: React.FC<Props> = ({ mods, files, counts }) => {
@@ -29,6 +32,11 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
   const [category, setCategory] = useState<string>("All");
   const [filterResults, setFilterResults] = useState<Set<number>>(new Set());
 
+  const { data: cellCounts, error: cellCountsError } = useSWRImmutable(
+    `https://mods.modmapper.com/mod_cell_counts.json`,
+    (_) => jsonFetcher<Record<string, number>>(_)
+  );
+
   const modsWithCounts: ModWithCounts[] = mods
     .map((mod) => {
       const modCounts = counts && counts[mod.nexus_mod_id];
@@ -37,6 +45,9 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
         total_downloads: modCounts ? modCounts[0] : 0,
         unique_downloads: modCounts ? modCounts[1] : 0,
         views: modCounts ? modCounts[2] : 0,
+        exterior_cells_edited: cellCounts
+          ? cellCounts[mod.nexus_mod_id] ?? 0
+          : 0,
       };
     })
     .filter(
@@ -106,14 +117,17 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
                 setSortBy(event.target.value as keyof ModWithCounts)
               }
             >
-              <option value="unique_downloads">Unique Downloads</option>
-              <option value="total_downloads">Total Downloads</option>
-              <option value="views">Views</option>
               <option value="name">Name</option>
-              <option value="nexus_mod_id">ID</option>
               <option value="author_name">Author</option>
               <option value="first_upload_at">Upload Date</option>
               <option value="last_update_at">Last Update</option>
+              <option value="total_downloads">Total Downloads</option>
+              <option value="unique_downloads">Unique Downloads</option>
+              <option value="views">Views</option>
+              <option value="exterior_cells_edited">
+                Exterior Cells Edited
+              </option>
+              <option value="nexus_mod_id">ID</option>
             </select>
           </div>
           <div className={styles["filter-row"]}>
@@ -221,6 +235,12 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
                 <strong>Unique Downloads:</strong>{" "}
                 {numberFmt.format(mod.unique_downloads)}
               </div>
+              {cellCounts && (
+                <div>
+                  <strong>Exterior Cells Edited:</strong>{" "}
+                  {numberFmt.format(mod.exterior_cells_edited)}
+                </div>
+              )}
               <ul className={styles["file-list"]}>
                 {files &&
                   files

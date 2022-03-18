@@ -12,21 +12,7 @@ import CellList from "./CellList";
 import type { CellCoord } from "./ModData";
 import PluginData, { Plugin as PluginProps } from "./PluginData";
 import styles from "../styles/PluginData.module.css";
-
-const jsonFetcher = async (
-  url: string
-): Promise<PluginsByHashWithMods | null> => {
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    if (res.status === 404) {
-      return null;
-    }
-    const error = new Error("An error occurred while fetching the data.");
-    throw error;
-  }
-  return res.json();
-};
+import { jsonFetcher } from "../lib/api";
 
 const buildPluginProps = (
   data?: PluginsByHashWithMods | null,
@@ -65,7 +51,7 @@ type Props = {
 const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
   const { data, error } = useSWRImmutable(
     `https://plugins.modmapper.com/${hash}.json`,
-    jsonFetcher
+    (_) => jsonFetcher<PluginsByHashWithMods>(_)
   );
 
   const dispatch = useAppDispatch();

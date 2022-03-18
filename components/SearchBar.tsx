@@ -5,6 +5,7 @@ import MiniSearch, { SearchResult } from "minisearch";
 import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/SearchBar.module.css";
+import { jsonFetcher } from "../lib/api";
 
 type Props = {
   counts: Record<number, [number, number, number]> | null;
@@ -15,19 +16,6 @@ interface Mod {
   name: string;
   id: number;
 }
-
-const jsonFetcher = async (url: string): Promise<Mod | null> => {
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    if (res.status === 404) {
-      return null;
-    }
-    const error = new Error("An error occurred while fetching the data.");
-    throw error;
-  }
-  return res.json();
-};
 
 let cells = [];
 
@@ -58,7 +46,7 @@ const SearchBar: React.FC<Props> = ({ counts, sidebarOpen }) => {
 
   const { data, error } = useSWRImmutable(
     `https://mods.modmapper.com/mod_search_index.json`,
-    jsonFetcher
+    (_) => jsonFetcher<Mod[]>(_)
   );
 
   useEffect(() => {
@@ -72,7 +60,7 @@ const SearchBar: React.FC<Props> = ({ counts, sidebarOpen }) => {
           prefix: true,
         },
       });
-      modSearch.current.addAll(data as unknown as Mod[]);
+      modSearch.current.addAll(data);
     }
   }, [data]);
 
