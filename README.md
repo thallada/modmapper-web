@@ -8,6 +8,8 @@ You can click on a cell to see all of the mods that edit that cell sorted by pop
 
 You can also upload the plugins from your Skyrim Data folder and the load order from your `plugins.txt` to view all of the edited cells in your current load order. Red cells indicate multiple mods editing the same cell. Clicking on a plugin in your load order will show the cells that the plugin edits and the mods and files it belongs to on nexusmods.com (if it can be found on there).
 
+If you like the Modmapper project and found it useful, [please consider donating me a dollar or two on my NexusMods profile](https://www.nexusmods.com/users/512579) if you can spare it to cover the hosting costs of running the site.
+
 ## Related Repositories
 
 - [modmapper](https://github.com/thallada/modmapper): program to automate downloading, extracting, and parsing plugins
