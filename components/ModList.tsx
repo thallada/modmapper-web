@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { format } from "date-fns";
 import React, { useEffect, useRef, useState } from "react";
 import MiniSearch from "minisearch";
@@ -28,6 +29,7 @@ type ModWithCounts = Mod & {
 const ModList: React.FC<Props> = ({ mods, files, counts }) => {
   const [includeTranslations, setIncludeTranslations] = useState(true);
   const [sortBy, setSortBy] = useState<keyof ModWithCounts>("unique_downloads");
+  const [sortAsc, setSortAsc] = useState<boolean>(false);
   const [filter, setFilter] = useState<string>("");
   const [category, setCategory] = useState<string>("All");
   const [filterResults, setFilterResults] = useState<Set<number>>(new Set());
@@ -60,15 +62,17 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
       const aVal = a[sortBy];
       const bVal = b[sortBy];
       if (typeof aVal === "number" && typeof bVal === "number") {
-        return bVal - aVal;
+        return sortAsc ? aVal - bVal : bVal - aVal;
       } else if (
         typeof aVal === "string" &&
         typeof bVal === "string" &&
         ["first_upload_at", "last_update_at"].includes(sortBy)
       ) {
-        return new Date(bVal).getTime() - new Date(aVal).getTime();
+        const aTime = new Date(aVal).getTime();
+        const bTime = new Date(bVal).getTime();
+        return sortAsc ? aTime - bTime : bTime - aTime;
       } else if (typeof aVal === "string" && typeof bVal === "string") {
-        return aVal.localeCompare(bVal);
+        return sortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
       }
       return 0;
     });
@@ -129,6 +133,38 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
               </option>
               <option value="nexus_mod_id">ID</option>
             </select>
+            <div className={styles["sort-direction"]}>
+              <button
+                title="Sort ascending"
+                className={sortAsc ? styles.active : ""}
+                onClick={() => setSortAsc(true)}
+              >
+                <img
+                  alt="Sort ascending"
+                  src={
+                    sortAsc
+                      ? "/img/arrow-selected.svg"
+                      : "/img/arrow-disabled.svg"
+                  }
+                  className={styles.asc}
+                />
+              </button>
+              <button
+                title="Sort descending"
+                className={!sortAsc ? styles.active : ""}
+                onClick={() => setSortAsc(false)}
+              >
+                <img
+                  alt="Sort descending"
+                  src={
+                    !sortAsc
+                      ? "/img/arrow-selected.svg"
+                      : "/img/arrow-disabled.svg"
+                  }
+                  className={styles.desc}
+                />
+              </button>
+            </div>
           </div>
           <div className={styles["filter-row"]}>
             <label htmlFor="filter">Filter:</label>

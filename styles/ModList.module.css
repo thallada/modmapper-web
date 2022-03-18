@@ -56,7 +56,13 @@
 }
 
 .sort-by {
-  min-width: 175px;
+  min-width: 119px;
+}
+
+.sort-asc {
+  margin-left: 8px;
+  min-width: 50px;
+  max-width: 50px;
 }
 
 .category {
@@ -70,4 +76,34 @@
 
 .include-translations input {
   margin-right: 8px;
+}
+
+.sort-direction {
+  display: flex;
+  flex-direction: row;
+  margin-left: 8px;
+}
+
+.sort-direction button {
+  width: 24px;
+  height: 20px;
+  display: block;
+  outline: none;
+  border: 0;
+  background-color: transparent;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.sort-direction button img {
+  width: 100%;
+  height: 100%;
+}
+
+.asc {
+  transform: rotate(-90deg);
+}
+
+.desc {
+  transform: rotate(90deg);
 }
