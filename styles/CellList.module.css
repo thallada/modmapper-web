@@ -1,0 +1,50 @@
+.cell-list {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 0;
+}
+
+.cell-list-item {
+  margin-bottom: 12px;
+}
+
+.cell-title {
+  margin-bottom: 8px;
+}
+
+.filters {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.filters hr {
+  margin: 0;
+  width: 100%;
+}
+
+.filters hr:first-child {
+  margin-bottom: 8px;
+}
+
+.filters hr:last-child {
+  margin-top: 8px;
+}
+
+.filter-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.filter-row label,
+.filter-row input,
+.filter-row select {
+  flex: 1;
+}
+
+.filter {
+  width: 175px;
+}
