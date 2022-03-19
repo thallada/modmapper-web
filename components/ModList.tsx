@@ -10,6 +10,15 @@ import type { Mod } from "./CellData";
 import type { File } from "../slices/plugins";
 import { formatBytes } from "../lib/plugins";
 import { jsonFetcher } from "../lib/api";
+import {
+  ModWithCounts,
+  setSortBy,
+  setSortAsc,
+  setFilter,
+  setCategory,
+  setIncludeTranslations,
+} from "../slices/modListFilters";
+import { useAppDispatch, useAppSelector } from "../lib/hooks";
 
 const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
 
@@ -19,19 +28,10 @@ type Props = {
   counts: Record<number, [number, number, number]> | null;
 };
 
-type ModWithCounts = Mod & {
-  total_downloads: number;
-  unique_downloads: number;
-  views: number;
-  exterior_cells_edited: number;
-};
-
 const ModList: React.FC<Props> = ({ mods, files, counts }) => {
-  const [includeTranslations, setIncludeTranslations] = useState(true);
-  const [sortBy, setSortBy] = useState<keyof ModWithCounts>("unique_downloads");
-  const [sortAsc, setSortAsc] = useState<boolean>(false);
-  const [filter, setFilter] = useState<string>("");
-  const [category, setCategory] = useState<string>("All");
+  const dispatch = useAppDispatch();
+  const { sortBy, sortAsc, filter, category, includeTranslations } =
+    useAppSelector((state) => state.modListFilters);
   const [filterResults, setFilterResults] = useState<Set<number>>(new Set());
 
   const { data: cellCounts, error: cellCountsError } = useSWRImmutable(
@@ -99,7 +99,9 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
   useEffect(() => {
     if (modSearch.current) {
       setFilterResults(
-        new Set(modSearch.current.search(filter).map((result) => result.id))
+        new Set(
+          modSearch.current.search(filter ?? "").map((result) => result.id)
+        )
       );
     }
   }, [filter]);
@@ -118,7 +120,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
               className={styles["sort-by"]}
               value={sortBy}
               onChange={(event) =>
-                setSortBy(event.target.value as keyof ModWithCounts)
+                dispatch(setSortBy(event.target.value as keyof ModWithCounts))
               }
             >
               <option value="name">Name</option>
@@ -137,7 +139,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
               <button
                 title="Sort ascending"
                 className={sortAsc ? styles.active : ""}
-                onClick={() => setSortAsc(true)}
+                onClick={() => dispatch(setSortAsc(true))}
               >
                 <img
                   alt="Sort ascending"
@@ -152,7 +154,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
               <button
                 title="Sort descending"
                 className={!sortAsc ? styles.active : ""}
-                onClick={() => setSortAsc(false)}
+                onClick={() => dispatch(setSortAsc(false))}
               >
                 <img
                   alt="Sort descending"
@@ -173,7 +175,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
               id="filter"
               className={styles.filter}
               value={filter}
-              onChange={(event) => setFilter(event.target.value)}
+              onChange={(event) => dispatch(setFilter(event.target.value))}
             />
           </div>
           <div className={styles["filter-row"]}>
@@ -183,7 +185,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
               id="category"
               className={styles["category"]}
               value={category}
-              onChange={(event) => setCategory(event.target.value)}
+              onChange={(event) => dispatch(setCategory(event.target.value))}
             >
               <option value="All">All</option>
               {(
@@ -211,7 +213,9 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
               id="include-translations"
               className={styles["include-translations"]}
               checked={includeTranslations}
-              onChange={() => setIncludeTranslations(!includeTranslations)}
+              onChange={() =>
+                dispatch(setIncludeTranslations(!includeTranslations))
+              }
             />
           </div>
           <hr />

@@ -2,10 +2,11 @@ import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit"
 
 import pluginsReducer from "../slices/plugins"
 import pluginsTxtReducer from "../slices/pluginsTxt"
+import modListFiltersReducer from "../slices/modListFilters"
 
 export function makeStore() {
   return configureStore({
-    reducer: { pluginsTxt: pluginsTxtReducer, plugins: pluginsReducer },
+    reducer: { pluginsTxt: pluginsTxtReducer, plugins: pluginsReducer, modListFilters: modListFiltersReducer },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }),
   })
 }
