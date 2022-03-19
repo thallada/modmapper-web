@@ -152,7 +152,7 @@ export const pluginsSlice = createSlice({
   },
 })
 
-export const { addPlugin, setPlugins, setPending, decrementPending, togglePlugin, enableAllPlugins, disableAllPlugins, setFetchedPlugin, clearPlugins } = pluginsSlice.actions
+export const { addPlugin, updatePlugin, setPlugins, setPending, decrementPending, togglePlugin, enableAllPlugins, disableAllPlugins, setFetchedPlugin, clearPlugins } = pluginsSlice.actions
 
 export const selectPlugins = (state: AppState) => state.plugins
 
@@ -183,7 +183,7 @@ export const applyLoadOrder = (): AppThunk => (dispatch, getState) => {
 }
 
 export const addPluginInOrder = (plugin: PluginFile): AppThunk => (dispatch) => {
-  dispatch(addPlugin(plugin));
+  dispatch(updatePlugin(plugin));
   dispatch(applyLoadOrder());
 }
 

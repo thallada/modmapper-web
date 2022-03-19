@@ -12,7 +12,7 @@ export const excludedPlugins = [
 
 export const isPluginPath = (path: string) => {
   if (
-    /^((Skyrim Special Edition|Skyrim|SkyrimVR)\/)?(Data\/)?[^/\\]*\.es[mpl]$/i.test(path)
+    /^.*\.es[mpl]$/i.test(path)
   ) {
     return true;
   }

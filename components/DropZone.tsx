@@ -30,10 +30,7 @@ export const DropZone: React.FC<Props> = ({ children, workerPool }) => {
       }
       if (next.value.kind === "file" && isPluginPath(next.value.name)) {
         plugins.push(next.value);
-      } else if (
-        next.value.kind === "directory" &&
-        next.value.name === "Data"
-      ) {
+      } else if (next.value.kind === "directory") {
         plugins.push(...(await findPluginsInDirHandle(next.value)));
       }
     }
