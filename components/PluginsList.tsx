@@ -58,7 +58,8 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
               disabled={
                 excludedPlugins.includes(plugin.filename) || !!plugin.parseError
               }
-              checked={plugin.enabled}
+              checked={plugin.enabled ?? false}
+              value={plugin.enabled ? "on" : "off"}
               onChange={() => dispatch(togglePlugin(plugin.filename))}
             />
             <label htmlFor={plugin.filename} className={styles["plugin-label"]}>

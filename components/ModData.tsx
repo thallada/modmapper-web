@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import Head from "next/head";
-import React from "react";
+import React, { useEffect } from "react";
 import useSWRImmutable from "swr/immutable";
 
 import CellList from "./CellList";
@@ -50,6 +50,10 @@ const ModData: React.FC<Props> = ({
     (_) => jsonFetcher<Mod>(_)
   );
 
+  useEffect(() => {
+    if (data) setSelectedCells(data.cells);
+  }, [data, setSelectedCells]);
+
   if (error && error.status === 404) {
     return <div>Mod could not be found.</div>;
   } else if (error) {
@@ -65,8 +69,6 @@ const ModData: React.FC<Props> = ({
   const total_downloads = modCounts ? modCounts[0] : 0;
   const unique_downloads = modCounts ? modCounts[1] : 0;
   const views = modCounts ? modCounts[2] : 0;
-
-  setSelectedCells(data.cells);
 
   if (selectedMod && data) {
     return (
