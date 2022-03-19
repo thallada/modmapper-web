@@ -6,7 +6,6 @@ import {
   PluginFile,
 } from "../slices/plugins";
 import store from "./store";
-import { default as Worker } from "worker-loader?filename=static/[fullhash].worker.js!../workers/PluginsLoader.worker";
 
 export interface Task {
   skipParsing: boolean,
@@ -40,7 +39,7 @@ export class WorkerPool {
 
   public async createWorker(): Promise<Worker> {
     return new Promise((resolve) => {
-      const worker = new Worker();
+      const worker = new Worker(new URL("../workers/PluginsLoader.worker.ts", import.meta.url));
       worker.onmessage = (evt: {
         data: string | PluginFile;
       }) => {
