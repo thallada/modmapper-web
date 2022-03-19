@@ -46,6 +46,16 @@ const PluginTxtEditor: React.FC<Props> = () => {
             C:\Users\username\AppData\Local\Skyrim Special Edition
           </code>
         </strong>
+        .
+        <br />
+        <br />
+        For Mod Organizer users, it is at{" "}
+        <strong>
+          <code className={styles["break-word"]}>
+            C:\Users\username\AppData\Local\ModOrganizer\Skyrim Special
+            Edition\profiles\profilename\plugins.txt
+          </code>
+        </strong>
       </p>
       <button onClick={onPluginsTxtButtonClick} className={styles.button}>
         {!pluginsTxt ? "Paste" : "Edit"} Skyrim plugins.txt file
@@ -68,6 +78,15 @@ const PluginTxtEditor: React.FC<Props> = () => {
                 </code>
               </strong>
               ).
+              <br />
+              <br />
+              For Mod Organizer users, it is at{" "}
+              <strong>
+                <code className={styles["break-word"]}>
+                  C:\Users\username\AppData\Local\ModOrganizer\Skyrim Special
+                  Edition\profiles\profilename\plugins.txt
+                </code>
+              </strong>
               <br />
               <br />
               You can also drag-and-drop the file anywhere on the window to load

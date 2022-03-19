@@ -5,3 +5,7 @@
 .step {
   font-size: 1.5rem;
 }
+
+.break-word {
+  word-break: break-word;
+}

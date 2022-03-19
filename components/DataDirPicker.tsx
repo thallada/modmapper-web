@@ -57,6 +57,16 @@ const DataDirPicker: React.FC<Props> = () => {
         <br />
         <br />
         The Data folder can be found in the installation directory of the game.
+        <br />
+        <br />
+        For Mod Organizer users, select the mod directory located at{" "}
+        <strong>
+          <code className={styles["break-word"]}>
+            C:\Users\username\AppData\Local\ModOrganizer\Skyrim Special
+            Edition\mods
+          </code>
+        </strong>
+        .
       </p>
       <input
         type="file"
