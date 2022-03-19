@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 
 import { useAppSelector, useAppDispatch } from "../lib/hooks";
 import { setPluginsTxtAndApplyLoadOrder } from "../slices/pluginsTxt";
-import { applyLoadOrder } from "../slices/plugins";
 import styles from "../styles/PluginTxtEditor.module.css";
 
 export const excludedPlugins = [
@@ -16,7 +15,7 @@ export const excludedPlugins = [
 
 type Props = {};
 
-const PluginsLoader: React.FC<Props> = () => {
+const PluginTxtEditor: React.FC<Props> = () => {
   const [editPluginsTxt, setEditPluginsTxt] = useState<string | null>(null);
   const [pluginsTxtShown, setPluginsTxtShown] = useState(false);
   const dispatch = useAppDispatch();
@@ -105,4 +104,4 @@ const PluginsLoader: React.FC<Props> = () => {
   );
 };
 
-export default PluginsLoader;
+export default PluginTxtEditor;
