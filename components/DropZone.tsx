@@ -58,7 +58,7 @@ export const DropZone: React.FC<Props> = ({ children, workerPool }) => {
       const pluginFiles = await Promise.all(
         plugins.map(async (plugin) => plugin.getFile())
       );
-      if (workerPool) {
+      if (workerPool && workerPool.availableWorkers.length > 0) {
         parsePluginFiles(pluginFiles, workerPool);
       } else {
         alert("Workers not loaded yet");
@@ -117,7 +117,7 @@ export const DropZone: React.FC<Props> = ({ children, workerPool }) => {
             )
         )
       );
-      if (workerPool) {
+      if (workerPool && workerPool.availableWorkers.length > 0) {
         parsePluginFiles(pluginFiles, workerPool);
       } else {
         alert("Workers not loaded yet");

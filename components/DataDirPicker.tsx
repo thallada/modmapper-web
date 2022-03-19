@@ -30,7 +30,7 @@ const DataDirPicker: React.FC<Props> = () => {
   const onDataDirButtonClick = async (event: {
     target: { files: FileList | null };
   }) => {
-    if (!workerPool) {
+    if (!workerPool || workerPool.availableWorkers.length === 0) {
       return alert("Workers not loaded yet");
     }
     const files = event.target.files ?? [];

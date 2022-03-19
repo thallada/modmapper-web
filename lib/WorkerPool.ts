@@ -26,7 +26,7 @@ export class WorkerPool {
   public async init(count: number = window.navigator.hardwareConcurrency ?? 8): Promise<WorkerPool> {
     this.availableWorkers = [];
     for (let i = 0; i < count; i++) {
-      this.availableWorkers.push(await this.createWorker());
+      this.createWorker().then(worker => this.availableWorkers.push(worker));
     }
     return this;
   }
