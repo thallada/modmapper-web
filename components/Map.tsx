@@ -307,6 +307,7 @@ const Map: React.FC = () => {
               cell.x !== undefined &&
               cell.y !== undefined &&
               cell.world_form_id === 60 &&
+              plugin.parsed.header.masters[0] === "Skyrim.esm" &&
               cellSet.has(cell.x + cell.y * 1000) === false
             ) {
               cells.push({ x: cell.x, y: cell.y });
@@ -336,7 +337,8 @@ const Map: React.FC = () => {
               if (
                 cell.x !== undefined &&
                 cell.y !== undefined &&
-                cell.world_form_id === 60
+                cell.world_form_id === 60 &&
+                plugin.parsed.header.masters[0] === "Skyrim.esm"
               ) {
                 newCells.push({ x: cell.x, y: cell.y });
               }

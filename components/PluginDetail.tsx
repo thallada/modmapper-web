@@ -90,7 +90,8 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
             (cell) =>
               cell.x !== undefined &&
               cell.y !== undefined &&
-              cell.world_form_id === 60
+              cell.world_form_id === 60 &&
+              plugin.parsed?.header.masters[0] === "Skyrim.esm"
           ) as CellCoord[]) ||
           data?.cells ||
           []

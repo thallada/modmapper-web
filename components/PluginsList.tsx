@@ -24,7 +24,8 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
               cell.x === selectedCell.x &&
               cell.y === selectedCell.y &&
               // TODO: support other worlds
-              cell.world_form_id === 60
+              cell.world_form_id === 60 &&
+              plugin.parsed?.header.masters[0] === "Skyrim.esm"
           )
         )
       : state.plugins.plugins
