@@ -138,7 +138,7 @@ const Map: React.FC = () => {
   );
 
   const selectCells = useCallback(
-    (cells: { x: number; y: number }[]) => {
+    (cells: { x: number; y: number }[], { fitCells } = { fitCells: false }) => {
       if (!map.current) return;
       if (map.current && !map.current.getSource("grid-source")) return;
 
@@ -168,50 +168,52 @@ const Map: React.FC = () => {
         visited[id] = true;
       }
 
-      let bounds: mapboxgl.LngLatBounds | null = null;
-      const fitBounds = () => {
-        const zoom = map.current.getZoom();
-        const viewportNW = map.current.project([-180, 85.051129]);
-        const cellSize = Math.pow(2, zoom + 2);
+      if (fitCells) {
+        let bounds: mapboxgl.LngLatBounds | null = null;
+        const fitBounds = () => {
+          const zoom = map.current.getZoom();
+          const viewportNW = map.current.project([-180, 85.051129]);
+          const cellSize = Math.pow(2, zoom + 2);
 
-        for (const cell of cells) {
-          const x = cell.x + 57;
-          const y = 50 - cell.y;
-          let ne = map.current.unproject([
-            x * cellSize + viewportNW.x + cellSize,
-            y * cellSize + viewportNW.y,
-          ]);
-          let sw = map.current.unproject([
-            x * cellSize + viewportNW.x,
-            y * cellSize + viewportNW.y + cellSize,
-          ]);
-          if (bounds) {
-            bounds.extend(new mapboxgl.LngLatBounds(sw, ne));
-          } else {
-            bounds = new mapboxgl.LngLatBounds(sw, ne);
-          }
-        }
-
-        requestAnimationFrame(() => {
-          if (map.current) {
-            map.current.resize();
+          for (const cell of cells) {
+            const x = cell.x + 57;
+            const y = 50 - cell.y;
+            let ne = map.current.unproject([
+              x * cellSize + viewportNW.x + cellSize,
+              y * cellSize + viewportNW.y,
+            ]);
+            let sw = map.current.unproject([
+              x * cellSize + viewportNW.x,
+              y * cellSize + viewportNW.y + cellSize,
+            ]);
             if (bounds) {
-              map.current.fitBounds(bounds, { padding: 40 });
+              bounds.extend(new mapboxgl.LngLatBounds(sw, ne));
+            } else {
+              bounds = new mapboxgl.LngLatBounds(sw, ne);
             }
           }
-        });
-      };
 
-      const bearing = map.current.getBearing();
-      const pitch = map.current.getPitch();
-      // This logic breaks with camera rotation / pitch
-      if (bearing !== 0 || pitch !== 0) {
-        map.current.easeTo({ bearing: 0, pitch: 0, duration: 300 });
-        setTimeout(() => {
+          requestAnimationFrame(() => {
+            if (map.current) {
+              map.current.resize();
+              if (bounds) {
+                map.current.fitBounds(bounds, { padding: 40 });
+              }
+            }
+          });
+        };
+
+        const bearing = map.current.getBearing();
+        const pitch = map.current.getPitch();
+        // This logic breaks with camera rotation / pitch
+        if (bearing !== 0 || pitch !== 0) {
+          map.current.easeTo({ bearing: 0, pitch: 0, duration: 300 });
+          setTimeout(() => {
+            fitBounds();
+          }, 300);
+        } else {
           fitBounds();
-        }, 300);
-      } else {
-        fitBounds();
+        }
       }
     },
     [map]
@@ -280,14 +282,14 @@ const Map: React.FC = () => {
         selectedCell.x !== cell.x ||
         selectedCell.y !== cell.y
       ) {
-        // clearSelectedCells();
+        clearSelectedCells();
         selectCell(cell);
       }
     } else if (router.query.mod && typeof router.query.mod === "string") {
       if (selectedCells) {
         clearSelectedCell();
         setSidebarOpen(true);
-        selectCells(selectedCells);
+        selectCells(selectedCells, { fitCells: true });
       } else {
         // TODO: this is so spaghetti
         clearSelectedCell();
@@ -311,12 +313,21 @@ const Map: React.FC = () => {
               cellSet.add(cell.x + cell.y * 1000);
             }
           }
-          selectCells(cells);
+          selectCells(cells, { fitCells: true });
         }
       }
-    } else if (plugins && plugins.length > 0 && pluginsPending === 0) {
+    } else {
       clearSelectedCells();
       clearSelectedCell();
+    }
+
+    if (
+      plugins &&
+      plugins.length > 0 &&
+      pluginsPending === 0 &&
+      !router.query.mod &&
+      !router.query.plugin
+    ) {
       const cells = plugins.reduce(
         (acc: { x: number; y: number }[], plugin: PluginFile) => {
           if (plugin.enabled && plugin.parsed) {
@@ -337,9 +348,6 @@ const Map: React.FC = () => {
         []
       );
       selectCells(cells);
-    } else {
-      clearSelectedCells();
-      clearSelectedCell();
     }
   }, [
     selectedCell,
