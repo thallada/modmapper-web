@@ -11,7 +11,7 @@ import ModList from "./ModList";
 import CellList from "./CellList";
 import type { CellCoord } from "./ModData";
 import PluginData, { Plugin as PluginProps } from "./PluginData";
-import styles from "../styles/PluginData.module.css";
+import styles from "../styles/PluginDetail.module.css";
 import { jsonFetcher } from "../lib/api";
 
 const buildPluginProps = (
@@ -79,6 +79,11 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
     <>
       <PluginData plugin={buildPluginProps(data, plugin)} counts={counts} />
       {data && <ModList mods={data.mods} files={data.files} counts={counts} />}
+      {plugin?.parseError && (
+        <div className={styles.error}>
+          {`Error parsing plugin: ${plugin.parseError}`}
+        </div>
+      )}
       <CellList
         cells={
           (plugin?.parsed?.cells.filter(
