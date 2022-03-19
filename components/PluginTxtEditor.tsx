@@ -33,7 +33,7 @@ const PluginTxtEditor: React.FC<Props> = () => {
   return (
     <>
       <p className={styles["top-spacing"]}>
-        Paste or drag-and-drop your{" "}
+        <strong className={styles.step}>2. </strong>Paste or drag-and-drop your{" "}
         <strong>
           <code>plugins.txt</code>
         </strong>{" "}

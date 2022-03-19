@@ -30,6 +30,18 @@
   margin-top: 34px;
 }
 
+.no-top-margin {
+  margin-top: 0;
+}
+
+.no-bottom-margin {
+  margin-bottom: 0;
+}
+
+.step {
+  font-size: 1.5rem;
+}
+
 .break-word {
   word-break: break-word;
 }

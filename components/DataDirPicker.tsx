@@ -46,8 +46,9 @@ const DataDirPicker: React.FC<Props> = () => {
 
   return (
     <>
-      <p className={styles["no-top-margin"]}>
-        Select or drag-and-drop your Skyrim{" "}
+      <p>
+        <strong className={styles.step}>1. </strong>Select or drag-and-drop your
+        Skyrim{" "}
         <strong>
           <code>Data</code>
         </strong>{" "}
