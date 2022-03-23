@@ -88,7 +88,6 @@ const SearchBar: React.FC<Props> = ({ counts, sidebarOpen }) => {
             inputValue
           )
         ) {
-          console.log("searching mods");
           results = results.concat(
             modSearch.current.search(inputValue).sort((resultA, resultB) => {
               if (counts) {
