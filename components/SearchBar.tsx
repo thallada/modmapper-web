@@ -28,7 +28,7 @@ for (let x = -77; x < 76; x++) {
 const cellSearch = new MiniSearch({
   fields: ["id"],
   storeFields: ["id", "name", "x", "y"],
-  tokenize: (s) => [s.replace(/cell\s?/gi, "")],
+  tokenize: (s) => [s.replace(/(cell\s?)|\s/gi, "")],
   searchOptions: {
     fields: ["id"],
     prefix: true,
@@ -82,7 +82,13 @@ const SearchBar: React.FC<Props> = ({ counts, sidebarOpen }) => {
     onInputValueChange: ({ inputValue }) => {
       if (inputValue) {
         let results: SearchResult[] = [];
-        if (modSearch.current && !/^(cell)?\s?-?\d+,-?\d+$/i.test(inputValue)) {
+        if (
+          modSearch.current &&
+          !/(^cell\s?-?\d+\s?,?\s?-?\d*$)|(^-?\d+\s?,\s?-?\d*$)/i.test(
+            inputValue
+          )
+        ) {
+          console.log("searching mods");
           results = results.concat(
             modSearch.current.search(inputValue).sort((resultA, resultB) => {
               if (counts) {
@@ -109,7 +115,7 @@ const SearchBar: React.FC<Props> = ({ counts, sidebarOpen }) => {
     onSelectedItemChange: ({ selectedItem }) => {
       if (selectedItem) {
         setSearchFocused(false);
-        if (selectedItem.x && selectedItem.y) {
+        if (selectedItem.x !== undefined && selectedItem.y !== undefined) {
           router.push({
             query: { cell: `${selectedItem.x},${selectedItem.y}` },
           });
