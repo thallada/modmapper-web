@@ -4,7 +4,7 @@ This is the frontend code for the modmapper project. Modmapper is an interactive
 
 [View the site live at modmapper.com](https://modmapper.com).
 
-![Screenshot of the website](/public/img/full-screenshot.png)
+![Screenshot of the website](/public/img/full-screenshot.jpg)
 
 This project renders every cell edit from all Skyrim SE mods on nexusmods.com as a heatmap on top of a map of Skyrim.
 
