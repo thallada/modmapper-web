@@ -1,9 +1,11 @@
 import React, { useContext, useRef, useState, useEffect } from "react";
+import Cookies from "js-cookie";
 
 import { WorkerPoolContext } from "../lib/WorkerPool";
 import { useAppSelector } from "../lib/hooks";
 import { isPlugin, parsePluginFiles } from "../lib/plugins";
 import styles from "../styles/DataDirPicker.module.css";
+import { createPortal } from "react-dom";
 
 type Props = {};
 
@@ -13,6 +15,9 @@ const DataDirPicker: React.FC<Props> = () => {
   const plugins = useAppSelector((state) => state.plugins.plugins);
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
   const [loading, setLoading] = useState<boolean>(false);
+  const [uploadNoticeShown, setUploadNoticeShown] = useState(false);
+  const [ignoreUploadNoticeChecked, setIgnoreUploadNoticeChecked] =
+    useState(false);
 
   useEffect(() => {
     if (pluginsPending === 0 && loading) {
@@ -68,6 +73,53 @@ const DataDirPicker: React.FC<Props> = () => {
         </strong>
         .
       </p>
+      {typeof window !== "undefined" &&
+        createPortal(
+          <dialog open={uploadNoticeShown} className={styles.dialog}>
+            <p>
+              <strong>NOTE:</strong> the following dialog will ask you to upload
+              all the files in your Data folder.&nbsp;
+              <strong>NOTHING WILL BE UPLOADED ANYWHERE</strong>. The plugin
+              files will only be transferred to your browser and processed on
+              your device.
+            </p>
+            <p>
+              Drag and drop the Data folder onto the web page to avoid the
+              upload dialog entirely.
+            </p>
+            <label>
+              <input
+                type="checkbox"
+                id="ignore-upload-notice"
+                checked={ignoreUploadNoticeChecked}
+                onChange={(event) => {
+                  if (event.target.checked) {
+                    setIgnoreUploadNoticeChecked(true);
+                  } else {
+                    setIgnoreUploadNoticeChecked(false);
+                  }
+                }}
+              />{" "}
+              Don&apos;t show this message again
+            </label>
+            <menu>
+              <button
+                onClick={() => {
+                  setUploadNoticeShown(false);
+                  if (ignoreUploadNoticeChecked) {
+                    Cookies.set("ignoreDataDirPickerUploadNotice", "true");
+                  }
+                  if (inputRef.current) {
+                    inputRef.current.click();
+                  }
+                }}
+              >
+                Ok
+              </button>
+            </menu>
+          </dialog>,
+          document.body
+        )}
       <input
         type="file"
         webkitdirectory=""
@@ -80,7 +132,11 @@ const DataDirPicker: React.FC<Props> = () => {
         onClick={() => {
           if (inputRef.current) {
             inputRef.current.value = ""; // clear the value so reloading same directory works
-            inputRef.current.click();
+            if (Cookies.get("ignoreDataDirPickerUploadNotice") !== "true") {
+              setUploadNoticeShown(true);
+            } else {
+              inputRef.current.click();
+            }
           }
         }}
         disabled={!workerPool || loading}

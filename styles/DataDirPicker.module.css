@@ -9,3 +9,27 @@
 .break-word {
   word-break: break-word;
 }
+
+.dialog {
+  top: 12px;
+  z-index: 8;
+  background-color: #fbefd5;
+  box-shadow: 0 0 1em black;
+  max-width: 400px;
+}
+
+.dialog label {
+  user-select: none;
+  cursor: pointer;
+}
+
+.dialog menu {
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.dialog menu button {
+  font-size: 14px;
+  padding: 4px 8px;
+}
