@@ -2,6 +2,10 @@
 
 This is the frontend code for the modmapper project. Modmapper is an interactive map of Skyrim mods.
 
+[View the site live at modmapper.com](https://modmapper.com).
+
+![Screenshot of the website](/public/img/full-screenshot.png)
+
 This project renders every cell edit from all Skyrim SE mods on nexusmods.com as a heatmap on top of a map of Skyrim.
 
 You can click on a cell to see all of the mods that edit that cell sorted by popularity. Clicking on a mod in that list will show you all of the cells that the mod edits (across all files and versions of the mod). You can also search for a mod by name or a cell by x and y coordinates in the search bar at the top.
