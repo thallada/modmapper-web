@@ -839,7 +839,26 @@ const Map: React.FC = () => {
             lastModified={cellsData && cellsData.lastModified}
           />
           <ToggleLayersControl map={map} />
-          <SearchBar counts={counts} sidebarOpen={sidebarOpen} />
+          <SearchBar
+            counts={counts}
+            sidebarOpen={sidebarOpen}
+            placeholder="Search mods or cells…"
+            onSelectResult={(selectedItem) => {
+              if (!selectedItem) return;
+              if (
+                selectedItem.x !== undefined &&
+                selectedItem.y !== undefined
+              ) {
+                router.push({
+                  query: { cell: `${selectedItem.x},${selectedItem.y}` },
+                });
+              } else {
+                router.push({ query: { mod: selectedItem.id } });
+              }
+            }}
+            includeCells
+            fixed
+          />
         </div>
       </div>
     </>

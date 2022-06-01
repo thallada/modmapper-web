@@ -10,6 +10,11 @@ import { jsonFetcher } from "../lib/api";
 type Props = {
   counts: Record<number, [number, number, number]> | null;
   sidebarOpen: boolean;
+  placeholder: string;
+  onSelectResult: (item: SearchResult | null) => void;
+  includeCells?: boolean;
+  fixed?: boolean;
+  inputRef?: React.MutableRefObject<HTMLInputElement | null>;
 };
 
 interface Mod {
@@ -37,7 +42,15 @@ const cellSearch = new MiniSearch({
 });
 cellSearch.addAll(cells);
 
-const SearchBar: React.FC<Props> = ({ counts, sidebarOpen }) => {
+const SearchBar: React.FC<Props> = ({
+  counts,
+  sidebarOpen,
+  placeholder,
+  onSelectResult,
+  includeCells = false,
+  fixed = false,
+  inputRef,
+}) => {
   const router = useRouter();
 
   const modSearch = useRef<MiniSearch<Mod> | null>(
@@ -107,20 +120,16 @@ const SearchBar: React.FC<Props> = ({ counts, sidebarOpen }) => {
             })
           );
         }
-        results = results.concat(cellSearch.search(inputValue));
+        if (includeCells) {
+          results = results.concat(cellSearch.search(inputValue));
+        }
         setResults(results.splice(0, 30));
       }
     },
     onSelectedItemChange: ({ selectedItem }) => {
       if (selectedItem) {
         setSearchFocused(false);
-        if (selectedItem.x !== undefined && selectedItem.y !== undefined) {
-          router.push({
-            query: { cell: `${selectedItem.x},${selectedItem.y}` },
-          });
-        } else {
-          router.push({ query: { mod: selectedItem.id } });
-        }
+        onSelectResult(selectedItem);
         if (searchInput.current) searchInput.current.blur();
         reset();
       }
@@ -132,19 +141,24 @@ const SearchBar: React.FC<Props> = ({ counts, sidebarOpen }) => {
       <div
         className={`${styles["search-bar"]} ${
           searchFocused ? styles["search-bar-focused"] : ""
-        } ${sidebarOpen ? styles["search-bar-sidebar-open"] : ""}`}
+        } ${fixed ? styles["search-bar-fixed"] : ""} ${
+          sidebarOpen ? styles["search-bar-sidebar-open"] : ""
+        }`}
         {...getComboboxProps()}
       >
         <input
           {...getInputProps({
             type: "text",
-            placeholder: "Search mods or cells…",
+            placeholder,
             onFocus: () => setSearchFocused(true),
             onBlur: () => {
               if (!isOpen) setSearchFocused(false);
             },
             disabled: !data,
-            ref: searchInput,
+            ref: (ref) => {
+              searchInput.current = ref;
+              if (inputRef) inputRef.current = ref;
+            },
           })}
         />
         <ul

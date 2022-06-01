@@ -5,6 +5,7 @@ import { formatRelative } from "date-fns";
 
 import arrow from "../public/img/arrow.svg";
 import close from "../public/img/close.svg";
+import AddModDialog from "./AddModDialog";
 import CellData from "./CellData";
 import ModData from "./ModData";
 import PluginDetail from "./PluginDetail";
@@ -154,6 +155,7 @@ const Sidebar: React.FC<Props> = ({
             <DataDirPicker />
             <PluginTxtEditor />
             <PluginsList />
+            <AddModDialog counts={counts} />
             {renderLastModified(lastModified)}
           </div>
         </div>

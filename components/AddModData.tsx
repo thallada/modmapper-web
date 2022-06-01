@@ -1,58 +1,21 @@
 import { format } from "date-fns";
-import Head from "next/head";
-import React, { useEffect } from "react";
+import React from "react";
 import useSWRImmutable from "swr/immutable";
 
-import CellList from "./CellList";
-import styles from "../styles/ModData.module.css";
+import { Mod, NEXUS_MODS_URL } from "./ModData";
+import styles from "../styles/AddModData.module.css";
 import { jsonFetcher } from "../lib/api";
-
-export interface CellCoord {
-  x: number;
-  y: number;
-}
-
-export interface Mod {
-  id: number;
-  name: string;
-  nexus_mod_id: number;
-  author_name: string;
-  author_id: number;
-  category_name: string;
-  category_id: number;
-  description: string;
-  thumbnail_link: string;
-  game_id: number;
-  is_translation: boolean;
-  updated_at: string;
-  created_at: string;
-  last_update_at: string;
-  first_upload_at: string;
-  last_updated_files_at: string;
-  cells: CellCoord[];
-}
-
-export const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
 
 type Props = {
   selectedMod: number;
   counts: Record<number, [number, number, number]> | null;
-  setSelectedCells: (cells: { x: number; y: number }[] | null) => void;
 };
 
-const ModData: React.FC<Props> = ({
-  selectedMod,
-  counts,
-  setSelectedCells,
-}) => {
+const AddModData: React.FC<Props> = ({ selectedMod, counts }) => {
   const { data, error } = useSWRImmutable(
     `https://mods.modmapper.com/${selectedMod}.json`,
     (_) => jsonFetcher<Mod>(_)
   );
-
-  useEffect(() => {
-    if (data) setSelectedCells(data.cells);
-  }, [data, setSelectedCells]);
 
   if (error && error.status === 404) {
     return <div>Mod could not be found.</div>;
@@ -72,41 +35,8 @@ const ModData: React.FC<Props> = ({
 
   if (selectedMod && data) {
     return (
-      <>
-        <Head>
-          <title key="title">{`Modmapper - ${data.name}`}</title>
-          <meta
-            key="description"
-            name="description"
-            content={`Map of Skyrim showing ${data.cells.length} cell edits from the mod: ${data.name}`}
-          />
-          <meta
-            key="og:title"
-            property="og:title"
-            content={`Modmapper - ${data.name}`}
-          />
-          <meta
-            key="og:description"
-            property="og:description"
-            content={`Map of Skyrim showing ${data.cells.length} cell edits from the mod: ${data.name}`}
-          />
-          <meta
-            key="twitter:title"
-            name="twitter:title"
-            content={`Modmapper - ${data.name}`}
-          />
-          <meta
-            key="twitter:description"
-            name="twitter:description"
-            content={`Map of Skyrim showing ${data.cells.length} cell edits from the mod: ${data.name}`}
-          />
-          <meta
-            key="og:url"
-            property="og:url"
-            content={`https://modmapper.com/?mod=${data.nexus_mod_id}`}
-          />
-        </Head>
-        <h1>
+      <div className={styles.wrapper}>
+        <h3>
           <a
             href={`${NEXUS_MODS_URL}/mods/${data.nexus_mod_id}`}
             target="_blank"
@@ -115,7 +45,7 @@ const ModData: React.FC<Props> = ({
           >
             {data.name}
           </a>
-        </h1>
+        </h3>
         <div>
           <strong>Category:&nbsp;</strong>
           <a
@@ -152,11 +82,10 @@ const ModData: React.FC<Props> = ({
           <strong>Unique Downloads:</strong>{" "}
           {numberFmt.format(unique_downloads)}
         </div>
-        <CellList cells={data.cells} />
-      </>
+      </div>
     );
   }
   return null;
 };
 
-export default ModData;
+export default AddModData;
