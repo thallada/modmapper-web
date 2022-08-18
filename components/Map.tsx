@@ -5,7 +5,7 @@ import mapboxgl from "mapbox-gl";
 import useSWRImmutable from "swr/immutable";
 
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
-import { setFetchedPlugin, PluginFile } from "../slices/plugins";
+import { setSelectedFetchedPlugin, PluginFile } from "../slices/plugins";
 import styles from "../styles/Map.module.css";
 import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
@@ -55,9 +55,11 @@ const Map: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const dispatch = useAppDispatch();
-  const plugins = useAppSelector((state) => state.plugins.plugins);
+  const plugins = useAppSelector((state) => state.plugins.parsedPlugins);
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
-  const fetchedPlugin = useAppSelector((state) => state.plugins.fetchedPlugin);
+  const selectedFetchedPlugin = useAppSelector(
+    (state) => state.plugins.selectedFetchedPlugin
+  );
 
   const { data: cellsData, error: cellsError } = useSWRImmutable(
     "https://cells.modmapper.com/edits.json",
@@ -243,7 +245,7 @@ const Map: React.FC = () => {
 
   const clearSelectedCells = useCallback(() => {
     setSelectedCells(null);
-    dispatch(setFetchedPlugin(undefined));
+    dispatch(setSelectedFetchedPlugin(undefined));
     if (map.current) {
       map.current.removeFeatureState({ source: "selected-cells-source" });
       map.current.removeFeatureState({ source: "conflicted-cell-source" });
@@ -371,12 +373,12 @@ const Map: React.FC = () => {
     if (
       router.query.plugin &&
       typeof router.query.plugin === "string" &&
-      fetchedPlugin &&
-      fetchedPlugin.cells
+      selectedFetchedPlugin &&
+      selectedFetchedPlugin.cells
     ) {
       const cells = [];
       const cellSet = new Set<number>();
-      for (const cell of fetchedPlugin.cells) {
+      for (const cell of selectedFetchedPlugin.cells) {
         if (
           cell.x !== undefined &&
           cell.y !== undefined &&
@@ -388,7 +390,7 @@ const Map: React.FC = () => {
       }
       selectCells(cells);
     }
-  }, [heatmapLoaded, fetchedPlugin, selectCells, router.query.plugin]);
+  }, [heatmapLoaded, selectedFetchedPlugin, selectCells, router.query.plugin]);
 
   useEffect(() => {
     if (!heatmapLoaded) return; // wait for all map layers to load

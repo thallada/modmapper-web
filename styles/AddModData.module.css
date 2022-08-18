@@ -7,3 +7,23 @@ a.name {
   margin-top: 24px;
   word-wrap: break-word;
 }
+
+.select-container {
+  margin-top: 12px;
+}
+
+.select {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.label {
+  white-space: nowrap;
+  margin-right: 12px;
+  font-weight: bold;
+  width: 100%;
+  display: block;
+  margin-bottom: 4px;
+}

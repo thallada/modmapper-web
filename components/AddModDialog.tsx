@@ -1,8 +1,12 @@
 import { createPortal } from "react-dom";
-import React, { useState, useRef } from "react";
+import React, { useCallback, useState, useRef } from "react";
+import { useDispatch } from "react-redux";
+import useSWRImmutable from "swr/immutable";
 
 import AddModData from "./AddModData";
 import SearchBar from "./SearchBar";
+import { jsonFetcher } from "../lib/api";
+import { updateFetchedPlugin, PluginsByHashWithMods } from "../slices/plugins";
 import styles from "../styles/AddModDialog.module.css";
 
 type Props = {
@@ -11,16 +15,25 @@ type Props = {
 
 const AddModDialog: React.FC<Props> = ({ counts }) => {
   const [selectedMod, setSelectedMod] = useState<number | null>(null);
+  const [selectedPlugin, setSelectedPlugin] = useState<string | null>(null);
   const [dialogShown, setDialogShown] = useState(false);
   const searchInput = useRef<HTMLInputElement | null>(null);
+  const dispatch = useDispatch();
 
-  const onAddModButtonClick = async () => {
+  const { data, error } = useSWRImmutable(
+    selectedPlugin
+      ? `https://plugins.modmapper.com/${selectedPlugin}.json`
+      : null,
+    (_) => jsonFetcher<PluginsByHashWithMods>(_)
+  );
+
+  const onAddModButtonClick = useCallback(async () => {
     setSelectedMod(null);
     setDialogShown(true);
     requestAnimationFrame(() => {
       if (searchInput.current) searchInput.current.focus();
     });
-  };
+  }, [setSelectedMod, setDialogShown]);
 
   return (
     <>
@@ -41,7 +54,12 @@ const AddModDialog: React.FC<Props> = ({ counts }) => {
               inputRef={searchInput}
             />
             {selectedMod && (
-              <AddModData selectedMod={selectedMod} counts={counts} />
+              <AddModData
+                selectedMod={selectedMod}
+                selectedPlugin={selectedPlugin}
+                setSelectedPlugin={setSelectedPlugin}
+                counts={counts}
+              />
             )}
             <menu>
               <button
@@ -55,10 +73,11 @@ const AddModDialog: React.FC<Props> = ({ counts }) => {
               </button>
               <button
                 onClick={() => {
-                  console.log(`Adding mod ${selectedMod}`);
+                  console.log(`Adding mod ${selectedMod} ${selectedPlugin}`);
+                  if (data) dispatch(updateFetchedPlugin(data));
                   setDialogShown(false);
                 }}
-                disabled={!selectedMod}
+                disabled={!selectedMod || !selectedPlugin || !data}
               >
                 Add
               </button>

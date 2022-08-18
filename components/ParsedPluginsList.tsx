@@ -4,21 +4,21 @@ import React from "react";
 import { useAppSelector, useAppDispatch } from "../lib/hooks";
 import { excludedPlugins } from "../lib/plugins";
 import {
-  enableAllPlugins,
-  disableAllPlugins,
-  togglePlugin,
+  enableAllParsedPlugins,
+  disableAllParsedPlugins,
+  toggleParsedPlugin,
 } from "../slices/plugins";
-import styles from "../styles/PluginList.module.css";
+import styles from "../styles/ParsedPluginList.module.css";
 
 type Props = {
   selectedCell?: { x: number; y: number };
 };
 
-const PluginsList: React.FC<Props> = ({ selectedCell }) => {
+const ParsedPluginsList: React.FC<Props> = ({ selectedCell }) => {
   const dispatch = useAppDispatch();
   const plugins = useAppSelector((state) =>
     selectedCell
-      ? state.plugins.plugins.filter((plugin) =>
+      ? state.plugins.parsedPlugins.filter((plugin) =>
           plugin.parsed?.cells.some(
             (cell) =>
               cell.x === selectedCell.x &&
@@ -28,7 +28,7 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
               plugin.parsed?.header.masters[0] === "Skyrim.esm"
           )
         )
-      : state.plugins.plugins
+      : state.plugins.parsedPlugins
   );
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
 
@@ -37,10 +37,10 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
       {plugins.length > 0 && <h2>Loaded Plugins ({plugins.length})</h2>}
       {!selectedCell && plugins.length > 0 && (
         <div className={styles.buttons}>
-          <button onClick={() => dispatch(enableAllPlugins())}>
+          <button onClick={() => dispatch(enableAllParsedPlugins())}>
             Enable all
           </button>
-          <button onClick={() => dispatch(disableAllPlugins())}>
+          <button onClick={() => dispatch(disableAllParsedPlugins())}>
             Disable all
           </button>
         </div>
@@ -60,7 +60,7 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
               }
               checked={plugin.enabled ?? false}
               value={plugin.enabled ? "on" : "off"}
-              onChange={() => dispatch(togglePlugin(plugin.filename))}
+              onChange={() => dispatch(toggleParsedPlugin(plugin.filename))}
             />
             <label htmlFor={plugin.filename} className={styles["plugin-label"]}>
               {excludedPlugins.includes(plugin.filename) ? (
@@ -87,4 +87,4 @@ const PluginsList: React.FC<Props> = ({ selectedCell }) => {
   );
 };
 
-export default PluginsList;
+export default ParsedPluginsList;

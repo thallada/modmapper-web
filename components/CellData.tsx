@@ -4,7 +4,7 @@ import useSWRImmutable from "swr/immutable";
 
 import styles from "../styles/CellData.module.css";
 import ModList from "./ModList";
-import PluginList from "./PluginsList";
+import PluginList from "./ParsedPluginsList";
 import { jsonFetcher } from "../lib/api";
 
 export interface Mod {

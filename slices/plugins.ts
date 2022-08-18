@@ -27,14 +27,14 @@ export interface World {
   form_id: number;
 }
 
-export interface Plugin {
+export interface ParsedPlugin {
   header: Header;
   cells: Cell[];
   worlds: World[];
 }
 
 export interface PluginFile {
-  parsed?: Plugin;
+  parsed?: ParsedPlugin;
   filename: string;
   lastModified: number;
   hash: string;
@@ -65,7 +65,7 @@ export interface File {
 export interface FetchedPlugin {
   id: number;
   name: string;
-  hash: bigint;
+  hash: string;
   file_id: number;
   mod_id: number;
   version: number;
@@ -79,86 +79,125 @@ export interface FetchedPlugin {
   created_at: Date;
 }
 
+export interface FetchedCell {
+  x: 0;
+  y: 0;
+}
+
 export interface PluginsByHashWithMods {
-  hash: number;
+  hash: string;
   plugins: FetchedPlugin[];
   files: File[];
   mods: Mod[];
-  cells: Cell[];
+  cells: FetchedCell[];
+  enabled?: boolean;
 }
 
 export type PluginsState = {
-  plugins: PluginFile[];
-  fetchedPlugin?: PluginsByHashWithMods;
+  parsedPlugins: PluginFile[];
+  fetchedPlugins: PluginsByHashWithMods[];
+  selectedFetchedPlugin?: PluginsByHashWithMods;
   pending: number;
 }
 
-const initialState: PluginsState = { plugins: [], pending: 0 };
+const initialState: PluginsState = { parsedPlugins: [], fetchedPlugins: [], pending: 0 };
 
 export const pluginsSlice = createSlice({
   name: "plugins",
   initialState,
   reducers: {
-    addPlugin: (state, action: PayloadAction<PluginFile>) => ({
-      plugins: [...state.plugins, action.payload],
-      pending: state.pending,
-      fetchedPlugin: state.fetchedPlugin,
+    addParsedPlugin: (state: PluginsState, action: PayloadAction<PluginFile>) => ({
+      ...state,
+      parsedPlugins: [...state.parsedPlugins, action.payload],
     }),
-    updatePlugin: (state, action: PayloadAction<PluginFile>) => ({
-      plugins: [...state.plugins.filter(plugin => plugin.hash !== action.payload.hash), action.payload],
-      pending: state.pending,
-      fetchedPlugin: state.fetchedPlugin,
+    addFetchedPlugin: (state: PluginsState, action: PayloadAction<PluginsByHashWithMods>) => ({
+      ...state,
+      fetchedPlugins: [...state.fetchedPlugins, action.payload],
     }),
-    setPlugins: (state, action: PayloadAction<PluginFile[]>) => ({
-      plugins: action.payload,
-      pending: state.pending,
-      fetchedPlugin: state.fetchedPlugin,
+    updateParsedPlugin: (state: PluginsState, action: PayloadAction<PluginFile>) => ({
+      ...state,
+      parsedPlugins: [...state.parsedPlugins.filter(plugin => plugin.hash !== action.payload.hash), action.payload],
     }),
-    setPending: (state, action: PayloadAction<number>) => ({
-      plugins: state.plugins,
+    updateFetchedPlugin: (state: PluginsState, action: PayloadAction<PluginsByHashWithMods>) => ({
+      ...state,
+      fetchedPlugins: [...state.fetchedPlugins.filter(plugin => plugin.hash !== action.payload.hash), action.payload],
+    }),
+    setParsedPlugins: (state: PluginsState, action: PayloadAction<PluginFile[]>) => ({
+      ...state,
+      parsedPlugins: action.payload,
+    }),
+    setFetchedPlugins: (state: PluginsState, action: PayloadAction<PluginsByHashWithMods[]>) => ({
+      ...state,
+      fetchedPlugins: action.payload,
+    }),
+    setPending: (state: PluginsState, action: PayloadAction<number>) => ({
+      ...state,
       pending: action.payload,
-      fetchedPlugin: state.fetchedPlugin,
     }),
-    decrementPending: (state, action: PayloadAction<number>) => ({
-      plugins: state.plugins,
+    decrementPending: (state: PluginsState, action: PayloadAction<number>) => ({
+      ...state,
       pending: state.pending - action.payload,
-      fetchedPlugin: state.fetchedPlugin,
     }),
-    togglePlugin: (state, action: PayloadAction<string>) => ({
-      plugins: state.plugins.map((plugin) => (plugin.filename === action.payload ? { ...plugin, enabled: !plugin.enabled } : plugin)),
-      pending: state.pending,
-      fetchedPlugin: state.fetchedPlugin,
+    toggleParsedPlugin: (state: PluginsState, action: PayloadAction<string>) => ({
+      ...state,
+      parsedPlugins: state.parsedPlugins.map((plugin) => (plugin.filename === action.payload ? { ...plugin, enabled: !plugin.enabled } : plugin)),
     }),
-    enableAllPlugins: (state) => ({
-      plugins: state.plugins.map((plugin) => ({ ...plugin, enabled: !plugin.parseError && !excludedPlugins.includes(plugin.filename) && true })),
-      pending: state.pending,
-      fetchedPlugin: state.fetchedPlugin,
+    toggleFetchedPlugin: (state: PluginsState, action: PayloadAction<string>) => ({
+      ...state,
+      fetchedPlugins: state.fetchedPlugins.map((plugin) => (plugin.hash === action.payload ? { ...plugin, enabled: !plugin.enabled } : plugin)),
     }),
-    disableAllPlugins: (state) => ({
-      plugins: state.plugins.map((plugin) => ({ ...plugin, enabled: false })),
-      pending: state.pending,
-      fetchedPlugin: state.fetchedPlugin,
+    enableAllParsedPlugins: (state: PluginsState) => ({
+      ...state,
+      parsedPlugins: state.parsedPlugins.map((plugin) => ({ ...plugin, enabled: !plugin.parseError && !excludedPlugins.includes(plugin.filename) && true })),
     }),
-    setFetchedPlugin: (state, action: PayloadAction<PluginsByHashWithMods | undefined>) => ({
-      plugins: state.plugins,
-      pending: state.pending,
-      fetchedPlugin: action.payload,
+    enableAllFetchedPlugins: (state: PluginsState) => ({
+      ...state,
+      fetchedPlugins: state.fetchedPlugins.map((plugin) => ({ ...plugin, enabled: true })),
     }),
-    clearPlugins: () => ({
-      plugins: [],
+    disableAllParsedPlugins: (state: PluginsState) => ({
+      ...state,
+      parsedPlugins: state.parsedPlugins.map((plugin) => ({ ...plugin, enabled: false })),
+    }),
+    disableAllFetchedPlugins: (state: PluginsState) => ({
+      ...state,
+      fetchedPlugins: state.fetchedPlugins.map((plugin) => ({ ...plugin, enabled: false })),
+    }),
+    setSelectedFetchedPlugin: (state: PluginsState, action: PayloadAction<PluginsByHashWithMods | undefined>) => ({
+      ...state,
+      selectedFetchedPlugin: action.payload,
+    }),
+    clearParsedPlugins: (state: PluginsState) => ({
+      ...state,
+      parsedPlugins: [],
       pending: 0,
-      loadedPluginCells: [],
     }),
   },
 })
 
-export const { addPlugin, updatePlugin, setPlugins, setPending, decrementPending, togglePlugin, enableAllPlugins, disableAllPlugins, setFetchedPlugin, clearPlugins } = pluginsSlice.actions
+export const {
+  addParsedPlugin,
+  addFetchedPlugin,
+  updateParsedPlugin,
+  updateFetchedPlugin,
+  setParsedPlugins,
+  setFetchedPlugins,
+  setPending,
+  decrementPending,
+  toggleParsedPlugin,
+  toggleFetchedPlugin,
+  enableAllParsedPlugins,
+  enableAllFetchedPlugins,
+  disableAllParsedPlugins,
+  disableAllFetchedPlugins,
+  setSelectedFetchedPlugin,
+  clearParsedPlugins,
+} = pluginsSlice.actions;
 
 export const selectPlugins = (state: AppState) => state.plugins
 
 export const applyLoadOrder = (): AppThunk => (dispatch, getState) => {
   const { plugins, pluginsTxt } = getState();
-  const originalPlugins = [...plugins.plugins];
+  const originalPlugins = [...plugins.parsedPlugins];
   let newPlugins = [];
   for (let line of pluginsTxt.split("\n")) {
     let enabled = false;
@@ -179,11 +218,11 @@ export const applyLoadOrder = (): AppThunk => (dispatch, getState) => {
       }
     }
   }
-  dispatch(setPlugins([...originalPlugins.sort((a, b) => b.lastModified - a.lastModified), ...newPlugins]));
+  dispatch(setParsedPlugins([...originalPlugins.sort((a, b) => b.lastModified - a.lastModified), ...newPlugins]));
 }
 
-export const addPluginInOrder = (plugin: PluginFile): AppThunk => (dispatch) => {
-  dispatch(updatePlugin(plugin));
+export const addParsedPluginInOrder = (plugin: PluginFile): AppThunk => (dispatch) => {
+  dispatch(updateParsedPlugin(plugin));
   dispatch(applyLoadOrder());
 }
 

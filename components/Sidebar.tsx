@@ -11,7 +11,8 @@ import ModData from "./ModData";
 import PluginDetail from "./PluginDetail";
 import DataDirPicker from "./DataDirPicker";
 import PluginTxtEditor from "./PluginTxtEditor";
-import PluginsList from "./PluginsList";
+import ParsedPluginsList from "./ParsedPluginsList";
+import FetchedPluginsList from "./FetchedPluginsList";
 import styles from "../styles/Sidebar.module.css";
 
 type Props = {
@@ -154,7 +155,8 @@ const Sidebar: React.FC<Props> = ({
             </p>
             <DataDirPicker />
             <PluginTxtEditor />
-            <PluginsList />
+            <ParsedPluginsList />
+            <FetchedPluginsList />
             <AddModDialog counts={counts} />
             {renderLastModified(lastModified)}
           </div>

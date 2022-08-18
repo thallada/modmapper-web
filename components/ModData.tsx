@@ -12,6 +12,43 @@ export interface CellCoord {
   y: number;
 }
 
+export interface ModFile {
+  name: string;
+  version: string;
+  category: string;
+  nexus_file_id: number;
+}
+
+export interface FilePlugin {
+  hash: number;
+  file_path: string;
+}
+
+export interface FileCell {
+  x: number;
+  y: number;
+}
+
+export interface File {
+  id: number;
+  name: string;
+  file_name: string;
+  nexus_file_id: number;
+  mod_id: number;
+  category: string;
+  version: string;
+  mod_version: string;
+  size: number;
+  uploaded_at: string;
+  created_at: string;
+  downloaded_at: string;
+  has_plugin: boolean;
+  unable_to_extract_plugins: boolean;
+  cells: FileCell[];
+  plugins: FilePlugin[];
+  plugin_count: number;
+}
+
 export interface Mod {
   id: number;
   name: string;
@@ -30,6 +67,7 @@ export interface Mod {
   first_upload_at: string;
   last_updated_files_at: string;
   cells: CellCoord[];
+  files: ModFile[];
 }
 
 export const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
