@@ -55,7 +55,10 @@ const Map: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const dispatch = useAppDispatch();
-  const plugins = useAppSelector((state) => state.plugins.parsedPlugins);
+  const parsedPlugins = useAppSelector((state) => state.plugins.parsedPlugins);
+  const fetchedPlugins = useAppSelector(
+    (state) => state.plugins.fetchedPlugins
+  );
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
   const selectedFetchedPlugin = useAppSelector(
     (state) => state.plugins.selectedFetchedPlugin
@@ -299,8 +302,10 @@ const Map: React.FC = () => {
     } else if (router.query.plugin && typeof router.query.plugin === "string") {
       clearSelectedCell();
       setSidebarOpen(true);
-      if (plugins && plugins.length > 0 && pluginsPending === 0) {
-        const plugin = plugins.find((p) => p.hash === router.query.plugin);
+      if (parsedPlugins && parsedPlugins.length > 0 && pluginsPending === 0) {
+        const plugin = parsedPlugins.find(
+          (p) => p.hash === router.query.plugin
+        );
         if (plugin && plugin.parsed) {
           const cells = [];
           const cellSet = new Set<number>();
@@ -325,13 +330,12 @@ const Map: React.FC = () => {
     }
 
     if (
-      plugins &&
-      plugins.length > 0 &&
-      pluginsPending === 0 &&
+      ((parsedPlugins && parsedPlugins.length > 0 && pluginsPending === 0) ||
+        fetchedPlugins.length > 0) &&
       !router.query.mod &&
       !router.query.plugin
     ) {
-      const cells = plugins.reduce(
+      let cells = parsedPlugins.reduce(
         (acc: { x: number; y: number }[], plugin: PluginFile) => {
           if (plugin.enabled && plugin.parsed) {
             const newCells = [...acc];
@@ -351,6 +355,11 @@ const Map: React.FC = () => {
         },
         []
       );
+      cells = cells.concat(
+        fetchedPlugins
+          .filter((plugin) => plugin.enabled)
+          .flatMap((plugin) => plugin.cells)
+      );
       selectCells(cells);
     }
   }, [
@@ -364,8 +373,9 @@ const Map: React.FC = () => {
     clearSelectedCell,
     clearSelectedCells,
     heatmapLoaded,
-    plugins,
+    parsedPlugins,
     pluginsPending,
+    fetchedPlugins,
   ]);
 
   useEffect(() => {

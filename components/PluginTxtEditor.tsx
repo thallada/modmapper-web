@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "../lib/hooks";
 import { setPluginsTxtAndApplyLoadOrder } from "../slices/pluginsTxt";
 import styles from "../styles/PluginTxtEditor.module.css";
+import EscapeListener from "./EscapeListener";
 
 export const excludedPlugins = [
   "Skyrim.esm",
@@ -32,6 +33,7 @@ const PluginTxtEditor: React.FC<Props> = () => {
 
   return (
     <>
+      <EscapeListener onEscape={() => setPluginsTxtShown(false)} />
       <p className={styles["top-spacing"]}>
         <strong className={styles.step}>2. </strong>Paste or drag-and-drop your{" "}
         <strong>

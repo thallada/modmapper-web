@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import React, { useCallback, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
 import useSWRImmutable from "swr/immutable";
 
@@ -8,6 +8,7 @@ import SearchBar from "./SearchBar";
 import { jsonFetcher } from "../lib/api";
 import { updateFetchedPlugin, PluginsByHashWithMods } from "../slices/plugins";
 import styles from "../styles/AddModDialog.module.css";
+import EscapeListener from "./EscapeListener";
 
 type Props = {
   counts: Record<number, [number, number, number]> | null;
@@ -37,6 +38,7 @@ const AddModDialog: React.FC<Props> = ({ counts }) => {
 
   return (
     <>
+      <EscapeListener onEscape={() => setDialogShown(false)} />
       <button onClick={onAddModButtonClick}>Add mod</button>
       {typeof window !== "undefined" &&
         createPortal(
@@ -74,7 +76,8 @@ const AddModDialog: React.FC<Props> = ({ counts }) => {
               <button
                 onClick={() => {
                   console.log(`Adding mod ${selectedMod} ${selectedPlugin}`);
-                  if (data) dispatch(updateFetchedPlugin(data));
+                  if (data)
+                    dispatch(updateFetchedPlugin({ ...data, enabled: true }));
                   setDialogShown(false);
                 }}
                 disabled={!selectedMod || !selectedPlugin || !data}
