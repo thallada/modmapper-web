@@ -3,9 +3,11 @@ import useSWRImmutable from "swr/immutable";
 
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
 import {
-  setFetchedPlugin,
+  setSelectedFetchedPlugin,
   PluginFile,
   PluginsByHashWithMods,
+  updateFetchedPlugin,
+  removeFetchedPlugin,
 } from "../slices/plugins";
 import ModList from "./ModList";
 import CellList from "./CellList";
@@ -55,43 +57,61 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
   );
 
   const dispatch = useAppDispatch();
-  const plugins = useAppSelector((state) => state.plugins.plugins);
-  const fetchedPlugin = useAppSelector((state) => state.plugins.fetchedPlugin);
-  const plugin = plugins.find((plugin) => plugin.hash === hash);
+  const parsedPlugin = useAppSelector((state) =>
+    state.plugins.parsedPlugins.find((plugin) => plugin.hash === hash)
+  );
+  const fetchedPlugin = useAppSelector((state) =>
+    state.plugins.fetchedPlugins.find((plugin) => plugin.hash === hash)
+  );
 
   useEffect(() => {
     if (data) {
-      dispatch(setFetchedPlugin(data));
+      dispatch(setSelectedFetchedPlugin(data));
     }
-  }, [dispatch, data, fetchedPlugin]);
+  }, [dispatch, data]);
 
-  if (!plugin && error && error.status === 404) {
+  if (!parsedPlugin && error && error.status === 404) {
     return <h3>Plugin could not be found.</h3>;
-  } else if (!plugin && error) {
+  } else if (!parsedPlugin && error) {
     return <div>{`Error loading plugin data: ${error.message}`}</div>;
   }
-  if (!plugin && data === undefined)
+  if (!parsedPlugin && data === undefined)
     return <div className={styles.status}>Loading...</div>;
-  if (!plugin && data === null)
+  if (!parsedPlugin && data === null)
     return <div className={styles.status}>Plugin could not be found.</div>;
 
   return (
     <>
-      <PluginData plugin={buildPluginProps(data, plugin)} counts={counts} />
+      <PluginData
+        plugin={buildPluginProps(data, parsedPlugin)}
+        counts={counts}
+      />
+      {data && (
+        <button
+          className={styles.button}
+          onClick={() =>
+            fetchedPlugin
+              ? dispatch(removeFetchedPlugin(data.hash))
+              : dispatch(updateFetchedPlugin(data))
+          }
+        >
+          {Boolean(fetchedPlugin) ? "Remove plugin" : "Add plugin"}
+        </button>
+      )}
       {data && <ModList mods={data.mods} files={data.files} counts={counts} />}
-      {plugin?.parseError && (
+      {parsedPlugin?.parseError && (
         <div className={styles.error}>
-          {`Error parsing plugin: ${plugin.parseError}`}
+          {`Error parsing plugin: ${parsedPlugin.parseError}`}
         </div>
       )}
       <CellList
         cells={
-          (plugin?.parsed?.cells.filter(
+          (parsedPlugin?.parsed?.cells.filter(
             (cell) =>
               cell.x !== undefined &&
               cell.y !== undefined &&
               cell.world_form_id === 60 &&
-              plugin.parsed?.header.masters[0] === "Skyrim.esm"
+              parsedPlugin.parsed?.header.masters[0] === "Skyrim.esm"
           ) as CellCoord[]) ||
           data?.cells ||
           []

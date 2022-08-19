@@ -330,7 +330,8 @@ const Map: React.FC = () => {
     }
 
     if (
-      ((parsedPlugins && parsedPlugins.length > 0 && pluginsPending === 0) ||
+      pluginsPending === 0 &&
+      ((parsedPlugins && parsedPlugins.length > 0) ||
         fetchedPlugins.length > 0) &&
       !router.query.mod &&
       !router.query.plugin
