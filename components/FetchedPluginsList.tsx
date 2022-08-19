@@ -6,6 +6,7 @@ import {
   disableAllFetchedPlugins,
   enableAllFetchedPlugins,
   toggleFetchedPlugin,
+  removeFetchedPlugin,
 } from "../slices/plugins";
 import styles from "../styles/FetchedPluginList.module.css";
 
@@ -45,7 +46,11 @@ const FetchedPluginsList: React.FC<Props> = ({ selectedCell }) => {
         }`}
       >
         {plugins.map((plugin) => (
-          <li key={plugin.hash} title={plugin.plugins[0].file_name}>
+          <li
+            key={plugin.hash}
+            title={plugin.plugins[0].file_name}
+            className={styles["plugin-row"]}
+          >
             <input
               id={plugin.hash}
               type="checkbox"
@@ -58,6 +63,12 @@ const FetchedPluginsList: React.FC<Props> = ({ selectedCell }) => {
                 <a>{plugin.plugins[0].file_name}</a>
               </Link>
             </label>
+            <button
+              onClick={() => dispatch(removeFetchedPlugin(plugin.hash))}
+              className={styles["plugin-remove"]}
+            >
+              &#10006;
+            </button>
           </li>
         ))}
       </ol>

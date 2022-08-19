@@ -122,6 +122,10 @@ export const pluginsSlice = createSlice({
       ...state,
       fetchedPlugins: [...state.fetchedPlugins.filter(plugin => plugin.hash !== action.payload.hash), action.payload],
     }),
+    removeFetchedPlugin: (state: PluginsState, action: PayloadAction<string>) => ({
+      ...state,
+      fetchedPlugins: state.fetchedPlugins.filter(plugin => plugin.hash !== action.payload),
+    }),
     setParsedPlugins: (state: PluginsState, action: PayloadAction<PluginFile[]>) => ({
       ...state,
       parsedPlugins: action.payload,
@@ -179,6 +183,7 @@ export const {
   addFetchedPlugin,
   updateParsedPlugin,
   updateFetchedPlugin,
+  removeFetchedPlugin,
   setParsedPlugins,
   setFetchedPlugins,
   setPending,

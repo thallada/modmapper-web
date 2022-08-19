@@ -14,12 +14,28 @@
   margin-bottom: 12px;
 }
 
-.plugin-error {
-  color: #ff0000;
+.plugin-row {
+  display: flex;
+  align-items: center;
 }
 
 .plugin-label {
   margin-left: 8px;
+  margin-right: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plugin-remove {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: none;
+  border: none;
+  font-size: 14px;
+}
+
+.plugin-remove:hover {
+  color: crimson;
 }
 
 .loading {
