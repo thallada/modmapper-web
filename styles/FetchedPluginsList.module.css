@@ -31,7 +31,8 @@
   padding: 2px 8px;
   background: none;
   border: none;
-  font-size: 14px;
+  display: flex;
+  align-items: center;
 }
 
 .plugin-remove:hover {

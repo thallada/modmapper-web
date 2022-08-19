@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import React from "react";
 
@@ -8,7 +9,7 @@ import {
   toggleFetchedPlugin,
   removeFetchedPlugin,
 } from "../slices/plugins";
-import styles from "../styles/FetchedPluginList.module.css";
+import styles from "../styles/FetchedPluginsList.module.css";
 
 type Props = {
   selectedCell?: { x: number; y: number };
@@ -67,7 +68,7 @@ const FetchedPluginsList: React.FC<Props> = ({ selectedCell }) => {
               onClick={() => dispatch(removeFetchedPlugin(plugin.hash))}
               className={styles["plugin-remove"]}
             >
-              &#10006;
+              <img src="/img/close.svg" width={18} height={18} alt="close" />
             </button>
           </li>
         ))}

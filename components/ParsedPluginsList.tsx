@@ -8,7 +8,7 @@ import {
   disableAllParsedPlugins,
   toggleParsedPlugin,
 } from "../slices/plugins";
-import styles from "../styles/ParsedPluginList.module.css";
+import styles from "../styles/ParsedPluginsList.module.css";
 
 type Props = {
   selectedCell?: { x: number; y: number };
