@@ -143,6 +143,10 @@ const ModData: React.FC<Props> = ({
     if (fileData) setSelectedCells(fileData.cells);
   }, [fileData, setSelectedCells]);
 
+  useEffect(() => {
+    if (pluginData) setSelectedCells(pluginData.cells);
+  }, [pluginData, setSelectedCells]);
+
   if (modError && modError.status === 404) {
     return <div>Mod could not be found.</div>;
   } else if (modError) {
