@@ -30,7 +30,15 @@ First, install the dependencies:
 npm install
 ```
 
-Then, run the dev server:
+Then create a file named `.env` at the root of the project with the contents:
+
+```
+NEXT_PUBLIC_MAPBOX_TOKEN=tokengoeshere
+```
+
+You can get a Mapbox token by [creating a mapbox account and generating a token on the access token page](https://docs.mapbox.com/help/glossary/access-token/).
+
+Now, run the dev server:
 
 ```bash
 npm run dev
