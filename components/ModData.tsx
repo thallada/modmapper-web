@@ -3,9 +3,16 @@ import Head from "next/head";
 import React, { useCallback, useEffect, useState } from "react";
 import useSWRImmutable from "swr/immutable";
 
+import { useAppDispatch, useAppSelector } from "../lib/hooks";
 import CellList from "./CellList";
 import styles from "../styles/ModData.module.css";
 import { jsonFetcher } from "../lib/api";
+import {
+  PluginsByHashWithMods,
+  removeFetchedPlugin,
+  updateFetchedPlugin,
+} from "../slices/plugins";
+import Link from "next/link";
 
 export interface CellCoord {
   x: number;
@@ -103,9 +110,16 @@ const ModData: React.FC<Props> = ({
 
   const { data: pluginData, error: pluginError } = useSWRImmutable(
     selectedPlugin
-      ? `https://files.modmapper.com/${selectedPlugin}.json`
+      ? `https://plugins.modmapper.com/${selectedPlugin}.json`
       : null,
-    (_) => jsonFetcher<File>(_)
+    (_) => jsonFetcher<PluginsByHashWithMods>(_)
+  );
+
+  const dispatch = useAppDispatch();
+  const fetchedPlugin = useAppSelector((state) =>
+    state.plugins.fetchedPlugins.find(
+      (plugin) => plugin.hash === selectedPlugin
+    )
   );
 
   const handleFileChange = useCallback(
@@ -266,6 +280,27 @@ const ModData: React.FC<Props> = ({
               ))}
             </select>
           </div>
+        )}
+        {pluginData ? (
+          <div className={styles["plugin-actions"]}>
+            <Link href={`/?plugin=${pluginData.hash}`}>
+              <a className={styles["plugin-link"]}>View plugin</a>
+            </Link>
+            <button
+              className={styles.button}
+              onClick={() =>
+                fetchedPlugin
+                  ? dispatch(removeFetchedPlugin(pluginData.hash))
+                  : dispatch(
+                      updateFetchedPlugin({ ...pluginData, enabled: true })
+                    )
+              }
+            >
+              {Boolean(fetchedPlugin) ? "Remove plugin" : "Add plugin"}
+            </button>
+          </div>
+        ) : (
+          <div className={styles.spacer} />
         )}
         {fileError &&
           (fileError.status === 404 ? (

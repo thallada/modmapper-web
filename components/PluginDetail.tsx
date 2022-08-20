@@ -92,7 +92,7 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
           onClick={() =>
             fetchedPlugin
               ? dispatch(removeFetchedPlugin(data.hash))
-              : dispatch(updateFetchedPlugin(data))
+              : dispatch(updateFetchedPlugin({ ...data, enabled: true }))
           }
         >
           {Boolean(fetchedPlugin) ? "Remove plugin" : "Add plugin"}

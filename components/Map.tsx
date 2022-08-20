@@ -851,11 +851,14 @@ const Map: React.FC = () => {
             setOpen={setSidebarOpenWithResize}
             lastModified={cellsData && cellsData.lastModified}
             onSelectFile={(selectedFile) => {
+              const { plugin, ...withoutPlugin } = router.query;
               if (selectedFile) {
-                router.push({ query: { ...router.query, file: selectedFile } });
+                router.push({
+                  query: { ...withoutPlugin, file: selectedFile },
+                });
               } else {
-                const { file, ...rest } = router.query;
-                router.push({ query: { ...rest } });
+                const { file, ...withoutFile } = withoutPlugin;
+                router.push({ query: { ...withoutFile } });
               }
             }}
             onSelectPlugin={(selectedPlugin) => {
@@ -864,8 +867,8 @@ const Map: React.FC = () => {
                   query: { ...router.query, plugin: selectedPlugin },
                 });
               } else {
-                const { plugin, ...rest } = router.query;
-                router.push({ query: { ...rest } });
+                const { plugin, ...withoutPlugin } = router.query;
+                router.push({ query: { ...withoutPlugin } });
               }
             }}
           />
