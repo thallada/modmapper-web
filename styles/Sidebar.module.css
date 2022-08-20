@@ -48,7 +48,7 @@
 }
 
 .close:hover {
-  color: #888888;
+  filter: invert(40%);
 }
 
 .hide {

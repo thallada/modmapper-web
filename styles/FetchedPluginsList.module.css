@@ -36,8 +36,8 @@
   cursor: pointer;
 }
 
-.plugin-remove:hover {
-  color: crimson;
+.plugin-remove:hover img {
+  filter: invert(40%);
 }
 
 .loading {

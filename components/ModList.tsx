@@ -138,7 +138,6 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
             <div className={styles["sort-direction"]}>
               <button
                 title="Sort ascending"
-                className={sortAsc ? styles.active : ""}
                 onClick={() => dispatch(setSortAsc(true))}
               >
                 <img
@@ -153,7 +152,6 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
               </button>
               <button
                 title="Sort descending"
-                className={!sortAsc ? styles.active : ""}
                 onClick={() => dispatch(setSortAsc(false))}
               >
                 <img
