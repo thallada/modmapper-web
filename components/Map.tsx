@@ -850,6 +850,24 @@ const Map: React.FC = () => {
             open={sidebarOpen}
             setOpen={setSidebarOpenWithResize}
             lastModified={cellsData && cellsData.lastModified}
+            onSelectFile={(selectedFile) => {
+              if (selectedFile) {
+                router.push({ query: { ...router.query, file: selectedFile } });
+              } else {
+                const { file, ...rest } = router.query;
+                router.push({ query: { ...rest } });
+              }
+            }}
+            onSelectPlugin={(selectedPlugin) => {
+              if (selectedPlugin) {
+                router.push({
+                  query: { ...router.query, plugin: selectedPlugin },
+                });
+              } else {
+                const { plugin, ...rest } = router.query;
+                router.push({ query: { ...rest } });
+              }
+            }}
           />
           <ToggleLayersControl map={map} />
           <SearchBar

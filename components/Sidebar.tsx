@@ -24,6 +24,8 @@ type Props = {
   open: boolean;
   setOpen: (open: boolean) => void;
   lastModified: string | null | undefined;
+  onSelectFile: (fileId: number) => void;
+  onSelectPlugin: (hash: string) => void;
 };
 
 const Sidebar: React.FC<Props> = ({
@@ -35,6 +37,8 @@ const Sidebar: React.FC<Props> = ({
   open,
   setOpen,
   lastModified,
+  onSelectFile,
+  onSelectPlugin,
 }) => {
   const router = useRouter();
 
@@ -51,15 +55,23 @@ const Sidebar: React.FC<Props> = ({
     return <CellData selectedCell={selectedCell} counts={counts} />;
   };
 
-  const renderModData = (selectedMod: number) => {
+  const renderModData = (
+    selectedMod: number,
+    selectedFile: number,
+    selectedPlugin: string
+  ) => {
     if (countsError) return renderLoadError(countsError);
     if (!counts) return renderLoading();
 
     return (
       <ModData
         selectedMod={selectedMod}
+        selectedFile={selectedFile}
+        selectedPlugin={selectedPlugin}
         counts={counts}
         setSelectedCells={setSelectedCells}
+        onSelectFile={onSelectFile}
+        onSelectPlugin={onSelectPlugin}
       />
     );
   };
@@ -105,6 +117,8 @@ const Sidebar: React.FC<Props> = ({
       );
     } else if (router.query.mod) {
       const modId = parseInt(router.query.mod as string, 10);
+      const fileId = parseInt(router.query.file as string, 10);
+      const pluginHash = router.query.plugin as string;
       return (
         <div
           className={styles.sidebar}
@@ -116,7 +130,7 @@ const Sidebar: React.FC<Props> = ({
                 <img src="/img/close.svg" width={24} height={24} alt="close" />
               </button>
             </div>
-            {!Number.isNaN(modId) && renderModData(modId)}
+            {!Number.isNaN(modId) && renderModData(modId, fileId, pluginHash)}
             {renderLastModified(lastModified)}
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import Head from "next/head";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import useSWRImmutable from "swr/immutable";
 
 import CellList from "./CellList";
@@ -74,114 +74,151 @@ export const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
 
 type Props = {
   selectedMod: number;
+  selectedFile: number;
+  selectedPlugin: string;
   counts: Record<number, [number, number, number]> | null;
   setSelectedCells: (cells: { x: number; y: number }[] | null) => void;
+  onSelectFile: (fileId: number) => void;
+  onSelectPlugin: (hash: string) => void;
 };
 
 const ModData: React.FC<Props> = ({
   selectedMod,
+  selectedFile,
+  selectedPlugin,
   counts,
   setSelectedCells,
+  onSelectFile,
+  onSelectPlugin,
 }) => {
-  const { data, error } = useSWRImmutable(
+  const { data: modData, error: modError } = useSWRImmutable(
     `https://mods.modmapper.com/${selectedMod}.json`,
     (_) => jsonFetcher<Mod>(_)
   );
 
-  useEffect(() => {
-    if (data) setSelectedCells(data.cells);
-  }, [data, setSelectedCells]);
+  const { data: fileData, error: fileError } = useSWRImmutable(
+    selectedFile ? `https://files.modmapper.com/${selectedFile}.json` : null,
+    (_) => jsonFetcher<File>(_)
+  );
 
-  if (error && error.status === 404) {
+  const { data: pluginData, error: pluginError } = useSWRImmutable(
+    selectedPlugin
+      ? `https://files.modmapper.com/${selectedPlugin}.json`
+      : null,
+    (_) => jsonFetcher<File>(_)
+  );
+
+  const handleFileChange = useCallback(
+    (event) => {
+      onSelectFile(event.target.value);
+    },
+    [onSelectFile]
+  );
+  const handlePluginChange = useCallback(
+    (event) => {
+      onSelectPlugin(event.target.value);
+    },
+    [onSelectPlugin]
+  );
+
+  useEffect(() => {
+    if (modData && !selectedFile) setSelectedCells(modData.cells);
+  }, [modData, setSelectedCells, selectedFile]);
+
+  useEffect(() => {
+    if (fileData) setSelectedCells(fileData.cells);
+  }, [fileData, setSelectedCells]);
+
+  if (modError && modError.status === 404) {
     return <div>Mod could not be found.</div>;
-  } else if (error) {
-    return <div>{`Error loading mod data: ${error.message}`}</div>;
+  } else if (modError) {
+    return <div>{`Error loading mod modData: ${modError.message}`}</div>;
   }
-  if (data === undefined)
+  if (modData === undefined)
     return <div className={styles.status}>Loading...</div>;
-  if (data === null)
+  if (modData === null)
     return <div className={styles.status}>Mod could not be found.</div>;
 
   let numberFmt = new Intl.NumberFormat("en-US");
-  const modCounts = counts && counts[data.nexus_mod_id];
+  const modCounts = counts && counts[modData.nexus_mod_id];
   const total_downloads = modCounts ? modCounts[0] : 0;
   const unique_downloads = modCounts ? modCounts[1] : 0;
   const views = modCounts ? modCounts[2] : 0;
 
-  if (selectedMod && data) {
+  if (selectedMod && modData) {
     return (
       <>
         <Head>
-          <title key="title">{`Modmapper - ${data.name}`}</title>
+          <title key="title">{`Modmapper - ${modData.name}`}</title>
           <meta
             key="description"
             name="description"
-            content={`Map of Skyrim showing ${data.cells.length} cell edits from the mod: ${data.name}`}
+            content={`Map of Skyrim showing ${modData.cells.length} cell edits from the mod: ${modData.name}`}
           />
           <meta
             key="og:title"
             property="og:title"
-            content={`Modmapper - ${data.name}`}
+            content={`Modmapper - ${modData.name}`}
           />
           <meta
             key="og:description"
             property="og:description"
-            content={`Map of Skyrim showing ${data.cells.length} cell edits from the mod: ${data.name}`}
+            content={`Map of Skyrim showing ${modData.cells.length} cell edits from the mod: ${modData.name}`}
           />
           <meta
             key="twitter:title"
             name="twitter:title"
-            content={`Modmapper - ${data.name}`}
+            content={`Modmapper - ${modData.name}`}
           />
           <meta
             key="twitter:description"
             name="twitter:description"
-            content={`Map of Skyrim showing ${data.cells.length} cell edits from the mod: ${data.name}`}
+            content={`Map of Skyrim showing ${modData.cells.length} cell edits from the mod: ${modData.name}`}
           />
           <meta
             key="og:url"
             property="og:url"
-            content={`https://modmapper.com/?mod=${data.nexus_mod_id}`}
+            content={`https://modmapper.com/?mod=${modData.nexus_mod_id}`}
           />
         </Head>
         <h1>
           <a
-            href={`${NEXUS_MODS_URL}/mods/${data.nexus_mod_id}`}
+            href={`${NEXUS_MODS_URL}/mods/${modData.nexus_mod_id}`}
             target="_blank"
             rel="noreferrer noopener"
             className={styles.name}
           >
-            {data.name}
+            {modData.name}
           </a>
         </h1>
         <div>
           <strong>Category:&nbsp;</strong>
           <a
-            href={`${NEXUS_MODS_URL}/mods/categories/${data.category_id}`}
+            href={`${NEXUS_MODS_URL}/mods/categories/${modData.category_id}`}
             target="_blank"
             rel="noreferrer noopener"
           >
-            {data.category_name}
+            {modData.category_name}
           </a>
-          {data.is_translation && <strong>&nbsp;(translation)</strong>}
+          {modData.is_translation && <strong>&nbsp;(translation)</strong>}
         </div>
         <div>
           <strong>Author:&nbsp;</strong>
           <a
-            href={`${NEXUS_MODS_URL}/users/${data.author_id}`}
+            href={`${NEXUS_MODS_URL}/users/${modData.author_id}`}
             target="_blank"
             rel="noreferrer noopener"
           >
-            {data.author_name}
+            {modData.author_name}
           </a>
         </div>
         <div>
           <strong>Uploaded:</strong>{" "}
-          {format(new Date(data.first_upload_at), "d MMM y")}
+          {format(new Date(modData.first_upload_at), "d MMM y")}
         </div>
         <div>
           <strong>Last Update:</strong>{" "}
-          {format(new Date(data.last_update_at), "d MMM y")}
+          {format(new Date(modData.last_update_at), "d MMM y")}
         </div>
         <div>
           <strong>Total Downloads:</strong> {numberFmt.format(total_downloads)}
@@ -190,7 +227,61 @@ const ModData: React.FC<Props> = ({
           <strong>Unique Downloads:</strong>{" "}
           {numberFmt.format(unique_downloads)}
         </div>
-        <CellList cells={data.cells} />
+        <div className={styles["select-container"]}>
+          <label htmlFor="mod-file-select" className={styles.label}>
+            Select file:
+          </label>
+          <select
+            name="file"
+            id="mod-file-select"
+            className={styles.select}
+            onChange={handleFileChange}
+            value={selectedFile ?? ""}
+          >
+            <option value="">--Select file--</option>
+            {[...modData.files].reverse().map((file) => (
+              <option key={file.nexus_file_id} value={file.nexus_file_id}>
+                {file.name} (v{file.version}) ({file.category})
+              </option>
+            ))}
+          </select>
+        </div>
+        {fileData && (
+          <div className={styles["select-container"]}>
+            <label htmlFor="file-plugin-select" className={styles.label}>
+              Select plugin:
+            </label>
+            <select
+              name="plugin"
+              id="file-plugin-select"
+              className={styles.select}
+              onChange={handlePluginChange}
+              value={selectedPlugin ?? ""}
+            >
+              <option value="">--Select plugin--</option>
+              {fileData.plugins.map((plugin) => (
+                <option key={plugin.hash} value={plugin.hash}>
+                  {plugin.file_path}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {fileError &&
+          (fileError.status === 404 ? (
+            <div>File cound not be found.</div>
+          ) : (
+            <div>{`Error loading file data: ${fileError.message}`}</div>
+          ))}
+        {pluginError &&
+          (pluginError.status === 404 ? (
+            <div>Plugin cound not be found.</div>
+          ) : (
+            <div>{`Error loading plugin data: ${pluginError.message}`}</div>
+          ))}
+        <CellList
+          cells={pluginData?.cells ?? fileData?.cells ?? modData.cells}
+        />
       </>
     );
   }
