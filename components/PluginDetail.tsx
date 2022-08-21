@@ -22,10 +22,7 @@ const buildPluginProps = (
 ): PluginProps => {
   const dataPlugin = data && data.plugins.length > 0 && data.plugins[0];
   return {
-    hash:
-      (plugin && plugin.hash) ||
-      (dataPlugin && dataPlugin.hash.toString(36)) ||
-      "",
+    hash: (plugin && plugin.hash) || (dataPlugin && dataPlugin.hash) || "",
     size: plugin?.size || (dataPlugin && dataPlugin.size) || 0,
     author:
       plugin?.parsed?.header.author ||
