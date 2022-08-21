@@ -62,3 +62,7 @@
 .highlighted-result {
   background-color: #bde4ff;
 }
+
+.error {
+  color: red;
+}

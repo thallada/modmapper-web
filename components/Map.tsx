@@ -843,7 +843,10 @@ const Map: React.FC = () => {
         <div ref={mapContainer} className={styles["map-container"]}>
           <Sidebar
             selectedCell={selectedCell}
-            clearSelectedCell={() => router.push({ query: {} })}
+            clearSelectedCell={() => {
+              console.log("clearSelectedCell");
+              router.push({ query: {} });
+            }}
             setSelectedCells={setSelectedCells}
             counts={counts}
             countsError={countsError}

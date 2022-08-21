@@ -1,6 +1,5 @@
 import { useCombobox } from "downshift";
 import React, { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/router";
 import MiniSearch, { SearchResult } from "minisearch";
 import useSWRImmutable from "swr/immutable";
 
@@ -51,16 +50,21 @@ const SearchBar: React.FC<Props> = ({
   fixed = false,
   inputRef,
 }) => {
-  const router = useRouter();
+  const [rendered, setRendered] = useState(false);
 
   const modSearch = useRef<MiniSearch<Mod> | null>(
     null
   ) as React.MutableRefObject<MiniSearch<Mod>>;
 
   const { data, error } = useSWRImmutable(
-    `https://mods.modmapper.com/mod_search_index.json`,
+    rendered && `https://mods.modmapper.com/mod_search_index.json`,
     (_) => jsonFetcher<Mod[]>(_)
   );
+
+  useEffect(() => {
+    // awful hack to delay rendering of the mod_search_index.json, since it can block rendering somehow
+    requestAnimationFrame(() => setRendered(true));
+  });
 
   useEffect(() => {
     if (data && !modSearch.current) {
@@ -178,6 +182,11 @@ const SearchBar: React.FC<Props> = ({
                 {result.name}
               </li>
             ))}
+          {error && (
+            <div className={styles.error}>
+              Error loading mod search index: {error}.
+            </div>
+          )}
         </ul>
       </div>
     </>

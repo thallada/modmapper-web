@@ -95,6 +95,8 @@ const Sidebar: React.FC<Props> = ({
   };
 
   const renderOpenSidebar = () => {
+    console.log("render sidebar");
+    console.log(router.query.plugin);
     if (selectedCell) {
       return (
         <div
@@ -157,6 +159,7 @@ const Sidebar: React.FC<Props> = ({
         </div>
       );
     } else {
+      console.log("render base page");
       return (
         <div
           className={styles.sidebar}
