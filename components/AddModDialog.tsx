@@ -75,7 +75,6 @@ const AddModDialog: React.FC<Props> = ({ counts }) => {
               </button>
               <button
                 onClick={() => {
-                  console.log(`Adding mod ${selectedMod} ${selectedPlugin}`);
                   if (data)
                     dispatch(updateFetchedPlugin({ ...data, enabled: true }));
                   setDialogShown(false);

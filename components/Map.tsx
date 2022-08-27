@@ -10,6 +10,7 @@ import styles from "../styles/Map.module.css";
 import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
 import SearchBar from "./SearchBar";
+import SearchProvider from "./SearchProvider";
 import { csvFetcher, jsonFetcherWithLastModified } from "../lib/api";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
@@ -841,61 +842,60 @@ const Map: React.FC = () => {
         ref={mapWrapper}
       >
         <div ref={mapContainer} className={styles["map-container"]}>
-          <Sidebar
-            selectedCell={selectedCell}
-            clearSelectedCell={() => {
-              console.log("clearSelectedCell");
-              router.push({ query: {} });
-            }}
-            setSelectedCells={setSelectedCells}
-            counts={counts}
-            countsError={countsError}
-            open={sidebarOpen}
-            setOpen={setSidebarOpenWithResize}
-            lastModified={cellsData && cellsData.lastModified}
-            onSelectFile={(selectedFile) => {
-              const { plugin, ...withoutPlugin } = router.query;
-              if (selectedFile) {
-                router.push({
-                  query: { ...withoutPlugin, file: selectedFile },
-                });
-              } else {
-                const { file, ...withoutFile } = withoutPlugin;
-                router.push({ query: { ...withoutFile } });
-              }
-            }}
-            onSelectPlugin={(selectedPlugin) => {
-              if (selectedPlugin) {
-                router.push({
-                  query: { ...router.query, plugin: selectedPlugin },
-                });
-              } else {
+          <SearchProvider>
+            <Sidebar
+              selectedCell={selectedCell}
+              clearSelectedCell={() => router.push({ query: {} })}
+              setSelectedCells={setSelectedCells}
+              counts={counts}
+              countsError={countsError}
+              open={sidebarOpen}
+              setOpen={setSidebarOpenWithResize}
+              lastModified={cellsData && cellsData.lastModified}
+              onSelectFile={(selectedFile) => {
                 const { plugin, ...withoutPlugin } = router.query;
-                router.push({ query: { ...withoutPlugin } });
-              }
-            }}
-          />
-          <ToggleLayersControl map={map} />
-          <SearchBar
-            counts={counts}
-            sidebarOpen={sidebarOpen}
-            placeholder="Search mods or cells…"
-            onSelectResult={(selectedItem) => {
-              if (!selectedItem) return;
-              if (
-                selectedItem.x !== undefined &&
-                selectedItem.y !== undefined
-              ) {
-                router.push({
-                  query: { cell: `${selectedItem.x},${selectedItem.y}` },
-                });
-              } else {
-                router.push({ query: { mod: selectedItem.id } });
-              }
-            }}
-            includeCells
-            fixed
-          />
+                if (selectedFile) {
+                  router.push({
+                    query: { ...withoutPlugin, file: selectedFile },
+                  });
+                } else {
+                  const { file, ...withoutFile } = withoutPlugin;
+                  router.push({ query: { ...withoutFile } });
+                }
+              }}
+              onSelectPlugin={(selectedPlugin) => {
+                if (selectedPlugin) {
+                  router.push({
+                    query: { ...router.query, plugin: selectedPlugin },
+                  });
+                } else {
+                  const { plugin, ...withoutPlugin } = router.query;
+                  router.push({ query: { ...withoutPlugin } });
+                }
+              }}
+            />
+            <ToggleLayersControl map={map} />
+            <SearchBar
+              counts={counts}
+              sidebarOpen={sidebarOpen}
+              placeholder="Search mods or cells…"
+              onSelectResult={(selectedItem) => {
+                if (!selectedItem) return;
+                if (
+                  selectedItem.x !== undefined &&
+                  selectedItem.y !== undefined
+                ) {
+                  router.push({
+                    query: { cell: `${selectedItem.x},${selectedItem.y}` },
+                  });
+                } else {
+                  router.push({ query: { mod: selectedItem.id } });
+                }
+              }}
+              includeCells
+              fixed
+            />
+          </SearchProvider>
         </div>
       </div>
     </>
