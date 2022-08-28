@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import MiniSearch from "minisearch";
 import Link from "next/link";
 import useSWRImmutable from "swr/immutable";
+import ReactPaginate from "react-paginate";
 
 import styles from "../styles/ModList.module.css";
 import type { Mod } from "./CellData";
@@ -21,6 +22,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
 
 const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
+const PAGE_SIZE = 50;
 
 type Props = {
   mods: Mod[];
@@ -33,6 +35,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
   const { sortBy, sortAsc, filter, category, includeTranslations } =
     useAppSelector((state) => state.modListFilters);
   const [filterResults, setFilterResults] = useState<Set<number>>(new Set());
+  const [page, setPage] = useState<number>(0);
 
   const { data: cellCounts, error: cellCountsError } = useSWRImmutable(
     `https://mods.modmapper.com/mod_cell_counts.json`,
@@ -105,6 +108,11 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
       );
     }
   }, [filter]);
+
+  useEffect(() => {
+    setPage(0);
+    document.getElementById("sidebar")?.scrollTo(0, 0);
+  }, [filterResults, category, includeTranslations, sortBy, sortAsc]);
 
   return (
     mods && (
@@ -219,106 +227,125 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
           <hr />
         </div>
         <ul className={styles["mod-list"]}>
-          {modsWithCounts.map((mod) => (
-            <li key={mod.id} className={styles["mod-list-item"]}>
-              <div className={styles["mod-title"]}>
-                <strong>
-                  <Link href={`/?mod=${mod.nexus_mod_id}`}>
-                    <a>{mod.name}</a>
-                  </Link>
-                </strong>
-              </div>
-              <div>
-                <a
-                  href={`${NEXUS_MODS_URL}/mods/${mod.nexus_mod_id}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  View on Nexus Mods
-                </a>
-              </div>
-              <div>
-                <strong>Category:&nbsp;</strong>
-                <a
-                  href={`${NEXUS_MODS_URL}/mods/categories/${mod.category_id}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  {mod.category_name}
-                </a>
-              </div>
-              <div>
-                <strong>Author:&nbsp;</strong>
-                <a
-                  href={`${NEXUS_MODS_URL}/users/${mod.author_id}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  {mod.author_name}
-                </a>
-              </div>
-              <div>
-                <strong>Uploaded:</strong>{" "}
-                {format(new Date(mod.first_upload_at), "d MMM y")}
-              </div>
-              <div>
-                <strong>Last Update:</strong>{" "}
-                {format(new Date(mod.last_update_at), "d MMM y")}
-              </div>
-              <div>
-                <strong>Total Downloads:</strong>{" "}
-                {numberFmt.format(mod.total_downloads)}
-              </div>
-              <div>
-                <strong>Unique Downloads:</strong>{" "}
-                {numberFmt.format(mod.unique_downloads)}
-              </div>
-              {cellCounts && (
-                <div>
-                  <strong>Exterior Cells Edited:</strong>{" "}
-                  {numberFmt.format(mod.exterior_cells_edited)}
+          {modsWithCounts
+            .slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+            .map((mod) => (
+              <li key={mod.id} className={styles["mod-list-item"]}>
+                <div className={styles["mod-title"]}>
+                  <strong>
+                    <Link href={`/?mod=${mod.nexus_mod_id}`}>
+                      <a>{mod.name}</a>
+                    </Link>
+                  </strong>
                 </div>
-              )}
-              <ul className={styles["file-list"]}>
-                {files &&
-                  files
-                    .filter((file) => file.mod_id === mod.id)
-                    .sort((a, b) => b.nexus_file_id - a.nexus_file_id)
-                    .map((file) => (
-                      <li key={file.id}>
-                        <div>
-                          <strong>File:</strong> {file.name}
-                        </div>
-                        {file.mod_version && (
+                <div>
+                  <a
+                    href={`${NEXUS_MODS_URL}/mods/${mod.nexus_mod_id}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    View on Nexus Mods
+                  </a>
+                </div>
+                <div>
+                  <strong>Category:&nbsp;</strong>
+                  <a
+                    href={`${NEXUS_MODS_URL}/mods/categories/${mod.category_id}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    {mod.category_name}
+                  </a>
+                </div>
+                <div>
+                  <strong>Author:&nbsp;</strong>
+                  <a
+                    href={`${NEXUS_MODS_URL}/users/${mod.author_id}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    {mod.author_name}
+                  </a>
+                </div>
+                <div>
+                  <strong>Uploaded:</strong>{" "}
+                  {format(new Date(mod.first_upload_at), "d MMM y")}
+                </div>
+                <div>
+                  <strong>Last Update:</strong>{" "}
+                  {format(new Date(mod.last_update_at), "d MMM y")}
+                </div>
+                <div>
+                  <strong>Total Downloads:</strong>{" "}
+                  {numberFmt.format(mod.total_downloads)}
+                </div>
+                <div>
+                  <strong>Unique Downloads:</strong>{" "}
+                  {numberFmt.format(mod.unique_downloads)}
+                </div>
+                {cellCounts && (
+                  <div>
+                    <strong>Exterior Cells Edited:</strong>{" "}
+                    {numberFmt.format(mod.exterior_cells_edited)}
+                  </div>
+                )}
+                <ul className={styles["file-list"]}>
+                  {files &&
+                    files
+                      .filter((file) => file.mod_id === mod.id)
+                      .sort((a, b) => b.nexus_file_id - a.nexus_file_id)
+                      .map((file) => (
+                        <li key={file.id}>
                           <div>
-                            <strong>Version:</strong> {file.mod_version}
+                            <strong>File:</strong> {file.name}
                           </div>
-                        )}
-                        {file.version && file.mod_version !== file.version && (
+                          {file.mod_version && (
+                            <div>
+                              <strong>Version:</strong> {file.mod_version}
+                            </div>
+                          )}
+                          {file.version && file.mod_version !== file.version && (
+                            <div>
+                              <strong>File Version:</strong> {file.version}
+                            </div>
+                          )}
+                          {file.category && (
+                            <div>
+                              <strong>Category:</strong> {file.category}
+                            </div>
+                          )}
                           <div>
-                            <strong>File Version:</strong> {file.version}
+                            <strong>Size:</strong> {formatBytes(file.size)}
                           </div>
-                        )}
-                        {file.category && (
-                          <div>
-                            <strong>Category:</strong> {file.category}
-                          </div>
-                        )}
-                        <div>
-                          <strong>Size:</strong> {formatBytes(file.size)}
-                        </div>
-                        {file.uploaded_at && (
-                          <div>
-                            <strong>Uploaded:</strong>{" "}
-                            {format(new Date(file.uploaded_at), "d MMM y")}
-                          </div>
-                        )}
-                      </li>
-                    ))}
-              </ul>
-            </li>
-          ))}
+                          {file.uploaded_at && (
+                            <div>
+                              <strong>Uploaded:</strong>{" "}
+                              {format(new Date(file.uploaded_at), "d MMM y")}
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                </ul>
+              </li>
+            ))}
         </ul>
+        <ReactPaginate
+          breakLabel="..."
+          nextLabel=">"
+          forcePage={page}
+          onPageChange={(event) => {
+            setPage(event.selected);
+            document.getElementById("sidebar")?.scrollTo(0, 0);
+          }}
+          pageRangeDisplayed={3}
+          marginPagesDisplayed={2}
+          pageCount={Math.ceil(modsWithCounts.length / PAGE_SIZE)}
+          previousLabel="<"
+          renderOnZeroPageCount={() => null}
+          className={styles.pagination}
+          activeClassName={styles["active-page"]}
+          hrefBuilder={() => "#"}
+        />
       </>
     )
   );

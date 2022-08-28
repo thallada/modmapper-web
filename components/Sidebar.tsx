@@ -100,6 +100,7 @@ const Sidebar: React.FC<Props> = ({
         <div
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
+          id="sidebar"
         >
           <div className={styles["sidebar-content"]}>
             <div className={styles["sidebar-header"]}>
@@ -123,6 +124,7 @@ const Sidebar: React.FC<Props> = ({
         <div
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
+          id="sidebar"
         >
           <div className={styles["sidebar-content"]}>
             <div className={styles["sidebar-header"]}>
@@ -140,6 +142,7 @@ const Sidebar: React.FC<Props> = ({
         <div
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
+          id="sidebar"
         >
           <div className={styles["sidebar-content"]}>
             <div className={styles["sidebar-header"]}>
@@ -161,6 +164,7 @@ const Sidebar: React.FC<Props> = ({
         <div
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
+          id="sidebar"
         >
           <div className={styles["sidebar-content"]}>
             <h1 className={styles.title}>Modmapper</h1>
