@@ -111,8 +111,27 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
 
   useEffect(() => {
     setPage(0);
-    document.getElementById("sidebar")?.scrollTo(0, 0);
   }, [filterResults, category, includeTranslations, sortBy, sortAsc]);
+
+  const renderPagination = () => (
+    <ReactPaginate
+      breakLabel="..."
+      nextLabel=">"
+      forcePage={page}
+      onPageChange={(event) => {
+        setPage(event.selected);
+        document.getElementById("sidebar")?.scrollTo(0, 0);
+      }}
+      pageRangeDisplayed={3}
+      marginPagesDisplayed={2}
+      pageCount={Math.ceil(modsWithCounts.length / PAGE_SIZE)}
+      previousLabel="<"
+      renderOnZeroPageCount={() => null}
+      className={styles.pagination}
+      activeClassName={styles["active-page"]}
+      hrefBuilder={() => "#"}
+    />
+  );
 
   return (
     mods && (
@@ -226,6 +245,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
           </div>
           <hr />
         </div>
+        {renderPagination()}
         <ul className={styles["mod-list"]}>
           {modsWithCounts
             .slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
@@ -329,23 +349,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
               </li>
             ))}
         </ul>
-        <ReactPaginate
-          breakLabel="..."
-          nextLabel=">"
-          forcePage={page}
-          onPageChange={(event) => {
-            setPage(event.selected);
-            document.getElementById("sidebar")?.scrollTo(0, 0);
-          }}
-          pageRangeDisplayed={3}
-          marginPagesDisplayed={2}
-          pageCount={Math.ceil(modsWithCounts.length / PAGE_SIZE)}
-          previousLabel="<"
-          renderOnZeroPageCount={() => null}
-          className={styles.pagination}
-          activeClassName={styles["active-page"]}
-          hrefBuilder={() => "#"}
-        />
+        {renderPagination()}
       </>
     )
   );

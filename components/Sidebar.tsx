@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import { formatRelative } from "date-fns";
 
@@ -41,6 +41,10 @@ const Sidebar: React.FC<Props> = ({
   onSelectPlugin,
 }) => {
   const router = useRouter();
+
+  useEffect(() => {
+    document.getElementById("sidebar")?.scrollTo(0, 0);
+  }, [selectedCell, router.query.mod, router.query.plugin]);
 
   const renderLoadError = (error: Error) => (
     <div>{`Error loading live download counts: ${error.message}`}</div>

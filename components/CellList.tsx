@@ -51,8 +51,27 @@ const CellList: React.FC<Props> = ({ cells }) => {
 
   useEffect(() => {
     setPage(0);
-    document.getElementById("sidebar")?.scrollTo(0, 0);
   }, [filterResults]);
+
+  const renderPagination = () => (
+    <ReactPaginate
+      breakLabel="..."
+      nextLabel=">"
+      forcePage={page}
+      onPageChange={(event) => {
+        setPage(event.selected);
+        document.getElementById("sidebar")?.scrollTo(0, 0);
+      }}
+      pageRangeDisplayed={3}
+      marginPagesDisplayed={2}
+      pageCount={Math.ceil(filteredCells.length / PAGE_SIZE)}
+      previousLabel="<"
+      renderOnZeroPageCount={() => null}
+      className={styles.pagination}
+      activeClassName={styles["active-page"]}
+      hrefBuilder={() => "#"}
+    />
+  );
 
   return (
     filteredCells && (
@@ -72,6 +91,7 @@ const CellList: React.FC<Props> = ({ cells }) => {
           </div>
           <hr />
         </div>
+        {renderPagination()}
         <ul className={styles["cell-list"]}>
           {filteredCells
             .slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
@@ -96,23 +116,7 @@ const CellList: React.FC<Props> = ({ cells }) => {
               </li>
             ))}
         </ul>
-        <ReactPaginate
-          breakLabel="..."
-          nextLabel=">"
-          forcePage={page}
-          onPageChange={(event) => {
-            setPage(event.selected);
-            document.getElementById("sidebar")?.scrollTo(0, 0);
-          }}
-          pageRangeDisplayed={3}
-          marginPagesDisplayed={2}
-          pageCount={Math.ceil(filteredCells.length / PAGE_SIZE)}
-          previousLabel="<"
-          renderOnZeroPageCount={() => null}
-          className={styles.pagination}
-          activeClassName={styles["active-page"]}
-          hrefBuilder={() => "#"}
-        />
+        {renderPagination()}
       </>
     )
   );
