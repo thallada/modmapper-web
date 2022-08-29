@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import useSWRImmutable from "swr/immutable";
 
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
@@ -15,6 +15,7 @@ import type { CellCoord } from "./ModData";
 import PluginData, { Plugin as PluginProps } from "./PluginData";
 import styles from "../styles/PluginDetail.module.css";
 import { jsonFetcher } from "../lib/api";
+import Link from "next/link";
 
 const buildPluginProps = (
   data?: PluginsByHashWithMods | null,
@@ -48,6 +49,9 @@ type Props = {
 };
 
 const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
+  const [showAddRemovePluginNotification, setShowAddRemovePluginNotification] =
+    useState<boolean>(false);
+
   const { data, error } = useSWRImmutable(
     `https://plugins.modmapper.com/${hash}.json`,
     (_) => jsonFetcher<PluginsByHashWithMods>(_)
@@ -84,16 +88,30 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
         counts={counts}
       />
       {data && (
-        <button
-          className={styles.button}
-          onClick={() =>
-            fetchedPlugin
-              ? dispatch(removeFetchedPlugin(data.hash))
-              : dispatch(updateFetchedPlugin({ ...data, enabled: true }))
-          }
-        >
-          {Boolean(fetchedPlugin) ? "Remove plugin" : "Add plugin"}
-        </button>
+        <>
+          <button
+            className={styles.button}
+            onClick={() => {
+              if (fetchedPlugin) {
+                dispatch(removeFetchedPlugin(data.hash));
+              } else {
+                dispatch(updateFetchedPlugin({ ...data, enabled: true }));
+              }
+              setShowAddRemovePluginNotification(true);
+            }}
+          >
+            {Boolean(fetchedPlugin) ? "Remove plugin" : "Add plugin"}
+          </button>
+          {showAddRemovePluginNotification && (
+            <span>
+              Plugin {Boolean(fetchedPlugin) ? "added" : "removed"}.{" "}
+              <Link href="/#added-plugins">
+                <a>View list</a>
+              </Link>
+              .
+            </span>
+          )}
+        </>
       )}
       {data && <ModList mods={data.mods} files={data.files} counts={counts} />}
       {parsedPlugin?.parseError && (

@@ -120,7 +120,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
       forcePage={page}
       onPageChange={(event) => {
         setPage(event.selected);
-        document.getElementById("sidebar")?.scrollTo(0, 0);
+        document.getElementById("nexus-mods")?.scrollIntoView();
       }}
       pageRangeDisplayed={3}
       marginPagesDisplayed={2}
@@ -136,7 +136,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
   return (
     mods && (
       <>
-        <h2>Nexus Mods ({modsWithCounts.length})</h2>
+        <h2 id="nexus-mods">Nexus Mods ({modsWithCounts.length})</h2>
         <div className={styles.filters}>
           <hr />
           <div className={styles["filter-row"]}>

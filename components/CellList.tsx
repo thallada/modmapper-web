@@ -60,7 +60,7 @@ const CellList: React.FC<Props> = ({ cells }) => {
       forcePage={page}
       onPageChange={(event) => {
         setPage(event.selected);
-        document.getElementById("sidebar")?.scrollTo(0, 0);
+        document.getElementById("exterior-cells")?.scrollIntoView();
       }}
       pageRangeDisplayed={3}
       marginPagesDisplayed={2}
@@ -76,7 +76,7 @@ const CellList: React.FC<Props> = ({ cells }) => {
   return (
     filteredCells && (
       <>
-        <h2>Exterior Cells ({filteredCells.length})</h2>
+        <h2 id="exterior-cells">Exterior Cells ({filteredCells.length})</h2>
         <div className={styles.filters}>
           <hr />
           <div className={styles["filter-row"]}>

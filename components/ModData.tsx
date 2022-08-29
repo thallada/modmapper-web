@@ -98,6 +98,8 @@ const ModData: React.FC<Props> = ({
   onSelectFile,
   onSelectPlugin,
 }) => {
+  const [showAddRemovePluginNotification, setShowAddRemovePluginNotification] =
+    useState<boolean>(false);
   const { data: modData, error: modError } = useSWRImmutable(
     `https://mods.modmapper.com/${selectedMod}.json`,
     (_) => jsonFetcher<Mod>(_)
@@ -286,23 +288,37 @@ const ModData: React.FC<Props> = ({
           </div>
         )}
         {pluginData ? (
-          <div className={styles["plugin-actions"]}>
-            <Link href={`/?plugin=${pluginData.hash}`}>
-              <a className={styles["plugin-link"]}>View plugin</a>
-            </Link>
-            <button
-              className={styles.button}
-              onClick={() =>
-                fetchedPlugin
-                  ? dispatch(removeFetchedPlugin(pluginData.hash))
-                  : dispatch(
+          <>
+            <div className={styles["plugin-actions"]}>
+              <Link href={`/?plugin=${pluginData.hash}`}>
+                <a className={styles["plugin-link"]}>View plugin</a>
+              </Link>
+              <button
+                className={styles.button}
+                onClick={() => {
+                  if (fetchedPlugin) {
+                    dispatch(removeFetchedPlugin(pluginData.hash));
+                  } else {
+                    dispatch(
                       updateFetchedPlugin({ ...pluginData, enabled: true })
-                    )
-              }
-            >
-              {Boolean(fetchedPlugin) ? "Remove plugin" : "Add plugin"}
-            </button>
-          </div>
+                    );
+                  }
+                  setShowAddRemovePluginNotification(true);
+                }}
+              >
+                {Boolean(fetchedPlugin) ? "Remove plugin" : "Add plugin"}
+              </button>
+            </div>
+            {showAddRemovePluginNotification && (
+              <span>
+                Plugin {Boolean(fetchedPlugin) ? "added" : "removed"}.{" "}
+                <Link href="/#added-plugins">
+                  <a>View list</a>
+                </Link>
+                .
+              </span>
+            )}
+          </>
         ) : (
           <div className={styles.spacer} />
         )}

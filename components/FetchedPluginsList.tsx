@@ -30,7 +30,9 @@ const FetchedPluginsList: React.FC<Props> = ({ selectedCell }) => {
 
   return (
     <>
-      {plugins.length > 0 && <h2>Added Plugins ({plugins.length})</h2>}
+      {plugins.length > 0 && (
+        <h2 id="added-plugins">Added Plugins ({plugins.length})</h2>
+      )}
       {!selectedCell && plugins.length > 0 && (
         <div className={styles.buttons}>
           <button onClick={() => dispatch(enableAllFetchedPlugins())}>
