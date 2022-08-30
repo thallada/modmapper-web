@@ -3,6 +3,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from '@sentry/nextjs';
+import LogRocket from 'logrocket';
 
 const SENTRY_DSN = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 const SENTRY_ENVIRONMENT = process.env.SENTRY_ENVIRONMENT || process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT;
@@ -16,4 +17,13 @@ Sentry.init({
   // Note: if you want to override the automatic release value, do not set a
   // `release` value here - use the environment variable `SENTRY_RELEASE`, so
   // that it will also get attached to your source maps
+  beforeSend(event) {
+    const logRocketSession = LogRocket.sessionURL;
+    if (logRocketSession !== null) {
+      event.extra["LogRocket"] = logRocketSession;
+      return event;
+    } else {
+      return event;
+    }
+  },
 });
