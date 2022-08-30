@@ -8,7 +8,7 @@ import setupLogRocketReact from "logrocket-react";
 
 import store from "../lib/store";
 
-LogRocket.init("0tlgj3/modmapper");
+LogRocket.init(process.env.LOGROCKET_ID || "0tlgj3/modmapper");
 if (typeof window !== "undefined") setupLogRocketReact(LogRocket);
 
 LogRocket.getSessionURL((sessionURL) => {
