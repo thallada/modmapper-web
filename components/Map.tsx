@@ -5,11 +5,12 @@ import mapboxgl from "mapbox-gl";
 import useSWRImmutable from "swr/immutable";
 
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
-import { setFetchedPlugin, PluginFile } from "../slices/plugins";
+import { setSelectedFetchedPlugin, PluginFile } from "../slices/plugins";
 import styles from "../styles/Map.module.css";
 import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
 import SearchBar from "./SearchBar";
+import SearchProvider from "./SearchProvider";
 import { csvFetcher, jsonFetcherWithLastModified } from "../lib/api";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
@@ -55,9 +56,14 @@ const Map: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const dispatch = useAppDispatch();
-  const plugins = useAppSelector((state) => state.plugins.plugins);
+  const parsedPlugins = useAppSelector((state) => state.plugins.parsedPlugins);
+  const fetchedPlugins = useAppSelector(
+    (state) => state.plugins.fetchedPlugins
+  );
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
-  const fetchedPlugin = useAppSelector((state) => state.plugins.fetchedPlugin);
+  const selectedFetchedPlugin = useAppSelector(
+    (state) => state.plugins.selectedFetchedPlugin
+  );
 
   const { data: cellsData, error: cellsError } = useSWRImmutable(
     "https://cells.modmapper.com/edits.json",
@@ -243,7 +249,7 @@ const Map: React.FC = () => {
 
   const clearSelectedCells = useCallback(() => {
     setSelectedCells(null);
-    dispatch(setFetchedPlugin(undefined));
+    dispatch(setSelectedFetchedPlugin(undefined));
     if (map.current) {
       map.current.removeFeatureState({ source: "selected-cells-source" });
       map.current.removeFeatureState({ source: "conflicted-cell-source" });
@@ -297,8 +303,10 @@ const Map: React.FC = () => {
     } else if (router.query.plugin && typeof router.query.plugin === "string") {
       clearSelectedCell();
       setSidebarOpen(true);
-      if (plugins && plugins.length > 0 && pluginsPending === 0) {
-        const plugin = plugins.find((p) => p.hash === router.query.plugin);
+      if (parsedPlugins && parsedPlugins.length > 0 && pluginsPending === 0) {
+        const plugin = parsedPlugins.find(
+          (p) => p.hash === router.query.plugin
+        );
         if (plugin && plugin.parsed) {
           const cells = [];
           const cellSet = new Set<number>();
@@ -323,13 +331,13 @@ const Map: React.FC = () => {
     }
 
     if (
-      plugins &&
-      plugins.length > 0 &&
       pluginsPending === 0 &&
+      ((parsedPlugins && parsedPlugins.length > 0) ||
+        fetchedPlugins.length > 0) &&
       !router.query.mod &&
       !router.query.plugin
     ) {
-      const cells = plugins.reduce(
+      let cells = parsedPlugins.reduce(
         (acc: { x: number; y: number }[], plugin: PluginFile) => {
           if (plugin.enabled && plugin.parsed) {
             const newCells = [...acc];
@@ -349,6 +357,11 @@ const Map: React.FC = () => {
         },
         []
       );
+      cells = cells.concat(
+        fetchedPlugins
+          .filter((plugin) => plugin.enabled)
+          .flatMap((plugin) => plugin.cells)
+      );
       selectCells(cells);
     }
   }, [
@@ -362,8 +375,9 @@ const Map: React.FC = () => {
     clearSelectedCell,
     clearSelectedCells,
     heatmapLoaded,
-    plugins,
+    parsedPlugins,
     pluginsPending,
+    fetchedPlugins,
   ]);
 
   useEffect(() => {
@@ -371,12 +385,12 @@ const Map: React.FC = () => {
     if (
       router.query.plugin &&
       typeof router.query.plugin === "string" &&
-      fetchedPlugin &&
-      fetchedPlugin.cells
+      selectedFetchedPlugin &&
+      selectedFetchedPlugin.cells
     ) {
       const cells = [];
       const cellSet = new Set<number>();
-      for (const cell of fetchedPlugin.cells) {
+      for (const cell of selectedFetchedPlugin.cells) {
         if (
           cell.x !== undefined &&
           cell.y !== undefined &&
@@ -388,7 +402,7 @@ const Map: React.FC = () => {
       }
       selectCells(cells);
     }
-  }, [heatmapLoaded, fetchedPlugin, selectCells, router.query.plugin]);
+  }, [heatmapLoaded, selectedFetchedPlugin, selectCells, router.query.plugin]);
 
   useEffect(() => {
     if (!heatmapLoaded) return; // wait for all map layers to load
@@ -828,18 +842,60 @@ const Map: React.FC = () => {
         ref={mapWrapper}
       >
         <div ref={mapContainer} className={styles["map-container"]}>
-          <Sidebar
-            selectedCell={selectedCell}
-            clearSelectedCell={() => router.push({ query: {} })}
-            setSelectedCells={setSelectedCells}
-            counts={counts}
-            countsError={countsError}
-            open={sidebarOpen}
-            setOpen={setSidebarOpenWithResize}
-            lastModified={cellsData && cellsData.lastModified}
-          />
-          <ToggleLayersControl map={map} />
-          <SearchBar counts={counts} sidebarOpen={sidebarOpen} />
+          <SearchProvider>
+            <Sidebar
+              selectedCell={selectedCell}
+              clearSelectedCell={() => router.push({ query: {} })}
+              setSelectedCells={setSelectedCells}
+              counts={counts}
+              countsError={countsError}
+              open={sidebarOpen}
+              setOpen={setSidebarOpenWithResize}
+              lastModified={cellsData && cellsData.lastModified}
+              onSelectFile={(selectedFile) => {
+                const { plugin, ...withoutPlugin } = router.query;
+                if (selectedFile) {
+                  router.push({
+                    query: { ...withoutPlugin, file: selectedFile },
+                  });
+                } else {
+                  const { file, ...withoutFile } = withoutPlugin;
+                  router.push({ query: { ...withoutFile } });
+                }
+              }}
+              onSelectPlugin={(selectedPlugin) => {
+                if (selectedPlugin) {
+                  router.push({
+                    query: { ...router.query, plugin: selectedPlugin },
+                  });
+                } else {
+                  const { plugin, ...withoutPlugin } = router.query;
+                  router.push({ query: { ...withoutPlugin } });
+                }
+              }}
+            />
+            <ToggleLayersControl map={map} />
+            <SearchBar
+              counts={counts}
+              sidebarOpen={sidebarOpen}
+              placeholder="Search mods or cells…"
+              onSelectResult={(selectedItem) => {
+                if (!selectedItem) return;
+                if (
+                  selectedItem.x !== undefined &&
+                  selectedItem.y !== undefined
+                ) {
+                  router.push({
+                    query: { cell: `${selectedItem.x},${selectedItem.y}` },
+                  });
+                } else {
+                  router.push({ query: { mod: selectedItem.id } });
+                }
+              }}
+              includeCells
+              fixed
+            />
+          </SearchProvider>
         </div>
       </div>
     </>

@@ -1,7 +1,7 @@
 import { createContext } from "react";
 
 import {
-  addPluginInOrder,
+  addParsedPluginInOrder,
   decrementPending,
   PluginFile,
 } from "../slices/plugins";
@@ -48,7 +48,7 @@ export class WorkerPool {
           resolve(worker);
         } else if (typeof data !== "string") {
           store.dispatch(decrementPending(1));
-          store.dispatch(addPluginInOrder(data));
+          store.dispatch(addParsedPluginInOrder(data));
           // Since web assembly memory cannot be shrunk, replace worker with a fresh one to avoid slow repeated
           // invocations on the same worker instance. Repeated invocations are so slow that the delay in creating a
           // new worker is worth it. In practice, there are usually more workers than tasks, so the delay does not slow

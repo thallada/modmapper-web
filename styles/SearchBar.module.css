@@ -1,4 +1,4 @@
-.search-bar {
+.search-bar-fixed {
   position: fixed;
   top: 8px;
   width: 150px;
@@ -6,29 +6,33 @@
   z-index: 2;
 }
 
-.search-bar.search-bar-focused {
+.search-bar-fixed.search-bar-focused {
   width: max(40vw, 250px);
   left: calc(50% - max(20vw, 125px));
 }
 
 @media only screen and (min-width: 600px) {
-  .search-bar.search-bar-sidebar-open {
+  .search-bar-fixed.search-bar-sidebar-open {
     left: calc(50% + 75px);
   }
 
-  .search-bar.search-bar-focused.search-bar-sidebar-open {
+  .search-bar-fixed.search-bar-focused.search-bar-sidebar-open {
     left: calc(50% - max(20vw, 125px) + 125px);
   }
 }
 
 .search-bar input {
-  width: 150px;
+  width: 100%;
   border-radius: 8px;
   padding-left: 8px;
   padding-right: 8px;
 }
 
-.search-bar.search-bar.search-bar-focused input {
+.search-bar-fixed input {
+  width: 150px;
+}
+
+.search-bar-fixed.search-bar-focused input {
   width: max(40vw, 250px);
   border-radius: 8px;
   padding-left: 8px;
@@ -57,4 +61,8 @@
 
 .highlighted-result {
   background-color: #bde4ff;
+}
+
+.error {
+  color: red;
 }

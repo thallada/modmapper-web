@@ -80,11 +80,13 @@ const PluginData: React.FC<Props> = ({ plugin, counts }) => {
         <strong>Cell edits:&nbsp;</strong>
         {plugin.cell_count}
       </div>
-      {plugin.description && (
+      {plugin.description ? (
         <div>
           <h3>Description:</h3>
           <p>{plugin.description}</p>
         </div>
+      ) : (
+        <div className={styles.spacer} />
       )}
     </>
   );

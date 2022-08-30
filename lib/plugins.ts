@@ -1,6 +1,6 @@
 import { WorkerPool } from "./WorkerPool";
 import store from "./store";
-import { clearPlugins, setPending } from "../slices/plugins";
+import { clearParsedPlugins, setPending } from "../slices/plugins";
 
 export const excludedPlugins = [
   "Skyrim.esm",
@@ -28,7 +28,7 @@ export const parsePluginFiles = (pluginFiles: File[], workerPool: WorkerPool) =>
     alert("Found no plugins in the folder. Please select the Data folder underneath the Skyrim installation folder.");
     return;
   }
-  store.dispatch(clearPlugins());
+  store.dispatch(clearParsedPlugins());
   store.dispatch(setPending(pluginFiles.length));
 
   pluginFiles.forEach(async (plugin) => {

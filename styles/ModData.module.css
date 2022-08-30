@@ -6,3 +6,47 @@ a.name {
   line-height: 1.75rem;
   word-wrap: break-word;
 }
+
+.select-container {
+  margin-top: 12px;
+}
+
+.select {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.label {
+  white-space: nowrap;
+  margin-right: 12px;
+  font-weight: bold;
+  width: 100%;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.spacer {
+  margin-bottom: 12px;
+}
+
+.plugin-actions {
+  display: flex;
+  flex-direction: row;
+  padding-right: 12px;
+  padding-left: 12px;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.plugin-link {
+  flex: 1;
+}
+
+.button {
+  flex: 1;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  margin-right: auto;
+}

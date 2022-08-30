@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import MiniSearch from "minisearch";
+import ReactPaginate from "react-paginate";
 
 import styles from "../styles/CellList.module.css";
 import type { CellCoord } from "./ModData";
+
+const PAGE_SIZE = 100;
 
 type Props = {
   cells: CellCoord[];
@@ -32,6 +35,7 @@ const CellList: React.FC<Props> = ({ cells }) => {
 
   const [filter, setFilter] = useState<string>("");
   const [filterResults, setFilterResults] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState<number>(0);
 
   const filteredCells = cells
     .filter((cell) => !filter || filterResults.has(`${cell.x},${cell.y}`))
@@ -45,10 +49,34 @@ const CellList: React.FC<Props> = ({ cells }) => {
     }
   }, [filter]);
 
+  useEffect(() => {
+    setPage(0);
+  }, [filterResults]);
+
+  const renderPagination = () => (
+    <ReactPaginate
+      breakLabel="..."
+      nextLabel=">"
+      forcePage={page}
+      onPageChange={(event) => {
+        setPage(event.selected);
+        document.getElementById("exterior-cells")?.scrollIntoView();
+      }}
+      pageRangeDisplayed={3}
+      marginPagesDisplayed={2}
+      pageCount={Math.ceil(filteredCells.length / PAGE_SIZE)}
+      previousLabel="<"
+      renderOnZeroPageCount={() => null}
+      className={styles.pagination}
+      activeClassName={styles["active-page"]}
+      hrefBuilder={() => "#"}
+    />
+  );
+
   return (
     filteredCells && (
       <>
-        <h2>Exterior Cells ({filteredCells.length})</h2>
+        <h2 id="exterior-cells">Exterior Cells ({filteredCells.length})</h2>
         <div className={styles.filters}>
           <hr />
           <div className={styles["filter-row"]}>
@@ -63,26 +91,32 @@ const CellList: React.FC<Props> = ({ cells }) => {
           </div>
           <hr />
         </div>
+        {renderPagination()}
         <ul className={styles["cell-list"]}>
-          {filteredCells.map((cell) => (
-            <li
-              key={`cell-${cell.x},${cell.y}`}
-              className={styles["cell-list-item"]}
-            >
-              <div className={styles["cell-title"]}>
-                <strong>
-                  <Link
-                    href={`/?cell=${encodeURIComponent(`${cell.x},${cell.y}`)}`}
-                  >
-                    <a>
-                      {cell.x}, {cell.y}
-                    </a>
-                  </Link>
-                </strong>
-              </div>
-            </li>
-          ))}
+          {filteredCells
+            .slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+            .map((cell) => (
+              <li
+                key={`cell-${cell.x},${cell.y}`}
+                className={styles["cell-list-item"]}
+              >
+                <div className={styles["cell-title"]}>
+                  <strong>
+                    <Link
+                      href={`/?cell=${encodeURIComponent(
+                        `${cell.x},${cell.y}`
+                      )}`}
+                    >
+                      <a>
+                        {cell.x}, {cell.y}
+                      </a>
+                    </Link>
+                  </strong>
+                </div>
+              </li>
+            ))}
         </ul>
+        {renderPagination()}
       </>
     )
   );

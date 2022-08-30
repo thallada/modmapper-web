@@ -1,0 +1,60 @@
+.plugin-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.plugin-list li {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+}
+
+.bottom-spacing {
+  margin-bottom: 12px;
+}
+
+.plugin-row {
+  display: flex;
+  align-items: center;
+}
+
+.plugin-label {
+  margin-left: 8px;
+  margin-right: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plugin-remove {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.plugin-remove:hover img {
+  filter: invert(40%);
+}
+
+.loading {
+  margin-bottom: 12px;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: row;
+  padding-right: 12px;
+  padding-left: 12px;
+  justify-content: space-evenly;
+  margin-bottom: 12px;
+}
+
+.buttons button {
+  flex: 1;
+  margin-right: 12px;
+  margin-right: 12px;
+}

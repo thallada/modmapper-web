@@ -48,3 +48,27 @@
 .filter {
   width: 175px;
 }
+
+.pagination {
+  display: flex;
+  flex-direction: row;
+  list-style-type: none;
+  padding: 0;
+  margin-top: 0;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.pagination li {
+  padding: 4px;
+}
+
+.pagination li a {
+  cursor: pointer;
+  user-select: none;
+}
+
+.active-page a {
+  color: black;
+  text-decoration: none;
+}

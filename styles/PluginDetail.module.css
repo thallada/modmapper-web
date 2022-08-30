@@ -2,3 +2,10 @@
   color: red;
   margin-top: 12px;
 }
+
+.button {
+  margin-bottom: 12px;
+  margin-right: auto;
+  padding-left: 12px;
+  padding-right: 12px;
+}

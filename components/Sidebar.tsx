@@ -1,16 +1,18 @@
 /* eslint-disable @next/next/no-img-element */
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import { formatRelative } from "date-fns";
 
 import arrow from "../public/img/arrow.svg";
 import close from "../public/img/close.svg";
+import AddModDialog from "./AddModDialog";
 import CellData from "./CellData";
 import ModData from "./ModData";
 import PluginDetail from "./PluginDetail";
 import DataDirPicker from "./DataDirPicker";
 import PluginTxtEditor from "./PluginTxtEditor";
-import PluginsList from "./PluginsList";
+import ParsedPluginsList from "./ParsedPluginsList";
+import FetchedPluginsList from "./FetchedPluginsList";
 import styles from "../styles/Sidebar.module.css";
 
 type Props = {
@@ -22,6 +24,8 @@ type Props = {
   open: boolean;
   setOpen: (open: boolean) => void;
   lastModified: string | null | undefined;
+  onSelectFile: (fileId: number) => void;
+  onSelectPlugin: (hash: string) => void;
 };
 
 const Sidebar: React.FC<Props> = ({
@@ -33,8 +37,14 @@ const Sidebar: React.FC<Props> = ({
   open,
   setOpen,
   lastModified,
+  onSelectFile,
+  onSelectPlugin,
 }) => {
   const router = useRouter();
+
+  useEffect(() => {
+    document.getElementById("sidebar")?.scrollTo(0, 0);
+  }, [selectedCell, router.query.mod, router.query.plugin]);
 
   const renderLoadError = (error: Error) => (
     <div>{`Error loading live download counts: ${error.message}`}</div>
@@ -49,15 +59,23 @@ const Sidebar: React.FC<Props> = ({
     return <CellData selectedCell={selectedCell} counts={counts} />;
   };
 
-  const renderModData = (selectedMod: number) => {
+  const renderModData = (
+    selectedMod: number,
+    selectedFile: number,
+    selectedPlugin: string
+  ) => {
     if (countsError) return renderLoadError(countsError);
     if (!counts) return renderLoading();
 
     return (
       <ModData
         selectedMod={selectedMod}
+        selectedFile={selectedFile}
+        selectedPlugin={selectedPlugin}
         counts={counts}
         setSelectedCells={setSelectedCells}
+        onSelectFile={onSelectFile}
+        onSelectPlugin={onSelectPlugin}
       />
     );
   };
@@ -86,6 +104,7 @@ const Sidebar: React.FC<Props> = ({
         <div
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
+          id="sidebar"
         >
           <div className={styles["sidebar-content"]}>
             <div className={styles["sidebar-header"]}>
@@ -103,10 +122,13 @@ const Sidebar: React.FC<Props> = ({
       );
     } else if (router.query.mod) {
       const modId = parseInt(router.query.mod as string, 10);
+      const fileId = parseInt(router.query.file as string, 10);
+      const pluginHash = router.query.plugin as string;
       return (
         <div
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
+          id="sidebar"
         >
           <div className={styles["sidebar-content"]}>
             <div className={styles["sidebar-header"]}>
@@ -114,7 +136,7 @@ const Sidebar: React.FC<Props> = ({
                 <img src="/img/close.svg" width={24} height={24} alt="close" />
               </button>
             </div>
-            {!Number.isNaN(modId) && renderModData(modId)}
+            {!Number.isNaN(modId) && renderModData(modId, fileId, pluginHash)}
             {renderLastModified(lastModified)}
           </div>
         </div>
@@ -124,6 +146,7 @@ const Sidebar: React.FC<Props> = ({
         <div
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
+          id="sidebar"
         >
           <div className={styles["sidebar-content"]}>
             <div className={styles["sidebar-header"]}>
@@ -145,6 +168,7 @@ const Sidebar: React.FC<Props> = ({
         <div
           className={styles.sidebar}
           style={!open ? { display: "none" } : {}}
+          id="sidebar"
         >
           <div className={styles["sidebar-content"]}>
             <h1 className={styles.title}>Modmapper</h1>
@@ -153,7 +177,9 @@ const Sidebar: React.FC<Props> = ({
             </p>
             <DataDirPicker />
             <PluginTxtEditor />
-            <PluginsList />
+            <ParsedPluginsList />
+            <FetchedPluginsList />
+            <AddModDialog counts={counts} />
             {renderLastModified(lastModified)}
           </div>
         </div>

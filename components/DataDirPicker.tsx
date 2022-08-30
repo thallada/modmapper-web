@@ -12,7 +12,7 @@ type Props = {};
 const DataDirPicker: React.FC<Props> = () => {
   const workerPool = useContext(WorkerPoolContext);
   const inputRef = useRef<HTMLInputElement>(null);
-  const plugins = useAppSelector((state) => state.plugins.plugins);
+  const plugins = useAppSelector((state) => state.plugins.parsedPlugins);
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
   const [loading, setLoading] = useState<boolean>(false);
   const [uploadNoticeShown, setUploadNoticeShown] = useState(false);
