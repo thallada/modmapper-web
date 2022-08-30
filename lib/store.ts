@@ -1,5 +1,5 @@
 import LogRocket from "logrocket"
-import { applyMiddleware, configureStore, ThunkAction, Action } from "@reduxjs/toolkit"
+import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit"
 
 import pluginsReducer from "../slices/plugins"
 import pluginsTxtReducer from "../slices/pluginsTxt"
