@@ -7,6 +7,7 @@ import LogRocket from 'logrocket';
 
 const SENTRY_DSN = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 const SENTRY_ENVIRONMENT = process.env.SENTRY_ENVIRONMENT || process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT;
+const LOGROCKET_APP_ID = process.env.LOGROCKET_APP_ID || process.env.NEXT_PUBLIC_LOGROCKET_APP_ID;
 
 Sentry.init({
   dsn: SENTRY_DSN || 'https://dda36383332143d3a84c25a4f6aa6470@o1382253.ingest.sentry.io/6697231',
@@ -25,5 +26,12 @@ Sentry.init({
     } else {
       return event;
     }
+  },
+  // filter out logrocket pings
+  beforeBreadcrumb(breadcrumb) {
+    if (breadcrumb.category === 'xhr' && breadcrumb.data.url.includes(`i?a=${encodeURIComponent(LOGROCKET_APP_ID)}`)) {
+      return null;
+    }
+    return breadcrumb;
   },
 });
