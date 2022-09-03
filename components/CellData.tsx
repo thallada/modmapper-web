@@ -40,10 +40,9 @@ export interface Cell {
 
 type Props = {
   selectedCell: { x: number; y: number };
-  counts: Record<number, [number, number, number]> | null;
 };
 
-const CellData: React.FC<Props> = ({ selectedCell, counts }) => {
+const CellData: React.FC<Props> = ({ selectedCell }) => {
   const { data, error } = useSWRImmutable(
     `https://cells.modmapper.com/${selectedCell.x}/${selectedCell.y}.json`,
     (_) => jsonFetcher<Cell>(_)
@@ -113,7 +112,7 @@ const CellData: React.FC<Props> = ({ selectedCell, counts }) => {
         </ul>
         <ParsedPluginsList selectedCell={selectedCell} />
         <FetchedPluginsList selectedCell={selectedCell} />
-        <ModList mods={data.mods} counts={counts} />
+        <ModList mods={data.mods} />
       </>
     )
   );

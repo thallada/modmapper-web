@@ -1,24 +1,30 @@
 import { format } from "date-fns";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import useSWRImmutable from "swr/immutable";
 
 import { Mod, File, NEXUS_MODS_URL } from "./ModData";
 import styles from "../styles/AddModData.module.css";
 import { jsonFetcher } from "../lib/api";
+import { DownloadCountsContext } from "./DownloadCountsProvider";
+import { GamesContext } from "./GamesProvider";
 
 type Props = {
   selectedMod: number;
   selectedPlugin: string | null;
   setSelectedPlugin: (plugin: string) => void;
-  counts: Record<number, [number, number, number]> | null;
 };
 
 const AddModData: React.FC<Props> = ({
   selectedMod,
   selectedPlugin,
   setSelectedPlugin,
-  counts,
 }) => {
+  const {
+    games,
+    getGameNameById,
+    error: gamesError,
+  } = useContext(GamesContext);
+  const counts = useContext(DownloadCountsContext);
   const [selectedFile, setSelectedFile] = useState<number | null>(null);
 
   const { data: modData, error: modError } = useSWRImmutable(
@@ -54,10 +60,26 @@ const AddModData: React.FC<Props> = ({
     return <div className={styles.status}>Mod could not be found.</div>;
 
   let numberFmt = new Intl.NumberFormat("en-US");
-  const modCounts = counts && counts[modData.nexus_mod_id];
+  const gameName = getGameNameById(modData.game_id);
+  const gameDownloadCounts = gameName && counts[gameName].counts;
+  const modCounts =
+    gameDownloadCounts && gameDownloadCounts[modData.nexus_mod_id];
   const total_downloads = modCounts ? modCounts[0] : 0;
   const unique_downloads = modCounts ? modCounts[1] : 0;
   const views = modCounts ? modCounts[2] : 0;
+
+  const renderDownloadCountsLoading = () => (
+    <div>Loading live download counts...</div>
+  );
+  const renderDownloadCountsError = (error: Error) => (
+    <div>{`Error loading live download counts: ${error.message}`}</div>
+  );
+  const renderGamesError = (error?: Error) =>
+    error ? (
+      <div>{`Error loading games: ${error.message}`}</div>
+    ) : (
+      <div>Error loading games</div>
+    );
 
   if (selectedMod && modData) {
     return (
@@ -97,6 +119,12 @@ const AddModData: React.FC<Props> = ({
           <strong>Uploaded:</strong>{" "}
           {format(new Date(modData.first_upload_at), "d MMM y")}
         </div>
+        {(!counts.skyrim.counts || !counts.skyrimspecialedition.counts) &&
+          renderDownloadCountsLoading()}
+        {(!games || gamesError) && renderGamesError(gamesError)}
+        {counts.skyrim.error && renderDownloadCountsError(counts.skyrim.error)}
+        {counts.skyrimspecialedition.error &&
+          renderDownloadCountsError(counts.skyrimspecialedition.error)}
         <div>
           <strong>Last Update:</strong>{" "}
           {format(new Date(modData.last_update_at), "d MMM y")}

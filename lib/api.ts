@@ -1,8 +1,12 @@
-export async function jsonFetcher<T>(url: string): Promise<T | null> {
+interface Options {
+  notFoundOk: boolean;
+}
+
+export async function jsonFetcher<T>(url: string, options: Options = { notFoundOk: true}): Promise<T | null> {
   const res = await fetch(url);
 
   if (!res.ok) {
-    if (res.status === 404) {
+    if (res.status === 404 && options.notFoundOk) {
       return null;
     }
     const error = new Error("An error occurred while fetching the data.");
@@ -12,11 +16,11 @@ export async function jsonFetcher<T>(url: string): Promise<T | null> {
   return res.json();
 };
 
-export async function jsonFetcherWithLastModified<T>(url: string): Promise<{ data: T, lastModified: string | null } | null> {
+export async function jsonFetcherWithLastModified<T>(url: string, options: Options = { notFoundOk: true}): Promise<{ data: T, lastModified: string | null } | null> {
   const res = await fetch(url);
 
   if (!res.ok) {
-    if (res.status === 404) {
+    if (res.status === 404 && options.notFoundOk) {
       return null;
     }
     const error = new Error("An error occurred while fetching the data.");

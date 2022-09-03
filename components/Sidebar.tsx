@@ -3,8 +3,6 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import { formatRelative } from "date-fns";
 
-import arrow from "../public/img/arrow.svg";
-import close from "../public/img/close.svg";
 import AddModDialog from "./AddModDialog";
 import CellData from "./CellData";
 import ModData from "./ModData";
@@ -19,8 +17,6 @@ type Props = {
   selectedCell: { x: number; y: number } | null;
   clearSelectedCell: () => void;
   setSelectedCells: (cells: { x: number; y: number }[] | null) => void;
-  counts: Record<number, [number, number, number]> | null;
-  countsError: Error | null;
   open: boolean;
   setOpen: (open: boolean) => void;
   lastModified: string | null | undefined;
@@ -32,8 +28,6 @@ const Sidebar: React.FC<Props> = ({
   selectedCell,
   clearSelectedCell,
   setSelectedCells,
-  counts,
-  countsError,
   open,
   setOpen,
   lastModified,
@@ -45,47 +39,6 @@ const Sidebar: React.FC<Props> = ({
   useEffect(() => {
     document.getElementById("sidebar")?.scrollTo(0, 0);
   }, [selectedCell, router.query.mod, router.query.plugin]);
-
-  const renderLoadError = (error: Error) => (
-    <div>{`Error loading live download counts: ${error.message}`}</div>
-  );
-
-  const renderLoading = () => <div>Loading...</div>;
-
-  const renderCellData = (selectedCell: { x: number; y: number }) => {
-    if (countsError) return renderLoadError(countsError);
-    if (!counts) return renderLoading();
-
-    return <CellData selectedCell={selectedCell} counts={counts} />;
-  };
-
-  const renderModData = (
-    selectedMod: number,
-    selectedFile: number,
-    selectedPlugin: string
-  ) => {
-    if (countsError) return renderLoadError(countsError);
-    if (!counts) return renderLoading();
-
-    return (
-      <ModData
-        selectedMod={selectedMod}
-        selectedFile={selectedFile}
-        selectedPlugin={selectedPlugin}
-        counts={counts}
-        setSelectedCells={setSelectedCells}
-        onSelectFile={onSelectFile}
-        onSelectPlugin={onSelectPlugin}
-      />
-    );
-  };
-
-  const renderPluginData = (plugin: string) => {
-    if (countsError) return renderLoadError(countsError);
-    if (!counts) return renderLoading();
-
-    return <PluginDetail hash={plugin} counts={counts} />;
-  };
 
   const renderLastModified = (lastModified: string | null | undefined) => {
     if (lastModified) {
@@ -115,7 +68,7 @@ const Sidebar: React.FC<Props> = ({
             <h1 className={styles["cell-name-header"]}>
               Cell {selectedCell.x}, {selectedCell.y}
             </h1>
-            {renderCellData(selectedCell)}
+            <CellData selectedCell={selectedCell} />;
             {renderLastModified(lastModified)}
           </div>
         </div>
@@ -136,7 +89,16 @@ const Sidebar: React.FC<Props> = ({
                 <img src="/img/close.svg" width={24} height={24} alt="close" />
               </button>
             </div>
-            {!Number.isNaN(modId) && renderModData(modId, fileId, pluginHash)}
+            {!Number.isNaN(modId) && (
+              <ModData
+                selectedMod={modId}
+                selectedFile={fileId}
+                selectedPlugin={pluginHash}
+                setSelectedCells={setSelectedCells}
+                onSelectFile={onSelectFile}
+                onSelectPlugin={onSelectPlugin}
+              />
+            )}
             {renderLastModified(lastModified)}
           </div>
         </div>
@@ -154,12 +116,14 @@ const Sidebar: React.FC<Props> = ({
                 <img src="/img/close.svg" width={24} height={24} alt="close" />
               </button>
             </div>
-            {renderPluginData(
-              typeof router.query.plugin === "string"
-                ? router.query.plugin
-                : router.query.plugin[0]
-            )}
-            {renderLastModified(lastModified)}
+            <PluginDetail
+              hash={
+                typeof router.query.plugin === "string"
+                  ? router.query.plugin
+                  : router.query.plugin[0]
+              }
+            />
+            ;{renderLastModified(lastModified)}
           </div>
         </div>
       );
@@ -179,7 +143,7 @@ const Sidebar: React.FC<Props> = ({
             <PluginTxtEditor />
             <ParsedPluginsList />
             <FetchedPluginsList />
-            <AddModDialog counts={counts} />
+            <AddModDialog />
             {renderLastModified(lastModified)}
           </div>
         </div>

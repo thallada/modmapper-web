@@ -45,10 +45,9 @@ const buildPluginProps = (
 
 type Props = {
   hash: string;
-  counts: Record<number, [number, number, number]> | null;
 };
 
-const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
+const PluginDetail: React.FC<Props> = ({ hash }) => {
   const [showAddRemovePluginNotification, setShowAddRemovePluginNotification] =
     useState<boolean>(false);
 
@@ -83,10 +82,7 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
 
   return (
     <>
-      <PluginData
-        plugin={buildPluginProps(data, parsedPlugin)}
-        counts={counts}
-      />
+      <PluginData plugin={buildPluginProps(data, parsedPlugin)} />
       {data && (
         <>
           <button
@@ -113,7 +109,7 @@ const PluginDetail: React.FC<Props> = ({ hash, counts }) => {
           )}
         </>
       )}
-      {data && <ModList mods={data.mods} files={data.files} counts={counts} />}
+      {data && <ModList mods={data.mods} files={data.files} />}
       {parsedPlugin?.parseError && (
         <div className={styles.error}>
           {`Error parsing plugin: ${parsedPlugin.parseError}`}

@@ -11,7 +11,9 @@ import Sidebar from "./Sidebar";
 import ToggleLayersControl from "./ToggleLayersControl";
 import SearchBar from "./SearchBar";
 import SearchProvider from "./SearchProvider";
-import { csvFetcher, jsonFetcherWithLastModified } from "../lib/api";
+import { jsonFetcherWithLastModified } from "../lib/api";
+import DownloadCountsProvider from "./DownloadCountsProvider";
+import GamesProvider from "./GamesProvider";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
@@ -24,9 +26,6 @@ colorGradient.setGradient(
   "#FF0000"
 );
 colorGradient.setMidpoint(360);
-
-const LIVE_DOWNLOAD_COUNTS_URL =
-  "https://staticstats.nexusmods.com/live_download_counts/mods/1704.csv";
 
 const Map: React.FC = () => {
   const router = useRouter();
@@ -68,15 +67,6 @@ const Map: React.FC = () => {
   const { data: cellsData, error: cellsError } = useSWRImmutable(
     "https://cells.modmapper.com/edits.json",
     (_) => jsonFetcherWithLastModified<Record<string, number>>(_)
-  );
-  // The live download counts are not really immutable, but I'd still rather load them once per session
-  const [counts, setCounts] = useState<Record<
-    number,
-    [number, number, number]
-  > | null>(null);
-  const { data: countsData, error: countsError } = useSWRImmutable(
-    LIVE_DOWNLOAD_COUNTS_URL,
-    csvFetcher
   );
 
   const selectMapCell = useCallback(
@@ -822,17 +812,6 @@ const Map: React.FC = () => {
     setHeatmapLoaded(true);
   }, [cellsData, mapLoaded, router, setHeatmapLoaded]);
 
-  useEffect(() => {
-    if (countsData) {
-      const newCounts: Record<number, [number, number, number]> = {};
-      for (const line of countsData.split("\n")) {
-        const nums = line.split(",").map((count) => parseInt(count, 10));
-        newCounts[nums[0]] = [nums[1], nums[2], nums[3]];
-      }
-      setCounts(newCounts);
-    }
-  }, [setCounts, countsData]);
-
   return (
     <>
       <div
@@ -842,60 +821,61 @@ const Map: React.FC = () => {
         ref={mapWrapper}
       >
         <div ref={mapContainer} className={styles["map-container"]}>
-          <SearchProvider>
-            <Sidebar
-              selectedCell={selectedCell}
-              clearSelectedCell={() => router.push({ query: {} })}
-              setSelectedCells={setSelectedCells}
-              counts={counts}
-              countsError={countsError}
-              open={sidebarOpen}
-              setOpen={setSidebarOpenWithResize}
-              lastModified={cellsData && cellsData.lastModified}
-              onSelectFile={(selectedFile) => {
-                const { plugin, ...withoutPlugin } = router.query;
-                if (selectedFile) {
-                  router.push({
-                    query: { ...withoutPlugin, file: selectedFile },
-                  });
-                } else {
-                  const { file, ...withoutFile } = withoutPlugin;
-                  router.push({ query: { ...withoutFile } });
-                }
-              }}
-              onSelectPlugin={(selectedPlugin) => {
-                if (selectedPlugin) {
-                  router.push({
-                    query: { ...router.query, plugin: selectedPlugin },
-                  });
-                } else {
-                  const { plugin, ...withoutPlugin } = router.query;
-                  router.push({ query: { ...withoutPlugin } });
-                }
-              }}
-            />
-            <ToggleLayersControl map={map} />
-            <SearchBar
-              counts={counts}
-              sidebarOpen={sidebarOpen}
-              placeholder="Search mods or cells…"
-              onSelectResult={(selectedItem) => {
-                if (!selectedItem) return;
-                if (
-                  selectedItem.x !== undefined &&
-                  selectedItem.y !== undefined
-                ) {
-                  router.push({
-                    query: { cell: `${selectedItem.x},${selectedItem.y}` },
-                  });
-                } else {
-                  router.push({ query: { mod: selectedItem.id } });
-                }
-              }}
-              includeCells
-              fixed
-            />
-          </SearchProvider>
+          <DownloadCountsProvider>
+            <GamesProvider>
+              <SearchProvider>
+                <Sidebar
+                  selectedCell={selectedCell}
+                  clearSelectedCell={() => router.push({ query: {} })}
+                  setSelectedCells={setSelectedCells}
+                  open={sidebarOpen}
+                  setOpen={setSidebarOpenWithResize}
+                  lastModified={cellsData && cellsData.lastModified}
+                  onSelectFile={(selectedFile) => {
+                    const { plugin, ...withoutPlugin } = router.query;
+                    if (selectedFile) {
+                      router.push({
+                        query: { ...withoutPlugin, file: selectedFile },
+                      });
+                    } else {
+                      const { file, ...withoutFile } = withoutPlugin;
+                      router.push({ query: { ...withoutFile } });
+                    }
+                  }}
+                  onSelectPlugin={(selectedPlugin) => {
+                    if (selectedPlugin) {
+                      router.push({
+                        query: { ...router.query, plugin: selectedPlugin },
+                      });
+                    } else {
+                      const { plugin, ...withoutPlugin } = router.query;
+                      router.push({ query: { ...withoutPlugin } });
+                    }
+                  }}
+                />
+                <ToggleLayersControl map={map} />
+                <SearchBar
+                  sidebarOpen={sidebarOpen}
+                  placeholder="Search mods or cells…"
+                  onSelectResult={(selectedItem) => {
+                    if (!selectedItem) return;
+                    if (
+                      selectedItem.x !== undefined &&
+                      selectedItem.y !== undefined
+                    ) {
+                      router.push({
+                        query: { cell: `${selectedItem.x},${selectedItem.y}` },
+                      });
+                    } else {
+                      router.push({ query: { mod: selectedItem.id } });
+                    }
+                  }}
+                  includeCells
+                  fixed
+                />
+              </SearchProvider>
+            </GamesProvider>
+          </DownloadCountsProvider>
         </div>
       </div>
     </>

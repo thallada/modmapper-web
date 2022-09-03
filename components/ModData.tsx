@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import Head from "next/head";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import useSWRImmutable from "swr/immutable";
 
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
@@ -13,6 +13,8 @@ import {
   updateFetchedPlugin,
 } from "../slices/plugins";
 import Link from "next/link";
+import { DownloadCountsContext } from "./DownloadCountsProvider";
+import { GamesContext } from "./GamesProvider";
 
 export interface CellCoord {
   x: number;
@@ -83,7 +85,6 @@ type Props = {
   selectedMod: number;
   selectedFile: number;
   selectedPlugin: string;
-  counts: Record<number, [number, number, number]> | null;
   setSelectedCells: (cells: { x: number; y: number }[] | null) => void;
   onSelectFile: (fileId: number) => void;
   onSelectPlugin: (hash: string) => void;
@@ -93,11 +94,16 @@ const ModData: React.FC<Props> = ({
   selectedMod,
   selectedFile,
   selectedPlugin,
-  counts,
   setSelectedCells,
   onSelectFile,
   onSelectPlugin,
 }) => {
+  const {
+    games,
+    getGameNameById,
+    error: gamesError,
+  } = useContext(GamesContext);
+  const counts = useContext(DownloadCountsContext);
   const [showAddRemovePluginNotification, setShowAddRemovePluginNotification] =
     useState<boolean>(false);
   const { data: modData, error: modError } = useSWRImmutable(
@@ -149,6 +155,19 @@ const ModData: React.FC<Props> = ({
     if (pluginData) setSelectedCells(pluginData.cells);
   }, [pluginData, setSelectedCells]);
 
+  const renderDownloadCountsLoading = () => (
+    <div>Loading live download counts...</div>
+  );
+  const renderDownloadCountsError = (error: Error) => (
+    <div>{`Error loading live download counts: ${error.message}`}</div>
+  );
+  const renderGamesError = (error?: Error) =>
+    error ? (
+      <div>{`Error loading games: ${error.message}`}</div>
+    ) : (
+      <div>Error loading games</div>
+    );
+
   if (modError && modError.status === 404) {
     return <div>Mod could not be found.</div>;
   } else if (modError) {
@@ -160,7 +179,10 @@ const ModData: React.FC<Props> = ({
     return <div className={styles.status}>Mod could not be found.</div>;
 
   let numberFmt = new Intl.NumberFormat("en-US");
-  const modCounts = counts && counts[modData.nexus_mod_id];
+  const gameName = getGameNameById(modData.game_id);
+  const gameDownloadCounts = gameName && counts[gameName].counts;
+  const modCounts =
+    gameDownloadCounts && gameDownloadCounts[modData.nexus_mod_id];
   const total_downloads = modCounts ? modCounts[0] : 0;
   const unique_downloads = modCounts ? modCounts[1] : 0;
   const views = modCounts ? modCounts[2] : 0;
@@ -240,6 +262,12 @@ const ModData: React.FC<Props> = ({
           <strong>Last Update:</strong>{" "}
           {format(new Date(modData.last_update_at), "d MMM y")}
         </div>
+        {(!counts.skyrim.counts || !counts.skyrimspecialedition.counts) &&
+          renderDownloadCountsLoading()}
+        {(!games || gamesError) && renderGamesError(gamesError)}
+        {counts.skyrim.error && renderDownloadCountsError(counts.skyrim.error)}
+        {counts.skyrimspecialedition.error &&
+          renderDownloadCountsError(counts.skyrimspecialedition.error)}
         <div>
           <strong>Total Downloads:</strong> {numberFmt.format(total_downloads)}
         </div>

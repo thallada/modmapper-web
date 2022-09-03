@@ -3,10 +3,17 @@ import MiniSearch from "minisearch";
 import useSWRImmutable from "swr/immutable";
 
 import { jsonFetcher } from "../lib/api";
+import type { GameName } from "./GamesProvider";
 
 interface Mod {
   name: string;
   id: number;
+}
+
+interface ModWithGame {
+  name: string;
+  id: number;
+  game: GameName;
 }
 
 let cells = [];
@@ -42,32 +49,62 @@ export const SearchContext = createContext<SearchContext>({
 });
 
 const SearchProvider: React.FC = ({ children }) => {
-  const modSearch = useRef<MiniSearch<Mod> | null>(
-    null
-  ) as React.MutableRefObject<MiniSearch<Mod>>;
+  const modSearch = useRef<MiniSearch<ModWithGame>>(
+    new MiniSearch({
+      fields: ["name"],
+      storeFields: ["name", "id", "game"],
+      searchOptions: {
+        fields: ["name"],
+        fuzzy: 0.2,
+        prefix: true,
+      },
+    })
+  ) as React.MutableRefObject<MiniSearch<ModWithGame>>;
   const [loading, setLoading] = useState(true);
+  const [skyrimLoading, setSkyrimLoading] = useState(true);
+  const [skyrimspecialEditionLoading, setSkyrimspecialeditionLoading] =
+    useState(true);
 
-  const { data, error } = useSWRImmutable(
-    `https://mods.modmapper.com/mod_search_index.json`,
-    (_) => jsonFetcher<Mod[]>(_)
+  const { data: skyrimData, error: skyrimError } = useSWRImmutable(
+    `https://mods.modmapper.com/skyrim_mod_search_index.json`,
+    (_) => jsonFetcher<Mod[]>(_, { notFoundOk: false })
   );
+  const { data: skyrimspecialeditionData, error: skyrimspecialeditionError } =
+    useSWRImmutable(
+      `https://mods.modmapper.com/skyrimspecialedition_mod_search_index.json`,
+      (_) => jsonFetcher<Mod[]>(_, { notFoundOk: false })
+    );
 
   useEffect(() => {
-    if (data && !modSearch.current) {
-      modSearch.current = new MiniSearch({
-        fields: ["name"],
-        storeFields: ["name", "id"],
-        searchOptions: {
-          fields: ["name"],
-          fuzzy: 0.2,
-          prefix: true,
-        },
-      });
-      modSearch.current.addAllAsync(data).then(() => {
-        setLoading(false);
-      });
+    if (skyrimData) {
+      modSearch.current
+        .addAllAsync(skyrimData.map((mod) => ({ ...mod, game: "skyrim" })))
+        .then(() => {
+          setSkyrimLoading(false);
+        });
     }
-  }, [data]);
+  }, [skyrimData]);
+
+  useEffect(() => {
+    if (skyrimspecialeditionData) {
+      modSearch.current
+        .addAllAsync(
+          skyrimspecialeditionData.map((mod) => ({
+            ...mod,
+            game: "skyrimspecialedition",
+          }))
+        )
+        .then(() => {
+          setSkyrimspecialeditionLoading(false);
+        });
+    }
+  }, [skyrimspecialeditionData]);
+
+  useEffect(() => {
+    if (!skyrimLoading && !skyrimspecialEditionLoading) {
+      setLoading(false);
+    }
+  }, [skyrimLoading, skyrimspecialEditionLoading]);
 
   return (
     <SearchContext.Provider
@@ -75,7 +112,7 @@ const SearchProvider: React.FC = ({ children }) => {
         modSearch: modSearch.current,
         cellSearch,
         loading,
-        loadError: error,
+        loadError: skyrimspecialeditionError || skyrimError,
       }}
     >
       {children}

@@ -10,11 +10,7 @@ import { updateFetchedPlugin, PluginsByHashWithMods } from "../slices/plugins";
 import styles from "../styles/AddModDialog.module.css";
 import EscapeListener from "./EscapeListener";
 
-type Props = {
-  counts: Record<number, [number, number, number]> | null;
-};
-
-const AddModDialog: React.FC<Props> = ({ counts }) => {
+const AddModDialog: React.FC = () => {
   const [selectedMod, setSelectedMod] = useState<number | null>(null);
   const [selectedPlugin, setSelectedPlugin] = useState<string | null>(null);
   const [dialogShown, setDialogShown] = useState(false);
@@ -45,7 +41,6 @@ const AddModDialog: React.FC<Props> = ({ counts }) => {
           <dialog open={dialogShown} className={styles.dialog}>
             <h3>Add mod</h3>
             <SearchBar
-              counts={counts}
               sidebarOpen={false}
               placeholder="Search mods…"
               onSelectResult={(selectedItem) => {
@@ -60,7 +55,6 @@ const AddModDialog: React.FC<Props> = ({ counts }) => {
                 selectedMod={selectedMod}
                 selectedPlugin={selectedPlugin}
                 setSelectedPlugin={setSelectedPlugin}
-                counts={counts}
               />
             )}
             <menu>

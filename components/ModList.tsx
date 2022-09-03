@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { format } from "date-fns";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import MiniSearch from "minisearch";
 import Link from "next/link";
 import useSWRImmutable from "swr/immutable";
@@ -20,6 +20,8 @@ import {
   setIncludeTranslations,
 } from "../slices/modListFilters";
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
+import { DownloadCountsContext } from "./DownloadCountsProvider";
+import { GamesContext } from "./GamesProvider";
 
 const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
 const PAGE_SIZE = 50;
@@ -27,10 +29,15 @@ const PAGE_SIZE = 50;
 type Props = {
   mods: Mod[];
   files?: File[];
-  counts: Record<number, [number, number, number]> | null;
 };
 
-const ModList: React.FC<Props> = ({ mods, files, counts }) => {
+const ModList: React.FC<Props> = ({ mods, files }) => {
+  const {
+    games,
+    getGameNameById,
+    error: gamesError,
+  } = useContext(GamesContext);
+  const counts = useContext(DownloadCountsContext);
   const dispatch = useAppDispatch();
   const { sortBy, sortAsc, filter, category, includeTranslations } =
     useAppSelector((state) => state.modListFilters);
@@ -44,7 +51,10 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
 
   const modsWithCounts: ModWithCounts[] = mods
     .map((mod) => {
-      const modCounts = counts && counts[mod.nexus_mod_id];
+      const gameName = getGameNameById(mod.game_id);
+      const gameDownloadCounts = gameName && counts[gameName].counts;
+      const modCounts =
+        gameDownloadCounts && gameDownloadCounts[mod.nexus_mod_id];
       return {
         ...mod,
         total_downloads: modCounts ? modCounts[0] : 0,
@@ -81,6 +91,19 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
     });
 
   let numberFmt = new Intl.NumberFormat("en-US");
+
+  const renderDownloadCountsLoading = () => (
+    <div>Loading live download counts...</div>
+  );
+  const renderDownloadCountsError = (error: Error) => (
+    <div>{`Error loading live download counts: ${error.message}`}</div>
+  );
+  const renderGamesError = (error?: Error) =>
+    error ? (
+      <div>{`Error loading games: ${error.message}`}</div>
+    ) : (
+      <div>Error loading games</div>
+    );
 
   const modSearch = useRef<MiniSearch<Mod> | null>(
     null
@@ -247,6 +270,13 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
         </div>
         {renderPagination()}
         <ul className={styles["mod-list"]}>
+          {(!counts.skyrim.counts || !counts.skyrimspecialedition.counts) &&
+            renderDownloadCountsLoading()}
+          {(!games || gamesError) && renderGamesError(gamesError)}
+          {counts.skyrim.error &&
+            renderDownloadCountsError(counts.skyrim.error)}
+          {counts.skyrimspecialedition.error &&
+            renderDownloadCountsError(counts.skyrimspecialedition.error)}
           {modsWithCounts
             .slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
             .map((mod) => (
