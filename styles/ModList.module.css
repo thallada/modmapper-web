@@ -70,6 +70,11 @@
   width: 175px;
 }
 
+.game {
+  min-width: 175px;
+  width: 175px;
+}
+
 .filter {
   width: 175px;
 }

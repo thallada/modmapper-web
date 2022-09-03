@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
-import type { AppState, AppThunk } from "../lib/store"
 import type { Mod } from '../components/CellData';
 
 export type ModWithCounts = Mod & {
@@ -14,6 +13,7 @@ export type ModListFiltersState = {
   sortBy: keyof ModWithCounts,
   sortAsc: boolean,
   filter?: string,
+  game: string,
   category: string,
   includeTranslations: boolean,
 }
@@ -22,6 +22,7 @@ const initialState: ModListFiltersState = {
   sortBy: "unique_downloads",
   sortAsc: false,
   filter: undefined,
+  game: "All",
   category: "All",
   includeTranslations: true,
 };
@@ -42,6 +43,10 @@ export const modListFiltersSlice = createSlice({
       ...state,
       filter: action.payload,
     }),
+    setGame: (state, action: PayloadAction<string>) => ({
+      ...state,
+      game: action.payload,
+    }),
     setCategory: (state, action: PayloadAction<string>) => ({
       ...state,
       category: action.payload,
@@ -54,6 +59,6 @@ export const modListFiltersSlice = createSlice({
   },
 })
 
-export const { setSortBy, setSortAsc, setFilter, setCategory, setIncludeTranslations, clearFilters } = modListFiltersSlice.actions
+export const { setSortBy, setSortAsc, setFilter, setGame, setCategory, setIncludeTranslations, clearFilters } = modListFiltersSlice.actions
 
 export default modListFiltersSlice.reducer

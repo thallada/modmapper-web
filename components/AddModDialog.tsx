@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
 import useSWRImmutable from "swr/immutable";
 
@@ -10,12 +10,13 @@ import { updateFetchedPlugin, PluginsByHashWithMods } from "../slices/plugins";
 import styles from "../styles/AddModDialog.module.css";
 import EscapeListener from "./EscapeListener";
 
-type Props = {
-  counts: Record<number, [number, number, number]> | null;
-};
+export interface SelectedMod {
+  id: number;
+  game: string;
+}
 
-const AddModDialog: React.FC<Props> = ({ counts }) => {
-  const [selectedMod, setSelectedMod] = useState<number | null>(null);
+const AddModDialog: React.FC = () => {
+  const [selectedMod, setSelectedMod] = useState<SelectedMod | null>(null);
   const [selectedPlugin, setSelectedPlugin] = useState<string | null>(null);
   const [dialogShown, setDialogShown] = useState(false);
   const searchInput = useRef<HTMLInputElement | null>(null);
@@ -45,12 +46,14 @@ const AddModDialog: React.FC<Props> = ({ counts }) => {
           <dialog open={dialogShown} className={styles.dialog}>
             <h3>Add mod</h3>
             <SearchBar
-              counts={counts}
               sidebarOpen={false}
               placeholder="Search mods…"
               onSelectResult={(selectedItem) => {
                 if (selectedItem) {
-                  setSelectedMod(selectedItem.id);
+                  setSelectedMod({
+                    id: selectedItem.id,
+                    game: selectedItem.game,
+                  });
                 }
               }}
               inputRef={searchInput}
@@ -60,7 +63,6 @@ const AddModDialog: React.FC<Props> = ({ counts }) => {
                 selectedMod={selectedMod}
                 selectedPlugin={selectedPlugin}
                 setSelectedPlugin={setSelectedPlugin}
-                counts={counts}
               />
             )}
             <menu>

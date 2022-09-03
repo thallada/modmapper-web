@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { format } from "date-fns";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import MiniSearch from "minisearch";
 import Link from "next/link";
 import useSWRImmutable from "swr/immutable";
@@ -16,23 +16,31 @@ import {
   setSortBy,
   setSortAsc,
   setFilter,
+  setGame,
   setCategory,
   setIncludeTranslations,
 } from "../slices/modListFilters";
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
+import { DownloadCountsContext } from "./DownloadCountsProvider";
+import { GamesContext } from "./GamesProvider";
 
-const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
+const NEXUS_MODS_URL = "https://www.nexusmods.com";
 const PAGE_SIZE = 50;
 
 type Props = {
   mods: Mod[];
   files?: File[];
-  counts: Record<number, [number, number, number]> | null;
 };
 
-const ModList: React.FC<Props> = ({ mods, files, counts }) => {
+const ModList: React.FC<Props> = ({ mods, files }) => {
+  const {
+    games,
+    getGameNameById,
+    error: gamesError,
+  } = useContext(GamesContext);
+  const counts = useContext(DownloadCountsContext);
   const dispatch = useAppDispatch();
-  const { sortBy, sortAsc, filter, category, includeTranslations } =
+  const { sortBy, sortAsc, filter, category, game, includeTranslations } =
     useAppSelector((state) => state.modListFilters);
   const [filterResults, setFilterResults] = useState<Set<number>>(new Set());
   const [page, setPage] = useState<number>(0);
@@ -44,7 +52,10 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
 
   const modsWithCounts: ModWithCounts[] = mods
     .map((mod) => {
-      const modCounts = counts && counts[mod.nexus_mod_id];
+      const gameName = getGameNameById(mod.game_id);
+      const gameDownloadCounts = gameName && counts[gameName].counts;
+      const modCounts =
+        gameDownloadCounts && gameDownloadCounts[mod.nexus_mod_id];
       return {
         ...mod,
         total_downloads: modCounts ? modCounts[0] : 0,
@@ -59,6 +70,7 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
       (mod) =>
         (includeTranslations || !mod.is_translation) &&
         (!filter || filterResults.has(mod.id)) &&
+        (game === "All" || getGameNameById(mod.game_id) === game) &&
         (category === "All" || mod.category_name === category)
     )
     .sort((a, b) => {
@@ -81,6 +93,19 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
     });
 
   let numberFmt = new Intl.NumberFormat("en-US");
+
+  const renderDownloadCountsLoading = () => (
+    <div>Loading live download counts...</div>
+  );
+  const renderDownloadCountsError = (error: Error) => (
+    <div>{`Error loading live download counts: ${error.message}`}</div>
+  );
+  const renderGamesError = (error?: Error) =>
+    error ? (
+      <div>{`Error loading games: ${error.message}`}</div>
+    ) : (
+      <div>Error loading games</div>
+    );
 
   const modSearch = useRef<MiniSearch<Mod> | null>(
     null
@@ -204,6 +229,26 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
             />
           </div>
           <div className={styles["filter-row"]}>
+            <label htmlFor="game">Game:</label>
+            <select
+              name="game"
+              id="game"
+              className={styles["game"]}
+              value={game}
+              onChange={(event) => dispatch(setGame(event.target.value))}
+            >
+              <option value="All">All</option>
+              {games
+                ?.map((game) => game.name)
+                .sort()
+                .map((game) => (
+                  <option key={game} value={game}>
+                    {game}
+                  </option>
+                ))}
+            </select>
+          </div>
+          <div className={styles["filter-row"]}>
             <label htmlFor="category">Category:</label>
             <select
               name="category"
@@ -247,20 +292,33 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
         </div>
         {renderPagination()}
         <ul className={styles["mod-list"]}>
+          {(!counts.skyrim.counts || !counts.skyrimspecialedition.counts) &&
+            renderDownloadCountsLoading()}
+          {(!games || gamesError) && renderGamesError(gamesError)}
+          {counts.skyrim.error &&
+            renderDownloadCountsError(counts.skyrim.error)}
+          {counts.skyrimspecialedition.error &&
+            renderDownloadCountsError(counts.skyrimspecialedition.error)}
           {modsWithCounts
             .slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
             .map((mod) => (
               <li key={mod.id} className={styles["mod-list-item"]}>
                 <div className={styles["mod-title"]}>
                   <strong>
-                    <Link href={`/?mod=${mod.nexus_mod_id}`}>
+                    <Link
+                      href={`/?game=${getGameNameById(mod.game_id)}&mod=${
+                        mod.nexus_mod_id
+                      }`}
+                    >
                       <a>{mod.name}</a>
                     </Link>
                   </strong>
                 </div>
                 <div>
                   <a
-                    href={`${NEXUS_MODS_URL}/mods/${mod.nexus_mod_id}`}
+                    href={`${NEXUS_MODS_URL}/${getGameNameById(
+                      mod.game_id
+                    )}/mods/${mod.nexus_mod_id}`}
                     target="_blank"
                     rel="noreferrer noopener"
                   >
@@ -270,7 +328,9 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
                 <div>
                   <strong>Category:&nbsp;</strong>
                   <a
-                    href={`${NEXUS_MODS_URL}/mods/categories/${mod.category_id}`}
+                    href={`${NEXUS_MODS_URL}/${getGameNameById(
+                      mod.game_id
+                    )}/mods/categories/${mod.category_id}`}
                     target="_blank"
                     rel="noreferrer noopener"
                   >
@@ -280,7 +340,9 @@ const ModList: React.FC<Props> = ({ mods, files, counts }) => {
                 <div>
                   <strong>Author:&nbsp;</strong>
                   <a
-                    href={`${NEXUS_MODS_URL}/users/${mod.author_id}`}
+                    href={`${NEXUS_MODS_URL}/${getGameNameById(
+                      mod.game_id
+                    )}/users/${mod.author_id}`}
                     target="_blank"
                     rel="noreferrer noopener"
                   >

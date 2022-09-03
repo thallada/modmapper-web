@@ -4,9 +4,10 @@ import { SearchResult } from "minisearch";
 
 import { SearchContext } from "./SearchProvider";
 import styles from "../styles/SearchBar.module.css";
+import { DownloadCountsContext } from "./DownloadCountsProvider";
+import { GameName } from "./GamesProvider";
 
 type Props = {
-  counts: Record<number, [number, number, number]> | null;
   sidebarOpen: boolean;
   placeholder: string;
   onSelectResult: (item: SearchResult | null) => void;
@@ -15,13 +16,18 @@ type Props = {
   inputRef?: React.MutableRefObject<HTMLInputElement | null>;
 };
 
-interface Mod {
-  name: string;
-  id: number;
+function gamePrefex(game: GameName): string {
+  switch (game) {
+    case "skyrim":
+      return "[LE]";
+    case "skyrimspecialedition":
+      return "[SSE]";
+    default:
+      return "";
+  }
 }
 
 const SearchBar: React.FC<Props> = ({
-  counts,
   sidebarOpen,
   placeholder,
   onSelectResult,
@@ -29,11 +35,26 @@ const SearchBar: React.FC<Props> = ({
   fixed = false,
   inputRef,
 }) => {
+  const counts = useContext(DownloadCountsContext);
   const { cellSearch, modSearch, loading, loadError } =
     useContext(SearchContext);
   const searchInput = useRef<HTMLInputElement | null>(null);
   const [searchFocused, setSearchFocused] = useState<boolean>(false);
   const [results, setResults] = useState<SearchResult[]>([]);
+
+  const renderSearchIndexError = (error: Error) => (
+    <div className={styles.error}>
+      Error loading mod search index: {loadError.message}.
+    </div>
+  );
+  const renderDownloadCountsLoading = () => (
+    <div>Loading live download counts...</div>
+  );
+  const renderDownloadCountsError = (error: Error) => (
+    <div
+      className={styles.error}
+    >{`Error loading live download counts: ${error.message}`}</div>
+  );
 
   const {
     isOpen,
@@ -57,9 +78,11 @@ const SearchBar: React.FC<Props> = ({
         ) {
           results = results.concat(
             modSearch.search(inputValue).sort((resultA, resultB) => {
-              if (counts) {
-                const countA = counts[resultA.id];
-                const countB = counts[resultB.id];
+              const countsA = counts[resultA.game as GameName].counts;
+              const countsB = counts[resultB.game as GameName].counts;
+              if (countsA && countsB) {
+                const countA = countsA[resultA.id];
+                const countB = countsB[resultB.id];
                 const scoreA = resultA.score;
                 const scoreB = resultB.score;
                 if (countA && countB && scoreA && scoreB) {
@@ -130,14 +153,16 @@ const SearchBar: React.FC<Props> = ({
                   highlightedIndex === index ? styles["highlighted-result"] : ""
                 }`}
               >
-                {result.name}
+                {gamePrefex(result.game)} {result.name}
               </li>
             ))}
-          {loadError && (
-            <div className={styles.error}>
-              Error loading mod search index: {loadError}.
-            </div>
-          )}
+          {loadError && renderSearchIndexError(loadError)}
+          {counts.skyrim.error &&
+            renderDownloadCountsError(counts.skyrim.error)}
+          {counts.skyrimspecialedition.error &&
+            renderDownloadCountsError(counts.skyrimspecialedition.error)}
+          {(!counts.skyrim.counts || !counts.skyrimspecialedition.counts) &&
+            renderDownloadCountsLoading()}
         </ul>
       </div>
     </>

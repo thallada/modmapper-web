@@ -16,10 +16,9 @@ export interface Plugin {
 
 type Props = {
   plugin: Plugin;
-  counts: Record<number, [number, number, number]> | null;
 };
 
-const PluginData: React.FC<Props> = ({ plugin, counts }) => {
+const PluginData: React.FC<Props> = ({ plugin }) => {
   if (!plugin) {
     return <h3>Plugin could not be found.</h3>;
   }
