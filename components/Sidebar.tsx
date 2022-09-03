@@ -68,12 +68,20 @@ const Sidebar: React.FC<Props> = ({
             <h1 className={styles["cell-name-header"]}>
               Cell {selectedCell.x}, {selectedCell.y}
             </h1>
-            <CellData selectedCell={selectedCell} />;
+            <CellData selectedCell={selectedCell} />
             {renderLastModified(lastModified)}
           </div>
         </div>
       );
     } else if (router.query.mod) {
+      if (!router.query.game) {
+        router.replace(`/?game=skyrimspecialedition&mod=${router.query.mod}`);
+        return null;
+      }
+      const game =
+        typeof router.query.game === "string"
+          ? router.query.game
+          : router.query.game[0];
       const modId = parseInt(router.query.mod as string, 10);
       const fileId = parseInt(router.query.file as string, 10);
       const pluginHash = router.query.plugin as string;
@@ -91,6 +99,7 @@ const Sidebar: React.FC<Props> = ({
             </div>
             {!Number.isNaN(modId) && (
               <ModData
+                game={game}
                 selectedMod={modId}
                 selectedFile={fileId}
                 selectedPlugin={pluginHash}
@@ -123,7 +132,7 @@ const Sidebar: React.FC<Props> = ({
                   : router.query.plugin[0]
               }
             />
-            ;{renderLastModified(lastModified)}
+            {renderLastModified(lastModified)}
           </div>
         </div>
       );

@@ -16,6 +16,7 @@ import {
   setSortBy,
   setSortAsc,
   setFilter,
+  setGame,
   setCategory,
   setIncludeTranslations,
 } from "../slices/modListFilters";
@@ -23,7 +24,7 @@ import { useAppDispatch, useAppSelector } from "../lib/hooks";
 import { DownloadCountsContext } from "./DownloadCountsProvider";
 import { GamesContext } from "./GamesProvider";
 
-const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
+const NEXUS_MODS_URL = "https://www.nexusmods.com";
 const PAGE_SIZE = 50;
 
 type Props = {
@@ -39,7 +40,7 @@ const ModList: React.FC<Props> = ({ mods, files }) => {
   } = useContext(GamesContext);
   const counts = useContext(DownloadCountsContext);
   const dispatch = useAppDispatch();
-  const { sortBy, sortAsc, filter, category, includeTranslations } =
+  const { sortBy, sortAsc, filter, category, game, includeTranslations } =
     useAppSelector((state) => state.modListFilters);
   const [filterResults, setFilterResults] = useState<Set<number>>(new Set());
   const [page, setPage] = useState<number>(0);
@@ -69,6 +70,7 @@ const ModList: React.FC<Props> = ({ mods, files }) => {
       (mod) =>
         (includeTranslations || !mod.is_translation) &&
         (!filter || filterResults.has(mod.id)) &&
+        (game === "All" || getGameNameById(mod.game_id) === game) &&
         (category === "All" || mod.category_name === category)
     )
     .sort((a, b) => {
@@ -227,6 +229,26 @@ const ModList: React.FC<Props> = ({ mods, files }) => {
             />
           </div>
           <div className={styles["filter-row"]}>
+            <label htmlFor="game">Game:</label>
+            <select
+              name="game"
+              id="game"
+              className={styles["game"]}
+              value={game}
+              onChange={(event) => dispatch(setGame(event.target.value))}
+            >
+              <option value="All">All</option>
+              {games
+                ?.map((game) => game.name)
+                .sort()
+                .map((game) => (
+                  <option key={game} value={game}>
+                    {game}
+                  </option>
+                ))}
+            </select>
+          </div>
+          <div className={styles["filter-row"]}>
             <label htmlFor="category">Category:</label>
             <select
               name="category"
@@ -283,14 +305,20 @@ const ModList: React.FC<Props> = ({ mods, files }) => {
               <li key={mod.id} className={styles["mod-list-item"]}>
                 <div className={styles["mod-title"]}>
                   <strong>
-                    <Link href={`/?mod=${mod.nexus_mod_id}`}>
+                    <Link
+                      href={`/?game=${getGameNameById(mod.game_id)}&mod=${
+                        mod.nexus_mod_id
+                      }`}
+                    >
                       <a>{mod.name}</a>
                     </Link>
                   </strong>
                 </div>
                 <div>
                   <a
-                    href={`${NEXUS_MODS_URL}/mods/${mod.nexus_mod_id}`}
+                    href={`${NEXUS_MODS_URL}/${getGameNameById(
+                      mod.game_id
+                    )}/mods/${mod.nexus_mod_id}`}
                     target="_blank"
                     rel="noreferrer noopener"
                   >
@@ -300,7 +328,9 @@ const ModList: React.FC<Props> = ({ mods, files }) => {
                 <div>
                   <strong>Category:&nbsp;</strong>
                   <a
-                    href={`${NEXUS_MODS_URL}/mods/categories/${mod.category_id}`}
+                    href={`${NEXUS_MODS_URL}/${getGameNameById(
+                      mod.game_id
+                    )}/mods/categories/${mod.category_id}`}
                     target="_blank"
                     rel="noreferrer noopener"
                   >
@@ -310,7 +340,9 @@ const ModList: React.FC<Props> = ({ mods, files }) => {
                 <div>
                   <strong>Author:&nbsp;</strong>
                   <a
-                    href={`${NEXUS_MODS_URL}/users/${mod.author_id}`}
+                    href={`${NEXUS_MODS_URL}/${getGameNameById(
+                      mod.game_id
+                    )}/users/${mod.author_id}`}
                     target="_blank"
                     rel="noreferrer noopener"
                   >

@@ -1,7 +1,8 @@
 /** @type {import('next-sitemap').IConfig} */
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-const MOD_SEARCH_INDEX_URL = 'https://mods.modmapper.com/mod_search_index.json';
+const SSE_MOD_SEARCH_INDEX_URL = 'https://mods.modmapper.com/skyrimspecialedition/mod_search_index.json';
+const LE_MOD_SEARCH_INDEX_URL = 'https://mods.modmapper.com/skyrim/mod_search_index.json';
 
 module.exports = {
   siteUrl: process.env.SITE_URL || 'https://modmapper.com',
@@ -9,12 +10,21 @@ module.exports = {
   additionalPaths: async (config) => {
     const result = []
 
-    const response = await fetch(MOD_SEARCH_INDEX_URL);
-    const index = await response.json();
+    const skyrimResponse = await fetch(LE_MOD_SEARCH_INDEX_URL);
+    const skyrimIndex = await skyrimResponse.json();
 
-    for (const mod of index) {
+    const skyrimspecialeditionResponse = await fetch(SSE_MOD_SEARCH_INDEX_URL);
+    const skyrimspecialeditionIndex = await skyrimspecialeditionResponse.json();
+
+    for (const mod of skyrimIndex) {
       result.push({
-        loc: '/?mod=' + mod.id,
+        loc: `/?game=skyrim&mod=${mod.id}`,
+        changefreq: 'daily',
+      });
+    }
+    for (const mod of skyrimspecialeditionIndex) {
+      result.push({
+        loc: `/?game=skyrimspecialedition&mod=${mod.id}`,
         changefreq: 'daily',
       });
     }

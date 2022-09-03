@@ -66,12 +66,12 @@ const SearchProvider: React.FC = ({ children }) => {
     useState(true);
 
   const { data: skyrimData, error: skyrimError } = useSWRImmutable(
-    `https://mods.modmapper.com/skyrim_mod_search_index.json`,
+    `https://mods.modmapper.com/skyrim/mod_search_index.json`,
     (_) => jsonFetcher<Mod[]>(_, { notFoundOk: false })
   );
   const { data: skyrimspecialeditionData, error: skyrimspecialeditionError } =
     useSWRImmutable(
-      `https://mods.modmapper.com/skyrimspecialedition_mod_search_index.json`,
+      `https://mods.modmapper.com/skyrimspecialedition/mod_search_index.json`,
       (_) => jsonFetcher<Mod[]>(_, { notFoundOk: false })
     );
 
@@ -101,10 +101,18 @@ const SearchProvider: React.FC = ({ children }) => {
   }, [skyrimspecialeditionData]);
 
   useEffect(() => {
-    if (!skyrimLoading && !skyrimspecialEditionLoading) {
+    if (
+      (!skyrimLoading || skyrimError) &&
+      (!skyrimspecialEditionLoading || skyrimspecialeditionError)
+    ) {
       setLoading(false);
     }
-  }, [skyrimLoading, skyrimspecialEditionLoading]);
+  }, [
+    skyrimLoading,
+    skyrimError,
+    skyrimspecialEditionLoading,
+    skyrimspecialeditionError,
+  ]);
 
   return (
     <SearchContext.Provider

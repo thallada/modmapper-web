@@ -16,9 +16,15 @@ type Props = {
   inputRef?: React.MutableRefObject<HTMLInputElement | null>;
 };
 
-interface Mod {
-  name: string;
-  id: number;
+function gamePrefex(game: GameName): string {
+  switch (game) {
+    case "skyrim":
+      return "[LE]";
+    case "skyrimspecialedition":
+      return "[SSE]";
+    default:
+      return "";
+  }
 }
 
 const SearchBar: React.FC<Props> = ({
@@ -36,11 +42,11 @@ const SearchBar: React.FC<Props> = ({
   const [searchFocused, setSearchFocused] = useState<boolean>(false);
   const [results, setResults] = useState<SearchResult[]>([]);
 
-  const renderSearchIndexError = (error: Error) => {
+  const renderSearchIndexError = (error: Error) => (
     <div className={styles.error}>
-      Error loading mod search index: {loadError}.
-    </div>;
-  };
+      Error loading mod search index: {loadError.message}.
+    </div>
+  );
   const renderDownloadCountsLoading = () => (
     <div>Loading live download counts...</div>
   );
@@ -49,7 +55,6 @@ const SearchBar: React.FC<Props> = ({
       className={styles.error}
     >{`Error loading live download counts: ${error.message}`}</div>
   );
-  console.log(loadError);
 
   const {
     isOpen,
@@ -148,7 +153,7 @@ const SearchBar: React.FC<Props> = ({
                   highlightedIndex === index ? styles["highlighted-result"] : ""
                 }`}
               >
-                {result.name}
+                {gamePrefex(result.game)} {result.name}
               </li>
             ))}
           {loadError && renderSearchIndexError(loadError)}

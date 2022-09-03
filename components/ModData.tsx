@@ -79,9 +79,10 @@ export interface Mod {
   files: ModFile[];
 }
 
-export const NEXUS_MODS_URL = "https://www.nexusmods.com/skyrimspecialedition";
+export const NEXUS_MODS_URL = "https://www.nexusmods.com";
 
 type Props = {
+  game: string;
   selectedMod: number;
   selectedFile: number;
   selectedPlugin: string;
@@ -91,6 +92,7 @@ type Props = {
 };
 
 const ModData: React.FC<Props> = ({
+  game,
   selectedMod,
   selectedFile,
   selectedPlugin,
@@ -107,7 +109,7 @@ const ModData: React.FC<Props> = ({
   const [showAddRemovePluginNotification, setShowAddRemovePluginNotification] =
     useState<boolean>(false);
   const { data: modData, error: modError } = useSWRImmutable(
-    `https://mods.modmapper.com/${selectedMod}.json`,
+    `https://mods.modmapper.com/${game}/${selectedMod}.json`,
     (_) => jsonFetcher<Mod>(_)
   );
 
@@ -220,12 +222,16 @@ const ModData: React.FC<Props> = ({
           <meta
             key="og:url"
             property="og:url"
-            content={`https://modmapper.com/?mod=${modData.nexus_mod_id}`}
+            content={`https://modmapper.com/?game=${getGameNameById(
+              modData.game_id
+            )}&mod=${modData.nexus_mod_id}`}
           />
         </Head>
         <h1>
           <a
-            href={`${NEXUS_MODS_URL}/mods/${modData.nexus_mod_id}`}
+            href={`${NEXUS_MODS_URL}/${getGameNameById(modData.game_id)}/mods/${
+              modData.nexus_mod_id
+            }`}
             target="_blank"
             rel="noreferrer noopener"
             className={styles.name}
@@ -236,7 +242,9 @@ const ModData: React.FC<Props> = ({
         <div>
           <strong>Category:&nbsp;</strong>
           <a
-            href={`${NEXUS_MODS_URL}/mods/categories/${modData.category_id}`}
+            href={`${NEXUS_MODS_URL}/${getGameNameById(
+              modData.game_id
+            )}/mods/categories/${modData.category_id}`}
             target="_blank"
             rel="noreferrer noopener"
           >
@@ -247,7 +255,9 @@ const ModData: React.FC<Props> = ({
         <div>
           <strong>Author:&nbsp;</strong>
           <a
-            href={`${NEXUS_MODS_URL}/users/${modData.author_id}`}
+            href={`${NEXUS_MODS_URL}/${getGameNameById(
+              modData.game_id
+            )}/users/${modData.author_id}`}
             target="_blank"
             rel="noreferrer noopener"
           >

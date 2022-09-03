@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
 import useSWRImmutable from "swr/immutable";
 
@@ -10,8 +10,13 @@ import { updateFetchedPlugin, PluginsByHashWithMods } from "../slices/plugins";
 import styles from "../styles/AddModDialog.module.css";
 import EscapeListener from "./EscapeListener";
 
+export interface SelectedMod {
+  id: number;
+  game: string;
+}
+
 const AddModDialog: React.FC = () => {
-  const [selectedMod, setSelectedMod] = useState<number | null>(null);
+  const [selectedMod, setSelectedMod] = useState<SelectedMod | null>(null);
   const [selectedPlugin, setSelectedPlugin] = useState<string | null>(null);
   const [dialogShown, setDialogShown] = useState(false);
   const searchInput = useRef<HTMLInputElement | null>(null);
@@ -45,7 +50,10 @@ const AddModDialog: React.FC = () => {
               placeholder="Search mods…"
               onSelectResult={(selectedItem) => {
                 if (selectedItem) {
-                  setSelectedMod(selectedItem.id);
+                  setSelectedMod({
+                    id: selectedItem.id,
+                    game: selectedItem.game,
+                  });
                 }
               }}
               inputRef={searchInput}

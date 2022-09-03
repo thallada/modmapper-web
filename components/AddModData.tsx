@@ -7,9 +7,10 @@ import styles from "../styles/AddModData.module.css";
 import { jsonFetcher } from "../lib/api";
 import { DownloadCountsContext } from "./DownloadCountsProvider";
 import { GamesContext } from "./GamesProvider";
+import type { SelectedMod } from "./AddModDialog";
 
 type Props = {
-  selectedMod: number;
+  selectedMod: SelectedMod;
   selectedPlugin: string | null;
   setSelectedPlugin: (plugin: string) => void;
 };
@@ -28,7 +29,9 @@ const AddModData: React.FC<Props> = ({
   const [selectedFile, setSelectedFile] = useState<number | null>(null);
 
   const { data: modData, error: modError } = useSWRImmutable(
-    selectedMod ? `https://mods.modmapper.com/${selectedMod}.json` : null,
+    selectedMod
+      ? `https://mods.modmapper.com/${selectedMod.game}/${selectedMod.id}.json`
+      : null,
     (_) => jsonFetcher<Mod>(_)
   );
   const { data: fileData, error: fileError } = useSWRImmutable(
