@@ -31,7 +31,7 @@ const GamesProvider: React.FC = ({ children }) => {
   const getGameNameById = useCallback(
     (id: number): GameName | undefined => {
       if (data) {
-        return data.find((game) => (game.id = id))?.name;
+        return data.find((game) => game.id === id)?.name;
       }
     },
     [data]
