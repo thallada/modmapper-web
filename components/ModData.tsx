@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from "../lib/hooks";
 import CellList from "./CellList";
 import styles from "../styles/ModData.module.css";
 import { jsonFetcher } from "../lib/api";
+import { editionNames } from "../lib/games";
 import {
   PluginsByHashWithMods,
   removeFetchedPlugin,
@@ -239,6 +240,14 @@ const ModData: React.FC<Props> = ({
             {modData.name}
           </a>
         </h1>
+        <div>
+          <strong>Edition:&nbsp;</strong>
+          {
+            editionNames[
+              getGameNameById(modData.game_id) ?? "skyrimspecialedition"
+            ]
+          }
+        </div>
         <div>
           <strong>Category:&nbsp;</strong>
           <a

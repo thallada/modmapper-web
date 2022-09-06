@@ -20,6 +20,7 @@ import {
   setCategory,
   setIncludeTranslations,
 } from "../slices/modListFilters";
+import { editionNames } from "../lib/games";
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
 import { DownloadCountsContext } from "./DownloadCountsProvider";
 import { GamesContext } from "./GamesProvider";
@@ -229,7 +230,7 @@ const ModList: React.FC<Props> = ({ mods, files }) => {
             />
           </div>
           <div className={styles["filter-row"]}>
-            <label htmlFor="game">Game:</label>
+            <label htmlFor="game">Edition:</label>
             <select
               name="game"
               id="game"
@@ -243,7 +244,7 @@ const ModList: React.FC<Props> = ({ mods, files }) => {
                 .sort()
                 .map((game) => (
                   <option key={game} value={game}>
-                    {game}
+                    {editionNames[game]}
                   </option>
                 ))}
             </select>
@@ -324,6 +325,14 @@ const ModList: React.FC<Props> = ({ mods, files }) => {
                   >
                     View on Nexus Mods
                   </a>
+                </div>
+                <div>
+                  <strong>Edition:&nbsp;</strong>
+                  {
+                    editionNames[
+                      getGameNameById(mod.game_id) ?? "skyrimspecialedition"
+                    ]
+                  }
                 </div>
                 <div>
                   <strong>Category:&nbsp;</strong>

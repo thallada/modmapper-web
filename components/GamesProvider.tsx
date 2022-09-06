@@ -2,15 +2,13 @@ import React, { createContext, useCallback } from "react";
 import useSWRImmutable from "swr/immutable";
 
 import { jsonFetcher } from "../lib/api";
+import type { GameName } from "../lib/games";
 
 interface Game {
   id: number;
   name: GameName;
   nexus_game_id: number;
 }
-
-export type GameName = "skyrim" | "skyrimspecialedition";
-
 interface GamesContext {
   games?: Game[] | null;
   getGameNameById: (id: number) => GameName | undefined;
