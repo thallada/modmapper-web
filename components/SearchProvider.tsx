@@ -3,7 +3,7 @@ import MiniSearch from "minisearch";
 import useSWRImmutable from "swr/immutable";
 
 import { jsonFetcher } from "../lib/api";
-import type { GameName } from "./GamesProvider";
+import type { GameName } from "../lib/games";
 
 interface Mod {
   name: string;

@@ -5,7 +5,7 @@ import { SearchResult } from "minisearch";
 import { SearchContext } from "./SearchProvider";
 import styles from "../styles/SearchBar.module.css";
 import { DownloadCountsContext } from "./DownloadCountsProvider";
-import { GameName } from "./GamesProvider";
+import type { GameName } from "../lib/games";
 
 type Props = {
   sidebarOpen: boolean;
@@ -21,7 +21,7 @@ function gamePrefex(game: GameName): string {
     case "skyrim":
       return "[LE]";
     case "skyrimspecialedition":
-      return "[SSE]";
+      return "[SE]";
     default:
       return "";
   }
