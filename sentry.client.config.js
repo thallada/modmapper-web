@@ -20,7 +20,7 @@ Sentry.init({
   // that it will also get attached to your source maps
   beforeSend(event) {
     const logRocketSession = LogRocket.sessionURL;
-    if (logRocketSession !== null) {
+    if (event.extra && logRocketSession !== null) {
       event.extra["LogRocket"] = logRocketSession;
       return event;
     } else {
