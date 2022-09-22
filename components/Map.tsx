@@ -867,7 +867,12 @@ const Map: React.FC = () => {
                         query: { cell: `${selectedItem.x},${selectedItem.y}` },
                       });
                     } else {
-                      router.push({ query: { mod: selectedItem.id } });
+                      router.push({
+                        query: {
+                          game: selectedItem.game,
+                          mod: selectedItem.id,
+                        },
+                      });
                     }
                   }}
                   includeCells
