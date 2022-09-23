@@ -622,12 +622,7 @@ const Map: React.FC = () => {
         paint: {
           "fill-color": ["get", "color"],
           "fill-opacity": ["get", "opacity"],
-          "fill-outline-color": [
-            "case",
-            ["boolean", ["feature-state", "selected"], false],
-            "white",
-            "transparent",
-          ],
+          "fill-outline-color": "transparent",
         },
       },
       "grid-labels-layer"
