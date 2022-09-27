@@ -31,12 +31,6 @@ export class WorkerPool {
     return this;
   }
 
-  public async addWorker() {
-    const worker = await this.createWorker();
-    this.availableWorkers.push(worker);
-    this.assignWorker();
-  }
-
   public async createWorker(): Promise<Worker> {
     return new Promise((resolve) => {
       const worker = new Worker(new URL("../workers/PluginsLoader.worker.ts", import.meta.url));
@@ -49,12 +43,9 @@ export class WorkerPool {
         } else if (typeof data !== "string") {
           store.dispatch(decrementPending(1));
           store.dispatch(addParsedPluginInOrder(data));
-          // Since web assembly memory cannot be shrunk, replace worker with a fresh one to avoid slow repeated
-          // invocations on the same worker instance. Repeated invocations are so slow that the delay in creating a
-          // new worker is worth it. In practice, there are usually more workers than tasks, so the delay does not slow
-          // down processing.
-          worker.terminate();
-          this.addWorker();
+
+          this.availableWorkers.push(worker);
+          this.assignWorker()
         }
       };
     });
