@@ -25,7 +25,7 @@ colorGradient.setGradient(
   "#FFA500",
   "#FF0000"
 );
-colorGradient.setMidpoint(630);
+colorGradient.setMidpoint(730);
 
 const Map: React.FC = () => {
   const router = useRouter();
