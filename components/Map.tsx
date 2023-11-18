@@ -1,7 +1,8 @@
 import React, { useCallback, useRef, useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { saveAs } from "file-saver";
 import Gradient from "javascript-color-gradient";
-import mapboxgl from "mapbox-gl";
+import mapboxgl, { GeoJSONSource } from "mapbox-gl";
 import useSWRImmutable from "swr/immutable";
 
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
@@ -25,7 +26,14 @@ colorGradient.setGradient(
   "#FFA500",
   "#FF0000"
 );
-colorGradient.setMidpoint(730);
+colorGradient.setMidpoint(5);
+
+const dateToString = (date: Date): string => {
+  const year = date.getUTCFullYear().toString();
+  const month = `${date.getUTCMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getUTCDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 const Map: React.FC = () => {
   const router = useRouter();
@@ -64,10 +72,17 @@ const Map: React.FC = () => {
     (state) => state.plugins.selectedFetchedPlugin
   );
 
+  const [day, setDay] = useState(new Date('2011-11-11'));
   const { data: cellsData, error: cellsError } = useSWRImmutable(
-    "https://cells.modmapper.com/edits.json",
+    `http://localhost:8000/cell_edits_${dateToString(day)}.json`,
     (_) => jsonFetcherWithLastModified<Record<string, number>>(_)
   );
+
+  // useEffect(() => {
+  //   Object.defineProperty(window, 'devicePixelRatio', {
+  //       get: function() {return 300 / 96}
+  //   });
+  // }, []);
 
   const selectMapCell = useCallback(
     (cell: { x: number; y: number }) => {
@@ -425,7 +440,7 @@ const Map: React.FC = () => {
         ],
         glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
       },
-      center: [0, 0],
+      center: [0,0],
       zoom: 0,
       minZoom: 0,
       maxZoom: 8,
@@ -433,6 +448,7 @@ const Map: React.FC = () => {
         [-180, -85.051129],
         [180, 85.051129],
       ],
+      preserveDrawingBuffer: true,
     });
     map.current.on("load", () => {
       setMapLoaded(true);
@@ -591,7 +607,7 @@ const Map: React.FC = () => {
             cellY: 50 - y,
             label: `${x - 57}, ${50 - y}`,
             color: editCount ? colorGradient.getColor(editCount) : "#888888",
-            opacity: editCount ? Math.min((editCount / 150) * 0.25, 0.5) : 0,
+            opacity: editCount ? Math.min(editCount * 0.25, 0.5) : 0,
           },
         });
       }
@@ -805,7 +821,88 @@ const Map: React.FC = () => {
     });
 
     setHeatmapLoaded(true);
-  }, [cellsData, mapLoaded, router, setHeatmapLoaded]);
+  }, [cellsData, mapLoaded, router, setHeatmapLoaded, day, setDay]);
+
+  useEffect(() => {
+    if (!heatmapLoaded) return; // wait for heatmap to load
+    setTimeout(() => { // wait 1 second for it to *really* load
+      console.log('loaded');
+      map.current.getCanvas().toBlob((blob) => {
+        console.log('got blob');
+        saveAs(blob, `map_${dateToString(day)}.png`);
+        // will trigger new JSON fetch and re-render of the heatmap
+        const nextDay = new Date(day);
+        nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+        if (nextDay > new Date()) return;
+        setDay(nextDay);
+      });
+    }, 100);
+  }, [heatmapLoaded, day, setDay]);
+
+  useEffect(() => {
+    if (!heatmapLoaded || !cellsData) return;
+
+    const zoom = map.current.getZoom();
+    const viewportNW = map.current.project([-180, 85.051129]);
+    const cellSize = Math.pow(2, zoom + 2);
+
+    const grid: GeoJSON.FeatureCollection<
+      GeoJSON.Geometry,
+      GeoJSON.GeoJsonProperties
+    > = {
+      type: "FeatureCollection",
+      features: [],
+    };
+    for (let x = 0; x < 128; x += 1) {
+      for (let y = 0; y < 128; y += 1) {
+        let nw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y,
+        ]);
+        let ne = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y,
+        ]);
+        let se = map.current.unproject([
+          x * cellSize + viewportNW.x + cellSize,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        let sw = map.current.unproject([
+          x * cellSize + viewportNW.x,
+          y * cellSize + viewportNW.y + cellSize,
+        ]);
+        const editCount = cellsData.data[`${x - 57},${50 - y}`];
+        grid.features.push({
+          type: "Feature",
+          id: x * 1000 + y,
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [nw.lng, nw.lat],
+                [ne.lng, ne.lat],
+                [se.lng, se.lat],
+                [sw.lng, sw.lat],
+                [nw.lng, nw.lat],
+              ],
+            ],
+          },
+          properties: {
+            x: x,
+            y: y,
+            cellX: x - 57,
+            cellY: 50 - y,
+            label: `${x - 57}, ${50 - y}`,
+            color: editCount ? colorGradient.getColor(editCount) : "#888888",
+            opacity: editCount ? Math.min(editCount * 0.25, 0.5) : 0,
+          },
+        });
+      }
+    }
+    (map.current.getSource('grid-source') as GeoJSONSource).setData(grid);
+    console.log("refreshed grid");
+
+  }, [heatmapLoaded, cellsData]);
 
   return (
     <>
