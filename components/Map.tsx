@@ -23,20 +23,20 @@ colorGradient.setGradient(
   "#00FF00",
   "#FFFF00",
   "#FFA500",
-  "#FF0000"
+  "#FF0000",
 );
-colorGradient.setMidpoint(730);
+colorGradient.setMidpoint(1100);
 
 const Map: React.FC = () => {
   const router = useRouter();
   const mapContainer = useRef<HTMLDivElement | null>(
-    null
+    null,
   ) as React.MutableRefObject<HTMLDivElement>;
   const map = useRef<mapboxgl.Map | null>(
-    null
+    null,
   ) as React.MutableRefObject<mapboxgl.Map>;
   const mapWrapper = useRef<HTMLDivElement | null>(
-    null
+    null,
   ) as React.MutableRefObject<HTMLDivElement>;
 
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
@@ -57,16 +57,16 @@ const Map: React.FC = () => {
   const dispatch = useAppDispatch();
   const parsedPlugins = useAppSelector((state) => state.plugins.parsedPlugins);
   const fetchedPlugins = useAppSelector(
-    (state) => state.plugins.fetchedPlugins
+    (state) => state.plugins.fetchedPlugins,
   );
   const pluginsPending = useAppSelector((state) => state.plugins.pending);
   const selectedFetchedPlugin = useAppSelector(
-    (state) => state.plugins.selectedFetchedPlugin
+    (state) => state.plugins.selectedFetchedPlugin,
   );
 
   const { data: cellsData, error: cellsError } = useSWRImmutable(
     "https://cells.modmapper.com/edits.json",
-    (_) => jsonFetcherWithLastModified<Record<string, number>>(_)
+    (_) => jsonFetcherWithLastModified<Record<string, number>>(_),
   );
 
   const selectMapCell = useCallback(
@@ -82,7 +82,7 @@ const Map: React.FC = () => {
         },
         {
           selected: true,
-        }
+        },
       );
       map.current.removeFeatureState({ source: "selected-cell-source" });
       // map.current.removeFeatureState({ source: "conflicted-cell-source" });
@@ -94,7 +94,7 @@ const Map: React.FC = () => {
         {
           cellSelected: true,
           // modSelected: false,
-        }
+        },
       );
       requestAnimationFrame(() => map.current && map.current.resize());
 
@@ -130,7 +130,7 @@ const Map: React.FC = () => {
         panTo();
       }
     },
-    [map]
+    [map],
   );
 
   const selectCells = useCallback(
@@ -150,7 +150,7 @@ const Map: React.FC = () => {
           },
           {
             modSelected: true,
-          }
+          },
         );
         map.current.setFeatureState(
           {
@@ -159,7 +159,7 @@ const Map: React.FC = () => {
           },
           {
             conflicted: visited[id] === true ? true : false,
-          }
+          },
         );
         visited[id] = true;
       }
@@ -212,7 +212,7 @@ const Map: React.FC = () => {
         }
       }
     },
-    [map]
+    [map],
   );
 
   const selectCell = useCallback(
@@ -222,7 +222,7 @@ const Map: React.FC = () => {
       setSidebarOpen(true);
       selectMapCell(cell);
     },
-    [setSelectedCell, selectMapCell, router]
+    [setSelectedCell, selectMapCell, router],
   );
 
   const clearSelectedCell = useCallback(() => {
@@ -262,7 +262,7 @@ const Map: React.FC = () => {
         if (map.current) map.current.resize();
       });
     },
-    [map]
+    [map],
   );
 
   useEffect(() => {
@@ -295,7 +295,7 @@ const Map: React.FC = () => {
       setSidebarOpen(true);
       if (parsedPlugins && parsedPlugins.length > 0 && pluginsPending === 0) {
         const plugin = parsedPlugins.find(
-          (p) => p.hash === router.query.plugin
+          (p) => p.hash === router.query.plugin,
         );
         if (plugin && plugin.parsed) {
           const cells = [];
@@ -345,12 +345,12 @@ const Map: React.FC = () => {
           }
           return acc;
         },
-        []
+        [],
       );
       cells = cells.concat(
         fetchedPlugins
           .filter((plugin) => plugin.enabled)
-          .flatMap((plugin) => plugin.cells)
+          .flatMap((plugin) => plugin.cells),
       );
       selectCells(cells);
     }
@@ -611,7 +611,7 @@ const Map: React.FC = () => {
           "fill-opacity": 0,
         },
       },
-      "grid-labels-layer"
+      "grid-labels-layer",
     );
 
     map.current.addLayer(
@@ -625,7 +625,7 @@ const Map: React.FC = () => {
           "fill-outline-color": "transparent",
         },
       },
-      "grid-labels-layer"
+      "grid-labels-layer",
     );
 
     const selectedCellLines: GeoJSON.FeatureCollection<
